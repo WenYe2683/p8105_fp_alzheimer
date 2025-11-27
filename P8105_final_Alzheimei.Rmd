@@ -1,0 +1,51 @@
+---
+title: "P8105_final_Alzheimei"
+author: "bl3175, cw3747, lg3450, yw4662"
+date: "2025-11-27"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(patchwork)
+library(scales)
+library(dplyr)
+
+
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.asp = .6,
+  out.width = "90%"
+)
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+```
+
+
+## data import
+
+```{r}
+raw_az_data <- read.csv("./2015-2022 Alzheimer Data.csv") |>
+  janitor::clean_names()
+
+raw_az_data <- raw_az_data[-nrow(raw_az_data), ]
+```
+
+```{r}
+az_clean <- raw_az_data |>
+  filter(
+    !is.na(data_value),
+    !is.na(year_start),
+    !is.na(location_abbr)
+  )
+```
+
+
