@@ -109,10 +109,57 @@ az_cog_state_age_sex <- az_cog_summary_base |>
     mean_value = mean(data_value, na.rm = TRUE),
     .groups = "drop"
   ) |>
-  arrange(location_abbr, age_group, sex_group)
+  arrange(desc(mean_value))
 
 az_cog_state_age_sex
 ```
 
+### top 10 states (2015-2016)
+
+```{r}
+az_cog_65_overall <- az_cog_summary_base |>
+  filter(
+    age_group == "65 years or older",
+    sex_group == "Overall"
+  )
+
+nrow(az_cog_65_overall)
+sort(unique(az_cog_65_overall$year_start))
+```
+
+The CDC Healthy Aging dataset covers survey years 2015–2022. For topics coded as Cognitive Decline or Cognitive Impairment, data were only available in 2015–2016; therefore, our Alzheimer’s-related analyses are restricted to these two years.
+
+```{r}
+library(ggplot2)
+
+az_cog_65_overall <- az_cog_summary_base |>
+  filter(
+    age_group == "65 years or older",
+    sex_group == "Overall"
+  )
+
+years_use <- c(2015, 2016)
+
+az_cog_65_overall_15_16 <- az_cog_65_overall |>
+  filter(year_start %in% years_use)
+
+```
 
 
+```{r}
+top10_state_15_16 <- az_cog_65_overall_15_16 |>
+  group_by(location_abbr, location_desc) |>
+  summarise(
+    n_obs = n(),
+    mean_15_16 = mean(data_value, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(desc(mean_15_16)) |>
+  slice_head(n = 10)
+
+top10_state_15_16
+```
+
+Using data from 2015–2016, we ranked states and regions by the mean prevalence of Alzheimer’s-related cognitive indicators among adults aged 65 years and older (all sexes combined). The highest burden was observed in Puerto Rico (mean prevalence 47.9%), which was notably higher than any U.S. state or region. The Northeast region ranked second (33.6%), followed by Oklahoma (31.5%), Mississippi (31.4%), and the South region as a whole (31.0%). The remaining states in the top ten—South Dakota, Massachusetts, Alabama, Alaska, and South Carolina—all had mean prevalences around 30%. Overall, these results suggest substantial geographic variation in self-reported cognitive problems among older adults, with several Southern states and Puerto Rico showing particularly high levels.
+
+The Top 10 list for 2015–2016 is different from the earlier state–age–sex table because they summarize different things. The state–age–sex table ranks specific subgroups (for example, women aged 50–64 in Puerto Rico), so it shows where the highest subgroup prevalences occur. In contrast, the 2015–2016 Top 10 is based only on adults aged 65+ with sexes combined, giving one value per state. This ranking reflects overall burden in older adults, not the maximum value in any age–sex subgroup, and provides useful context for later stratified analyses or adjustment for potential confounders such as age, sex, or region.

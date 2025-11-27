@@ -152,7 +152,7 @@ az_cog_state_age_sex <- az_cog_summary_base |>
     mean_value = mean(data_value, na.rm = TRUE),
     .groups = "drop"
   ) |>
-  arrange(location_abbr, age_group, sex_group)
+  arrange(desc(mean_value))
 
 az_cog_state_age_sex
 ```
@@ -160,14 +160,106 @@ az_cog_state_age_sex
     ## # A tibble: 448 × 6
     ##    location_abbr location_desc age_group         sex_group n_obs mean_value
     ##    <chr>         <chr>         <chr>             <chr>     <int>      <dbl>
-    ##  1 AK            Alaska        50-64 years       Female        2       30.8
-    ##  2 AK            Alaska        50-64 years       Male          1       10.5
-    ##  3 AK            Alaska        50-64 years       Overall       8       29  
-    ##  4 AK            Alaska        65 years or older Female        2       32.3
-    ##  5 AK            Alaska        65 years or older Male          3       28.4
-    ##  6 AK            Alaska        65 years or older Overall       7       29.8
-    ##  7 AK            Alaska        Overall           Female        4       30.6
-    ##  8 AK            Alaska        Overall           Male          4       28  
-    ##  9 AK            Alaska        Overall           Overall       9       26.8
-    ## 10 AL            Alabama       50-64 years       Female        5       37.0
+    ##  1 PR            Puerto Rico   50-64 years       Female        4       59.8
+    ##  2 PR            Puerto Rico   50-64 years       Overall       8       58.2
+    ##  3 PR            Puerto Rico   Overall           Male          4       54.5
+    ##  4 PR            Puerto Rico   Overall           Overall       8       53.6
+    ##  5 PR            Puerto Rico   Overall           Female        4       52.8
+    ##  6 PR            Puerto Rico   65 years or older Overall       8       47.9
+    ##  7 RI            Rhode Island  50-64 years       Female        4       47.2
+    ##  8 OK            Oklahoma      50-64 years       Female        4       46.6
+    ##  9 DE            Delaware      50-64 years       Female        4       46.1
+    ## 10 PR            Puerto Rico   65 years or older Female        4       44.7
     ## # ℹ 438 more rows
+
+### top 10 states (2015-2016)
+
+``` r
+az_cog_65_overall <- az_cog_summary_base |>
+  filter(
+    age_group == "65 years or older",
+    sex_group == "Overall"
+  )
+
+nrow(az_cog_65_overall)
+```
+
+    ## [1] 609
+
+``` r
+sort(unique(az_cog_65_overall$year_start))
+```
+
+    ## [1] 2015 2016
+
+The CDC Healthy Aging dataset covers survey years 2015–2022. For topics
+coded as Cognitive Decline or Cognitive Impairment, data were only
+available in 2015–2016; therefore, our Alzheimer’s-related analyses are
+restricted to these two years.
+
+``` r
+library(ggplot2)
+
+az_cog_65_overall <- az_cog_summary_base |>
+  filter(
+    age_group == "65 years or older",
+    sex_group == "Overall"
+  )
+
+years_use <- c(2015, 2016)
+
+az_cog_65_overall_15_16 <- az_cog_65_overall |>
+  filter(year_start %in% years_use)
+```
+
+``` r
+top10_state_15_16 <- az_cog_65_overall_15_16 |>
+  group_by(location_abbr, location_desc) |>
+  summarise(
+    n_obs = n(),
+    mean_15_16 = mean(data_value, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(desc(mean_15_16)) |>
+  slice_head(n = 10)
+
+top10_state_15_16
+```
+
+    ## # A tibble: 10 × 4
+    ##    location_abbr location_desc  n_obs mean_15_16
+    ##    <chr>         <chr>          <int>      <dbl>
+    ##  1 PR            Puerto Rico        8       47.9
+    ##  2 NRE           Northeast         30       33.6
+    ##  3 OK            Oklahoma           8       31.5
+    ##  4 MS            Mississippi       14       31.4
+    ##  5 SOU           South             30       31.0
+    ##  6 SD            South Dakota       8       30.9
+    ##  7 MA            Massachusetts      5       30.8
+    ##  8 AL            Alabama           14       30.2
+    ##  9 AK            Alaska             7       29.8
+    ## 10 SC            South Carolina    14       29.5
+
+Using data from 2015–2016, we ranked states and regions by the mean
+prevalence of Alzheimer’s-related cognitive indicators among adults aged
+65 years and older (all sexes combined). The highest burden was observed
+in Puerto Rico (mean prevalence 47.9%), which was notably higher than
+any U.S. state or region. The Northeast region ranked second (33.6%),
+followed by Oklahoma (31.5%), Mississippi (31.4%), and the South region
+as a whole (31.0%). The remaining states in the top ten—South Dakota,
+Massachusetts, Alabama, Alaska, and South Carolina—all had mean
+prevalences around 30%. Overall, these results suggest substantial
+geographic variation in self-reported cognitive problems among older
+adults, with several Southern states and Puerto Rico showing
+particularly high levels.
+
+The Top 10 list for 2015–2016 is different from the earlier
+state–age–sex table because they summarize different things. The
+state–age–sex table ranks specific subgroups (for example, women aged
+50–64 in Puerto Rico), so it shows where the highest subgroup
+prevalences occur. In contrast, the 2015–2016 Top 10 is based only on
+adults aged 65+ with sexes combined, giving one value per state. This
+ranking reflects overall burden in older adults, not the maximum value
+in any age–sex subgroup, and provides useful context for later
+stratified analyses or adjustment for potential confounders such as age,
+sex, or region.
