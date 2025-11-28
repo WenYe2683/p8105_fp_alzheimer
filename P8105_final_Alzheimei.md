@@ -399,3 +399,150 @@ inc16 <- read_csv("median income-2016.csv", skip = 1) |>
 ``` r
 income_state <- bind_rows(inc15, inc16)
 ```
+
+### income by state
+
+``` r
+income_state_with_state <- income_state |>
+  mutate(
+    state = str_squish(str_extract(state_name, "[^,]+$")))
+
+income_state_level <- income_state_with_state |>
+  group_by(year, state) |>
+  summarise(
+    n_counties = n(),
+    median_income_state = median(median_income, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+income_state_level <- income_state_with_state |>
+  group_by(year, state) |>
+  summarise(
+    n_counties = n(),
+    median_state = median(median_income, na.rm = TRUE),
+    mean_state   = mean(median_income, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+income_state_level |> head(10)
+```
+
+    ## # A tibble: 10 × 5
+    ##     year state                n_counties median_state mean_state
+    ##    <dbl> <chr>                     <int>        <dbl>      <dbl>
+    ##  1  2015 Alabama                      21       43553      46460.
+    ##  2  2015 Alaska                        3       76427      76021.
+    ##  3  2015 Arizona                      10       45195      44712.
+    ##  4  2015 Arkansas                     11       46070      45950.
+    ##  5  2015 California                   40       58954      62095.
+    ##  6  2015 Colorado                     12       65960.     67584.
+    ##  7  2015 Connecticut                   8       70144.     72854.
+    ##  8  2015 Delaware                      3       56778      59366.
+    ##  9  2015 District of Columbia          1       75628      75628 
+    ## 10  2015 Florida                      40       49466.     49624.
+
+As the Healthy Aging dataset is designed to monitor cognitive health in
+older adults and Alzheimer’s disease primarily affects seniors, we
+restricted our analytic sample to respondents aged 65+ years. For the
+main state-level analysis, we used sex-grouped estimates labeled
+“Overall” rather than sex-specific values so that each state–year
+contributed a single prevalence estimate, simplifying the comparison
+with state-level income and avoiding multiple correlated observations
+per state.
+
+``` r
+state_vec <- unique(income_state_level$state)
+
+az_cog_65_overall_state <- az_cog_65_overall |>
+  filter(
+    year_start %in% c(2015, 2016),
+    sex_group == "Overall",
+    location_desc %in% state_vec
+  )
+
+az_income <- az_cog_65_overall_state |>
+  left_join(
+    income_state_level,
+    by = c("year_start" = "year",
+           "location_desc" = "state")
+  )
+```
+
+### relationship
+
+``` r
+ggplot(az_income,
+       aes(x = median_state, y = data_value,
+           color = factor(year_start))) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    x = "State-level median household income (USD)",
+    y = "Alzheimer’s-related cognitive prevalence (%)",
+    color = "Year",
+    title = "State-level cognitive burden vs income among adults 65+ (2015–2016)"
+  )
+```
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+<img src="P8105_final_Alzheimei_files/figure-gfm/unnamed-chunk-17-1.png" width="90%" />
+
+``` r
+model_inc <- lm(
+  data_value ~ median_state + factor(year_start),
+  data = az_income
+)
+
+summary(model_inc)
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = data_value ~ median_state + factor(year_start), 
+    ##     data = az_income)
+    ## 
+    ## Residuals:
+    ##     Min      1Q  Median      3Q     Max 
+    ## -26.243 -12.189  -1.897   9.829  35.404 
+    ## 
+    ## Coefficients:
+    ##                          Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)             3.805e+01  3.260e+00  11.672  < 2e-16 ***
+    ## median_state           -2.354e-04  5.762e-05  -4.085 5.25e-05 ***
+    ## factor(year_start)2016 -2.920e-01  1.723e+00  -0.169    0.866    
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 13.32 on 431 degrees of freedom
+    ## Multiple R-squared:  0.03882,    Adjusted R-squared:  0.03436 
+    ## F-statistic: 8.704 on 2 and 431 DF,  p-value: 0.0001968
+
+In a linear regression of state-level Alzheimer’s-related cognitive
+prevalence on median household income and survey year, higher income was
+associated with lower cognitive burden. The estimated coefficient for
+income was $\hat\beta_{\text{income}} = -2.35 \times 10^{-4}$, meaning
+that a \$1000 increase in state median income was associated with about
+a prevalence, and a \$10000 increase was associated with about a
+prevalence among adults aged 65+. The coefficient for survey year (2016
+vs 2015) was small ($\hat\beta = -0.29$), suggesting no clear overall
+difference between the two years after accounting for income. However,
+the model $R^2$ was only , indicating that income explains only a small
+fraction of the large between-state variation in cognitive outcomes.
+
+Although higher state-level income was statistically associated with
+lower Alzheimer’s-related cognitive prevalence, income explained only a
+small share of the between-state variability. Several factors may
+contribute to this weak relationship. First, the analysis is ecological:
+each observation is an aggregated state–year estimate, so large
+within-state differences in income and cognitive health are not
+captured, and any individual-level association is diluted. Second, both
+cognitive burden and income are measured with error (self-reported
+survey indicators and ACS estimates), and we further aggregated
+county-level income up to the state level, which may introduce
+additional noise. Third, we only examined two years (2015–2016), over
+which variation in both income and prevalence is fairly modest. Finally,
+many other state-level determinants—such as education, health care
+access, demographic composition, and prevalence of vascular risk
+factors—were not adjusted for, so income alone is unlikely to account
+for the wide variation in cognitive outcomes across states.

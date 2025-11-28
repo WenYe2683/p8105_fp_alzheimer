@@ -262,3 +262,83 @@ inc16 <- read_csv("median income-2016.csv", skip = 1) |>
 income_state <- bind_rows(inc15, inc16)
 ```
 
+### income by state
+
+```{r}
+income_state_with_state <- income_state |>
+  mutate(
+    state = str_squish(str_extract(state_name, "[^,]+$")))
+
+income_state_level <- income_state_with_state |>
+  group_by(year, state) |>
+  summarise(
+    n_counties = n(),
+    median_income_state = median(median_income, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+income_state_level <- income_state_with_state |>
+  group_by(year, state) |>
+  summarise(
+    n_counties = n(),
+    median_state = median(median_income, na.rm = TRUE),
+    mean_state   = mean(median_income, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+income_state_level |> head(10)
+```
+
+
+As the Healthy Aging dataset is designed to monitor cognitive health in older adults and Alzheimer’s disease primarily affects seniors, we restricted our analytic sample to respondents aged 65+ years. For the main state-level analysis, we used sex-grouped estimates labeled “Overall” rather than sex-specific values so that each state–year contributed a single prevalence estimate, simplifying the comparison with state-level income and avoiding multiple correlated observations per state.
+
+```{r}
+state_vec <- unique(income_state_level$state)
+
+az_cog_65_overall_state <- az_cog_65_overall |>
+  filter(
+    year_start %in% c(2015, 2016),
+    sex_group == "Overall",
+    location_desc %in% state_vec
+  )
+
+az_income <- az_cog_65_overall_state |>
+  left_join(
+    income_state_level,
+    by = c("year_start" = "year",
+           "location_desc" = "state")
+  )
+
+```
+
+### relationship
+
+```{r}
+ggplot(az_income,
+       aes(x = median_state, y = data_value,
+           color = factor(year_start))) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    x = "State-level median household income (USD)",
+    y = "Alzheimer’s-related cognitive prevalence (%)",
+    color = "Year",
+    title = "State-level cognitive burden vs income among adults 65+ (2015–2016)"
+  )
+```
+
+```{r}
+model_inc <- lm(
+  data_value ~ median_state + factor(year_start),
+  data = az_income
+)
+
+summary(model_inc)
+```
+
+In a linear regression of state-level Alzheimer’s-related cognitive prevalence on median household income and survey year, higher income was associated with lower cognitive burden. The estimated coefficient for income was
+$\hat\beta_{\text{income}} = -2.35 \times 10^{-4}$, meaning that a \$1000 increase in state median income was associated with about a \textbf{0.24–percentage-point lower} prevalence, and a \$10000 increase was associated with about a \textbf{2.35–percentage-point lower} prevalence among adults aged 65+. The coefficient for survey year (2016 vs 2015) was small ($\hat\beta = -0.29$), suggesting no clear overall difference between the two years after accounting for income. However, the model $R^2$ was only \textbf{0.04}, indicating that income explains only a small fraction of the large between-state variation in cognitive outcomes.
+
+Although higher state-level income was statistically associated with lower Alzheimer’s-related cognitive prevalence, income explained only a small share of the between-state variability. Several factors may contribute to this weak relationship. First, the analysis is ecological: each observation is an aggregated state–year estimate, so large within-state differences in income and cognitive health are not captured, and any individual-level association is diluted. Second, both cognitive burden and income are measured with error (self-reported survey indicators and ACS estimates), and we further aggregated county-level income up to the state level, which may introduce additional noise. Third, we only examined two years (2015–2016), over which variation in both income and prevalence is fairly modest. Finally, many other state-level determinants—such as education, health care access, demographic composition, and prevalence of vascular risk factors—were not adjusted for, so income alone is unlikely to account for the wide variation in cognitive outcomes across states.
+
+
