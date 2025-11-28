@@ -617,3 +617,101 @@ edu16_state_slim <- edu16_state |>
 
 edu_state <- bind_rows(edu15_state_slim, edu16_state_slim)
 ```
+
+``` r
+az_edu <- az_cog_65_overall_state |>
+  left_join(
+    edu_state,
+    by = c(
+      "year_start" = "year",
+      "location_desc" = "state"
+    ))
+```
+
+### relationship analysis
+
+``` r
+ggplot(az_edu,
+       aes(x = educ_bach,
+           y = data_value,
+           color = factor(year_start))) +
+  geom_point(alpha = 0.8) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    x = "State-level % with bachelor’s degree or higher (25+)",
+    y = "Alzheimer’s-related cognitive prevalence (%)",
+    color = "Year",
+    title = "State-level cognitive burden vs education among adults 65+ (2015–2016)"
+  ) +
+  theme_minimal()
+```
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+<img src="P8105_final_Alzheimei_files/figure-gfm/unnamed-chunk-22-1.png" width="90%" />
+
+``` r
+model_edu <- 
+  lm(
+  data_value ~ educ_bach + factor(year_start),
+  data = az_edu)
+
+summary(model_edu)
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = data_value ~ educ_bach + factor(year_start), data = az_edu)
+    ## 
+    ## Residuals:
+    ##     Min      1Q  Median      3Q     Max 
+    ## -19.554 -12.737  -2.077  10.376  39.346 
+    ## 
+    ## Coefficients:
+    ##                        Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)            29.87275    2.95268  10.117   <2e-16 ***
+    ## educ_bach              -0.16205    0.09617  -1.685   0.0927 .  
+    ## factor(year_start)2016 -1.13543    1.73643  -0.654   0.5135    
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 13.53 on 431 degrees of freedom
+    ## Multiple R-squared:  0.008142,   Adjusted R-squared:  0.003539 
+    ## F-statistic: 1.769 on 2 and 431 DF,  p-value: 0.1717
+
+In a linear regression of state-level Alzheimer’s-related cognitive
+prevalence on the percentage of adults with a bachelor’s degree or
+higher and survey year, higher education was associated with lower
+cognitive burden. The estimated coefficient for education was
+$\hat\beta_{\text{educ}} = -0.16$, meaning that a 1–percentage-point
+increase in the share of adults 25 years and older with at least a
+bachelor’s degree was associated with about a prevalence of
+Alzheimer’s-related cognitive problems among adults aged 65+. A
+10–percentage-point increase in educational attainment would correspond
+to roughly a prevalence. However, this association was relatively weak
+and not conventionally statistically significant (the approximate 95%
+confidence interval for $\hat\beta_{\text{educ}}$ ranges from about
+$-0.35$ to $0.03$). The coefficient for survey year (2016 vs 2015) was
+small ($\hat\beta = -1.14$), suggesting no clear overall difference
+between the two years after accounting for education. The model $R^2$
+was only about , indicating that education and year together explain
+only a small fraction of the large between-state variation in cognitive
+outcomes.
+
+Although states with higher levels of college education tended to have
+slightly lower Alzheimer’s-related cognitive prevalence, the
+relationship was weak and most of the between-state variability remained
+unexplained. Several factors may help explain this. First, the analysis
+is ecological: each data point is a state–year average, so big
+within-state differences in education and cognitive health are smoothed
+out, and any individual-level association is likely diluted. Second,
+both education and cognitive burden come from survey-based estimates and
+can be measured with error; on top of that, we aggregated county-level
+education indicators to the state level, which probably adds extra
+noise. Third, we only looked at two survey years (2015–2016), so there
+is not much variation over time in either education or cognitive
+outcomes. Finally, many other state-level factors—such as income, access
+to health care, population structure, and the prevalence of vascular and
+lifestyle risk factors—were not included in the model, so education
+alone is unlikely to explain the wide differences in cognitive outcomes
+across states.
