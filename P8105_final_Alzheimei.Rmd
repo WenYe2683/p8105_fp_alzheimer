@@ -342,3 +342,44 @@ $\hat\beta_{\text{income}} = -2.35 \times 10^{-4}$, meaning that a \$1000 increa
 Although higher state-level income was statistically associated with lower Alzheimer’s-related cognitive prevalence, income explained only a small share of the between-state variability. Several factors may contribute to this weak relationship. First, the analysis is ecological: each observation is an aggregated state–year estimate, so large within-state differences in income and cognitive health are not captured, and any individual-level association is diluted. Second, both cognitive burden and income are measured with error (self-reported survey indicators and ACS estimates), and we further aggregated county-level income up to the state level, which may introduce additional noise. Third, we only examined two years (2015–2016), over which variation in both income and prevalence is fairly modest. Finally, many other state-level determinants—such as education, health care access, demographic composition, and prevalence of vascular risk factors—were not adjusted for, so income alone is unlikely to account for the wide variation in cognitive outcomes across states.
 
 
+## Education Effects
+
+### data import
+
+```{r}
+edu15_raw <- read_csv("./education2015.csv", skip = 1) |>
+  janitor::clean_names()
+
+edu15_state <- edu15_raw |>
+  filter(!str_detect(geographic_area_name, ","))
+
+edu16_raw <- read_csv("./education2016.csv", skip = 1) |>
+  janitor::clean_names()
+
+edu16_state <- edu16_raw |>
+  filter(!str_detect(geographic_area_name, ","))
+```
+
+We used the proportion of adults aged 25 years and older with a bachelor’s degree or higher as our main education indicator. This measure is commonly reported in the ACS and captures individuals who have completed at least a four-year college education, which is often used as a marker of higher socioeconomic status and cognitive reserve in the literature. Compared with more detailed education categories, using “bachelor’s degree or higher” gives a simple, comparable summary of educational attainment across states and years.
+
+```{r}
+
+edu15_state_slim <- edu15_state |>
+  transmute(
+    year = 2015,
+    state = geographic_area_name,
+    educ_bach = as.numeric(percent_estimate_percent_bachelors_degree_or_higher)
+  )
+
+edu16_state_slim <- edu16_state |>
+  transmute(
+    year = 2016,
+    state = geographic_area_name,
+    educ_bach = as.numeric(percent_estimate_percent_bachelors_degree_or_higher)
+  )
+
+edu_state <- bind_rows(edu15_state_slim, edu16_state_slim)
+```
+
+  
+  

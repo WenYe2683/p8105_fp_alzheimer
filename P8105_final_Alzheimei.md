@@ -546,3 +546,74 @@ many other state-level determinants—such as education, health care
 access, demographic composition, and prevalence of vascular risk
 factors—were not adjusted for, so income alone is unlikely to account
 for the wide variation in cognitive outcomes across states.
+
+## Education Effects
+
+### data import
+
+``` r
+edu15_raw <- read_csv("./education2015.csv", skip = 1) |>
+  janitor::clean_names()
+```
+
+    ## New names:
+    ## Rows: 882 Columns: 771
+    ## ── Column specification
+    ## ──────────────────────────────────────────────────────── Delimiter: "," chr
+    ## (424): Geography, Geographic Area Name, Total!!Margin of Error!!Populati... dbl
+    ## (346): Total!!Estimate!!Population 18 to 24 years, Males!!Estimate!!Popu... lgl
+    ## (1): ...771
+    ## ℹ Use `spec()` to retrieve the full column specification for this data. ℹ
+    ## Specify the column types or set `show_col_types = FALSE` to quiet this message.
+    ## • `` -> `...771`
+
+``` r
+edu15_state <- edu15_raw |>
+  filter(!str_detect(geographic_area_name, ","))
+
+edu16_raw <- read_csv("./education2016.csv", skip = 1) |>
+  janitor::clean_names()
+```
+
+    ## New names:
+    ## Rows: 883 Columns: 771
+    ## ── Column specification
+    ## ──────────────────────────────────────────────────────── Delimiter: "," chr
+    ## (428): Geography, Geographic Area Name, Total!!Margin of Error!!Populati... dbl
+    ## (342): Total!!Estimate!!Population 18 to 24 years, Males!!Estimate!!Popu... lgl
+    ## (1): ...771
+    ## ℹ Use `spec()` to retrieve the full column specification for this data. ℹ
+    ## Specify the column types or set `show_col_types = FALSE` to quiet this message.
+    ## • `` -> `...771`
+
+``` r
+edu16_state <- edu16_raw |>
+  filter(!str_detect(geographic_area_name, ","))
+```
+
+We used the proportion of adults aged 25 years and older with a
+bachelor’s degree or higher as our main education indicator. This
+measure is commonly reported in the ACS and captures individuals who
+have completed at least a four-year college education, which is often
+used as a marker of higher socioeconomic status and cognitive reserve in
+the literature. Compared with more detailed education categories, using
+“bachelor’s degree or higher” gives a simple, comparable summary of
+educational attainment across states and years.
+
+``` r
+edu15_state_slim <- edu15_state |>
+  transmute(
+    year = 2015,
+    state = geographic_area_name,
+    educ_bach = as.numeric(percent_estimate_percent_bachelors_degree_or_higher)
+  )
+
+edu16_state_slim <- edu16_state |>
+  transmute(
+    year = 2016,
+    state = geographic_area_name,
+    educ_bach = as.numeric(percent_estimate_percent_bachelors_degree_or_higher)
+  )
+
+edu_state <- bind_rows(edu15_state_slim, edu16_state_slim)
+```
