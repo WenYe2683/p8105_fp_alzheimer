@@ -263,3 +263,89 @@ ranking reflects overall burden in older adults, not the maximum value
 in any age–sex subgroup, and provides useful context for later
 stratified analyses or adjustment for potential confounders such as age,
 sex, or region.
+
+## Distribution Difference
+
+### prevelance ~ year
+
+``` r
+az_nat_65_overall <- az_cog_65_overall |>
+  group_by(year = year_start) |>
+  summarise(
+    mean_prev = mean(data_value, na.rm = TRUE),
+    sd_prev   = sd(data_value, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+az_nat_65_overall |>
+  mutate(year = factor(year)) |>
+  ggplot(aes(x = year, y = mean_prev)) +
+  geom_col() +
+  labs(
+    x = "Year",
+    y = "Mean prevalence (%)",
+    title = "Alzheimer’s-related cognitive indicators among adults 65+, 2015–2016"
+  )
+```
+
+<img src="P8105_final_Alzheimei_files/figure-gfm/unnamed-chunk-11-1.png" width="90%" />
+
+At the national level, the mean prevalence of Alzheimer’s-related
+cognitive indicators among adults aged 65+ was very similar in 2015
+(26.0%) and 2016 (25.8%). The small difference of 0.2 percentage points
+is well within the between-state variation and does not suggest any
+clear change over this two-year period.
+
+### prevelance ~ age
+
+``` r
+az_age_desc <- az_cog_summary_base |>
+  group_by(age_group) |>
+  summarise(
+    n_obs      = n(),
+    mean_value = mean(data_value, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+ggplot(az_age_desc,
+       aes(x = age_group, y = mean_value)) +
+  geom_col() +
+  labs(
+    x = "Age group",
+    y = "Mean prevalence (%)",
+    title = "Alzheimer’s-related cognitive indicators by age group"
+  )
+```
+
+<img src="P8105_final_Alzheimei_files/figure-gfm/unnamed-chunk-12-1.png" width="90%" />
+
+Across all cognitive items, the mean prevalence was about 31.8% among
+adults aged 50–64 years and 25.8% among those aged 65 years or older.
+
+### prevelance ~ sex
+
+``` r
+az_sex_desc <- az_cog_summary_base |>
+  group_by(sex_group) |>
+  summarise(
+    n_obs      = n(),
+    mean_value = mean(data_value, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+ggplot(az_sex_desc,
+       aes(x = sex_group, y = mean_value)) +
+  geom_col() +
+  labs(
+    x = "Sex",
+    y = "Mean prevalence (%)",
+    title = "Alzheimer’s-related cognitive indicators by sex"
+  )
+```
+
+<img src="P8105_final_Alzheimei_files/figure-gfm/unnamed-chunk-13-1.png" width="90%" />
+
+Across all states and cognitive items in 2015–2016, women had a higher
+mean prevalence of Alzheimer’s-related cognitive indicators than men
+(30.9% vs 26.8%), suggesting a consistently greater reported cognitive
+burden among female respondents.
