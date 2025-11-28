@@ -237,4 +237,28 @@ ggplot(az_sex_desc,
 Across all states and cognitive items in 2015–2016, women had a higher mean prevalence of Alzheimer’s-related cognitive indicators than men (30.9% vs 26.8%), suggesting a consistently greater reported cognitive burden among female respondents.
 
 
+## Income Effects
+
+### data import
+
+```{r}
+inc15 <- read_csv("median income-2015.csv", skip = 1) |>
+  janitor::clean_names() |>
+  transmute(
+    year = 2015,
+    state_name = geographic_area_name,
+    median_income = as.numeric(median_income_dollars_estimate_households)
+  )
+
+
+inc16 <- read_csv("median income-2016.csv", skip = 1) |>
+  janitor::clean_names() |>
+  transmute(
+    year = 2016,
+    state_name = geographic_area_name,
+    median_income = as.numeric(median_income_dollars_estimate_households)
+  )
+
+income_state <- bind_rows(inc15, inc16)
+```
 

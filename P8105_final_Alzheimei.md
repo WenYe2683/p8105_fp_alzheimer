@@ -349,3 +349,53 @@ Across all states and cognitive items in 2015–2016, women had a higher
 mean prevalence of Alzheimer’s-related cognitive indicators than men
 (30.9% vs 26.8%), suggesting a consistently greater reported cognitive
 burden among female respondents.
+
+## Income Effects
+
+### data import
+
+``` r
+inc15 <- read_csv("median income-2015.csv", skip = 1) |>
+  janitor::clean_names() |>
+  transmute(
+    year = 2015,
+    state_name = geographic_area_name,
+    median_income = as.numeric(median_income_dollars_estimate_households)
+  )
+```
+
+    ## New names:
+    ## Rows: 830 Columns: 123
+    ## ── Column specification
+    ## ──────────────────────────────────────────────────────── Delimiter: "," chr
+    ## (83): Geography, Geographic Area Name, Total!!Estimate!!Households!!One ... dbl
+    ## (39): Total!!Estimate!!Households, Total!!Margin of Error!!Households, M... lgl
+    ## (1): ...123
+    ## ℹ Use `spec()` to retrieve the full column specification for this data. ℹ
+    ## Specify the column types or set `show_col_types = FALSE` to quiet this message.
+    ## • `` -> `...123`
+
+``` r
+inc16 <- read_csv("median income-2016.csv", skip = 1) |>
+  janitor::clean_names() |>
+  transmute(
+    year = 2016,
+    state_name = geographic_area_name,
+    median_income = as.numeric(median_income_dollars_estimate_households)
+  )
+```
+
+    ## New names:
+    ## Rows: 831 Columns: 123
+    ## ── Column specification
+    ## ──────────────────────────────────────────────────────── Delimiter: "," chr
+    ## (83): Geography, Geographic Area Name, Total!!Estimate!!Households!!One ... dbl
+    ## (39): Total!!Estimate!!Households, Total!!Margin of Error!!Households, M... lgl
+    ## (1): ...123
+    ## ℹ Use `spec()` to retrieve the full column specification for this data. ℹ
+    ## Specify the column types or set `show_col_types = FALSE` to quiet this message.
+    ## • `` -> `...123`
+
+``` r
+income_state <- bind_rows(inc15, inc16)
+```
