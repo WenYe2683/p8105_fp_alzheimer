@@ -355,7 +355,7 @@ burden among female respondents.
 ### data import
 
 ``` r
-inc15 <- read_csv("median income-2015.csv", skip = 1) |>
+inc15 <- read_csv("./median income-2015.csv", skip = 1) |>
   janitor::clean_names() |>
   transmute(
     year = 2015,
@@ -376,7 +376,7 @@ inc15 <- read_csv("median income-2015.csv", skip = 1) |>
     ## • `` -> `...123`
 
 ``` r
-inc16 <- read_csv("median income-2016.csv", skip = 1) |>
+inc16 <- read_csv("./median income-2016.csv", skip = 1) |>
   janitor::clean_names() |>
   transmute(
     year = 2016,

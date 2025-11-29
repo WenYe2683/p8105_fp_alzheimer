@@ -242,7 +242,7 @@ Across all states and cognitive items in 2015–2016, women had a higher mean pr
 ### data import
 
 ```{r}
-inc15 <- read_csv("median income-2015.csv", skip = 1) |>
+inc15 <- read_csv("./median income-2015.csv", skip = 1) |>
   janitor::clean_names() |>
   transmute(
     year = 2015,
@@ -251,7 +251,7 @@ inc15 <- read_csv("median income-2015.csv", skip = 1) |>
   )
 
 
-inc16 <- read_csv("median income-2016.csv", skip = 1) |>
+inc16 <- read_csv("./median income-2016.csv", skip = 1) |>
   janitor::clean_names() |>
   transmute(
     year = 2016,
