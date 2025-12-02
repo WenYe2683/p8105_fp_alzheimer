@@ -715,3 +715,334 @@ to health care, population structure, and the prevalence of vascular and
 lifestyle risk factors—were not included in the model, so education
 alone is unlikely to explain the wide differences in cognitive outcomes
 across states.
+
+## Alzheimer’s outcomes at state-year level
+
+``` r
+az_state_year <- az_cog_65_overall |>
+  filter(
+    year_start %in% c(2015, 2016),
+    sex_group == "Overall"
+  ) |>
+  group_by(
+    year       = year_start,
+    state_abbr = location_abbr,
+    state_name = location_desc
+  ) |>
+  summarise(
+    mean_prev = mean(data_value, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+head(az_state_year)
+```
+
+    ## # A tibble: 6 × 4
+    ##    year state_abbr state_name           mean_prev
+    ##   <int> <chr>      <chr>                    <dbl>
+    ## 1  2015 AL         Alabama                   30.2
+    ## 2  2015 AR         Arkansas                  27.6
+    ## 3  2015 AZ         Arizona                   23.4
+    ## 4  2015 CA         California                25.7
+    ## 5  2015 CO         Colorado                  22.8
+    ## 6  2015 DC         District of Columbia      30.3
+
+## Air Pollution Effects
+
+### Data import
+
+``` r
+air15 <- read_csv("data/clean_air_state_2015.csv")
+```
+
+    ## Rows: 52 Columns: 4
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr (1): state_abbr
+    ## dbl (3): n_counties, pm25_wtd_mean, year
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
+air16 <- read_csv("data/clean_air_state_2016.csv")
+```
+
+    ## Rows: 52 Columns: 4
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr (1): state_abbr
+    ## dbl (3): n_counties, pm25_wtd_mean, year
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
+air_state <- bind_rows(air15, air16)
+
+air_state |> head()
+```
+
+    ## # A tibble: 6 × 4
+    ##   state_abbr n_counties pm25_wtd_mean  year
+    ##   <chr>           <dbl>         <dbl> <dbl>
+    ## 1 AK                  5         10.3   2015
+    ## 2 AL                 18          9.02  2015
+    ## 3 AR                 11          8.82  2015
+    ## 4 AZ                 13          7.7   2015
+    ## 5 CA                 51          9.83  2015
+    ## 6 CO                 26          6.38  2015
+
+We used state-level fine particulate matter (PM2.5) concentrations as
+our primary indicator of air pollution. Specifically, we relied on the
+24-hour weighted mean PM2.5 values derived from EPA AirData annual
+summary reports. These data were originally reported at the county level
+and then aggregated to obtain state–year averages for 2015 and 2016,
+matching the years available in the CDC Healthy Aging cognitive dataset.
+
+``` r
+air_state_level <- air_state |>
+  group_by(year, state_abbr) |>
+  summarise(
+    pm25_state = mean(pm25_wtd_mean, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+air_state_level |> head(10)
+```
+
+    ## # A tibble: 10 × 3
+    ##     year state_abbr pm25_state
+    ##    <dbl> <chr>           <dbl>
+    ##  1  2015 AK              10.3 
+    ##  2  2015 AL               9.02
+    ##  3  2015 AR               8.82
+    ##  4  2015 AZ               7.7 
+    ##  5  2015 CA               9.83
+    ##  6  2015 CO               6.38
+    ##  7  2015 CT               8.1 
+    ##  8  2015 DE               8.57
+    ##  9  2015 FL               6.54
+    ## 10  2015 GA               9.02
+
+### merge with Alzheimer’s outcomes
+
+``` r
+az_cog_65_overall_state <- az_cog_65_overall |>
+  filter(
+    year_start %in% c(2015, 2016),
+    sex_group == "Overall"
+  )
+
+az_air <- az_cog_65_overall_state |>
+  left_join(
+    air_state_level,
+    by = c(
+      "year_start"    = "year",
+      "location_abbr" = "state_abbr"
+    )
+  )
+
+az_air |>
+  select(year_start, location_desc, pm25_state, data_value) |>
+  head(10)
+```
+
+    ##    year_start        location_desc pm25_state data_value
+    ## 1        2015 District of Columbia         NA       46.4
+    ## 2        2015              Alabama   9.021429       36.8
+    ## 3        2015             Colorado   6.377778       19.6
+    ## 4        2015              Alabama   9.021429       12.5
+    ## 5        2015              Georgia   9.025000       37.5
+    ## 6        2015               Hawaii   6.725000       15.1
+    ## 7        2015                 Iowa   8.415385        9.8
+    ## 8        2015             Colorado   6.377778       10.5
+    ## 9        2015              Alabama   9.021429       33.4
+    ## 10       2015              Arizona   7.700000       20.7
+
+For consistency with the income and education analyses, we restricted
+the sample to adults aged 65+ years and used the sex-grouped estimates
+labeled “Overall”. Each state–year therefore contributes a single
+Alzheimer’s-related prevalence value, which we then merged with the
+corresponding state–year PM2.5 concentration.
+
+### relationship analysis
+
+``` r
+ggplot(az_air,
+       aes(x = pm25_state,
+           y = data_value, 
+           color = factor(year_start))) +
+  geom_point(alpha = 0.8) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    x = "State-level PM2.5 weighted mean (µg/m³)",
+    y = "Alzheimer’s-related cognitive prevalence (%)",
+    color = "Year",
+    title = "State-level cognitive burden vs PM2.5 among adults 65+ (2015–2016)"
+  ) +
+  theme_minimal()
+```
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+    ## Warning: Removed 187 rows containing non-finite outside the scale range
+    ## (`stat_smooth()`).
+
+    ## Warning: Removed 187 rows containing missing values or values outside the scale range
+    ## (`geom_point()`).
+
+<img src="P8105_final_Alzheimei_files/figure-gfm/unnamed-chunk-28-1.png" width="90%" />
+
+``` r
+model_air <- lm(
+  data_value ~ pm25_state + factor(year_start),
+  data = az_air
+)
+
+summary(model_air)
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = data_value ~ pm25_state + factor(year_start), data = az_air)
+    ## 
+    ## Residuals:
+    ##     Min      1Q  Median      3Q     Max 
+    ## -18.972 -12.651  -2.391  10.294  39.928 
+    ## 
+    ## Coefficients:
+    ##                        Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)             26.5460     4.4889   5.914 6.95e-09 ***
+    ## pm25_state              -0.2067     0.5494  -0.376    0.707    
+    ## factor(year_start)2016  -1.1602     1.7507  -0.663    0.508    
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 13.49 on 419 degrees of freedom
+    ##   (187 observations deleted due to missingness)
+    ## Multiple R-squared:  0.001254,   Adjusted R-squared:  -0.003514 
+    ## F-statistic: 0.263 on 2 and 419 DF,  p-value: 0.7689
+
+In a linear regression of state-level Alzheimer’s-related cognitive
+prevalence on PM2.5 and survey year, we did not observe a clear
+association between air pollution and cognitive burden among adults aged
+65+. The estimated coefficient for PM2.5 was
+$\hat\beta_{\text{PM2.5}} =$ -0.207, meaning that a 1–µg/m³ increase in
+the state-level PM2.5 weighted mean was associated with an estimated
+-0.207–percentage-point change in Alzheimer’s-related cognitive
+prevalence. A 10–µg/m³ difference in PM2.5 would therefore correspond to
+roughly -2.07 percentage points. However, this association was small and
+not statistically significant (p = 0.707), indicating that PM2.5 is not
+a strong predictor of between-state differences in cognitive burden in
+this model.
+
+The coefficient for survey year (2016 vs 2015) was
+$\hat\beta_{\text{year}} =$ -1.16 with p = 0.508, suggesting no
+meaningful overall change in prevalence between the two years after
+accounting for PM2.5. The model $R^2$ was only 0.001, implying that
+PM2.5 and year together explain only a negligible fraction of the
+substantial between-state variation in Alzheimer’s-related cognitive
+outcomes. This is not surprising given the ecological nature of the
+analysis (state-level averages), potential measurement error in both
+pollution and cognitive indicators, the short two-year time window, and
+the absence of other important determinants such as income, education,
+demographics, and health care access.
+
+## Mapping Alzheimer’s-related Cognitive Burden
+
+### State-level choropleth map for 2015
+
+``` r
+library(maps)
+library(stringr)
+
+az_2015 = az_state_year |> 
+  filter(year == 2015)
+
+us_map = map_data("state") |> as_tibble()
+
+az_map_2015 = az_2015 |> 
+  mutate(region = str_to_lower(state_name)) |> 
+  inner_join(us_map, by = "region")
+
+ggplot(az_map_2015,
+       aes(long, lat, group = group, fill = mean_prev)) +
+  geom_polygon(color = "white", linewidth = 0.2) +
+  coord_fixed(1.3) +
+  scale_fill_viridis_c(option = "C") +
+  labs(
+    title = "Alzheimer’s-related cognitive prevalence (Age 65+, 2015)",
+    fill  = "Prevalence (%)"
+  ) +
+  theme_void() +
+  theme(legend.position = "right")
+```
+
+<img src="P8105_final_Alzheimei_files/figure-gfm/map_2015-1.png" width="90%" />
+
+### State-level choropleth map for 2016
+
+``` r
+library(maps)
+library(stringr)
+
+az_2016 = az_state_year |> 
+  filter(year == 2016)
+
+us_map = map_data("state") |> as_tibble()
+
+az_map_2016 = az_2016 |> 
+  mutate(region = str_to_lower(state_name)) |> 
+  inner_join(us_map, by = "region")
+
+ggplot(az_map_2016,
+       aes(long, lat, group = group, fill = mean_prev)) +
+  geom_polygon(color = "white", linewidth = 0.2) +
+  coord_fixed(1.3) +
+  scale_fill_viridis_c(option = "C") +
+  labs(
+    title = "Alzheimer’s-related cognitive prevalence (Age 65+, 2016)",
+    fill  = "Prevalence (%)"
+  ) +
+  theme_void() +
+  theme(legend.position = "right")
+```
+
+<img src="P8105_final_Alzheimei_files/figure-gfm/map_2016-1.png" width="90%" />
+
+### Side-by-side Comparison (2015 vs 2016)
+
+``` r
+az_15_16 = az_state_year |> 
+  filter(year %in% c(2015, 2016))
+
+us_map = map_data("state") |> as_tibble()
+
+az_map_15_16 = az_15_16 |> 
+  mutate(region = str_to_lower(state_name)) |> 
+  inner_join(us_map, by = "region")
+
+ggplot(az_map_15_16,
+       aes(long, lat, group = group, fill = mean_prev)) +
+  geom_polygon(color = "white", linewidth = 0.2) +
+  coord_fixed(1.3) +
+  scale_fill_viridis_c(option = "C") +
+  labs(
+    title = "Alzheimer’s-related cognitive prevalence (Age 65+, 2015–2016)",
+    fill  = "Prevalence (%)"
+  ) +
+  theme_void() +
+  theme(legend.position = "right") +
+  facet_wrap(~ year)
+```
+
+<img src="P8105_final_Alzheimei_files/figure-gfm/map_compare_2015_2016-1.png" width="90%" />
+
+Geographic patterns of Alzheimer’s-related cognitive prevalence were
+visualized using state-level choropleth maps for 2015 and 2016. In both
+years, several Southern and Southeastern states showed higher prevalence
+levels, while many Western and Northeastern states displayed noticeably
+lower burdens. The spatial distribution remained largely consistent
+between 2015 and 2016, suggesting limited short-term change in
+geographic patterns of cognitive burden among adults aged 65+.
