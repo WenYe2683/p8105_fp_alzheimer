@@ -1,0 +1,166 @@
+---
+title: "Alzheimer's Disease and Cognitive Health in USA"
+output: 
+    html_document:
+      toc: true
+      toc_float: true
+      theme: united
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(tidyverse)
+library(plotly)
+library(leaflet)
+```
+
+<style>
+.hero-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 60px 20px;
+  border-radius: 10px;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.stat-box {
+  background-color: #f8f9fa;
+  border-left: 4px solid #667eea;
+  padding: 20px;
+  margin: 15px 0;
+  border-radius: 5px;
+}
+
+.card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 25px;
+  margin: 20px 0;
+  transition: transform 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+</style>
+
+<div class="hero-section">
+<div style="font-size: 2.5em; font-weight: bold; margin-bottom: 10px;">Understanding Alzheimer's Disease and Cognitive Health in America</div>
+<p style="font-size: 1.2em; margin-top: 20px;">
+A comprehensive analysis of cognitive decline patterns, socioeconomic factors, and environmental influences across the United States (2015-2016)
+</p>
+</div>
+
+
+# Project Overview
+
+Alzheimer's disease and related cognitive impairments represent one of the most pressing public health challenges facing our aging population. This project examines geographic, demographic, and environmental patterns associated with cognitive decline among older adults in the United States.
+
+<div class="stat-box">
+<strong>Key Dataset Statistics:</strong>
+
+- **32,616** total observations from CDC BRFSS
+- **59** states and territories analyzed
+- **2015-2016** survey years for cognitive data
+- **39** distinct health topics covered
+</div>
+
+# Quick Navigation
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 30px;">
+
+<div class="card">
+**[About the Project](about.html)**
+
+Learn about our team, motivation, and methodology
+</div>
+
+<div class="card">
+**[Data Sources](data.html)**
+
+Explore the CDC BRFSS, EPA, and Census datasets used in our analysis
+</div>
+
+<div class="card">
+**[Exploratory Analysis](exploratory.html)**
+
+View visualizations and geographic patterns of cognitive health
+</div>
+
+<div class="card">
+**[Statistical Analysis](statistical_analysis.html)**
+
+Examine regression models and statistical findings
+</div>
+
+<div class="card">
+**[Interactive Dashboard](dashboard.html)**
+
+Explore data dynamically with our interactive visualizations
+</div>
+
+<div class="card">
+**[Full Report](report.html)**
+
+Read the complete technical report with detailed methodology
+</div>
+
+</div>
+
+
+# Research Questions
+
+Our analysis explores three critical dimensions of cognitive health:
+
+<div class="card">
+## 1. Geographic Disparities
+Which U.S. states and regions show the highest prevalence of cognitive decline among adults aged 65 and older? How do these patterns vary between 2015 and 2016?
+</div>
+
+<div class="card">
+## 2. Socioeconomic Factors
+How do income levels and educational attainment relate to Alzheimer's-related cognitive outcomes across states?
+</div>
+
+<div class="card">
+## 3. Environmental Influences
+Does air pollution (measured by PM2.5 concentrations) show an association with state-level cognitive burden?
+</div>
+
+# Why This Matters
+
+Cognitive decline and Alzheimer's disease affect millions of Americans and their families:
+
+- Alzheimer's is the **6th leading cause of death** in the United States
+- An estimated **6.9 million Americans** aged 65+ are living with Alzheimer's disease
+- Understanding geographic and socioeconomic patterns can help target interventions and resources
+- Environmental factors may offer modifiable risk factors for prevention strategies
+
+# Dataset Highlights
+
+Our primary data source is the **CDC Alzheimer's Disease and Healthy Aging Data**, derived from the Behavioral Risk Factor Surveillance System (BRFSS). We focused on survey items related to:
+
+- **Cognitive decline** among adults aged 45+
+- **Cognitive impairment** and its impact on daily activities
+- **Caregiver burden** associated with memory problems
+
+These self-reported measures capture the population-level burden of Alzheimer's-related cognitive issues, though they differ from clinical diagnoses.
+
+---
+
+<div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 40px;">
+# Project Team
+
+**Group Members:** bl3175, cw3747, lg3450, yw4662
+
+**Institution:** Columbia University Mailman School of Public Health
+
+**Course:** P8105 Data Science I
+
+**Date:** December 2024
+
+[Know More About Us!](about_us.html) | [Watch Project Video](#)
+</div>
