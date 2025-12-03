@@ -5,36 +5,8 @@ bl3175, cw3747, lg3450, yw4662
 
 ``` r
 library(tidyverse)
-```
-
-    ## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-    ## ✔ dplyr     1.1.4     ✔ readr     2.1.5
-    ## ✔ forcats   1.0.0     ✔ stringr   1.5.1
-    ## ✔ ggplot2   3.5.2     ✔ tibble    3.3.0
-    ## ✔ lubridate 1.9.4     ✔ tidyr     1.3.1
-    ## ✔ purrr     1.1.0     
-    ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-    ## ✖ dplyr::filter() masks stats::filter()
-    ## ✖ dplyr::lag()    masks stats::lag()
-    ## ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
-
-``` r
 library(patchwork)
 library(scales)
-```
-
-    ## 
-    ## Attaching package: 'scales'
-    ## 
-    ## The following object is masked from 'package:purrr':
-    ## 
-    ##     discard
-    ## 
-    ## The following object is masked from 'package:readr':
-    ## 
-    ##     col_factor
-
-``` r
 library(dplyr)
 
 
@@ -60,12 +32,7 @@ scale_fill_discrete = scale_fill_viridis_d
 ``` r
 raw_az_data <- read.csv("./2015-2022 Alzheimer Data.csv") |>
   janitor::clean_names()
-```
 
-    ## Warning in scan(file = file, what = what, sep = sep, quote = quote, dec = dec,
-    ## : EOF within quoted string
-
-``` r
 raw_az_data <- raw_az_data[-nrow(raw_az_data), ]
 ```
 
@@ -362,20 +329,8 @@ inc15 <- read_csv("./median income-2015.csv", skip = 1) |>
     state_name = geographic_area_name,
     median_income = as.numeric(median_income_dollars_estimate_households)
   )
-```
 
-    ## New names:
-    ## Rows: 830 Columns: 123
-    ## ── Column specification
-    ## ──────────────────────────────────────────────────────── Delimiter: "," chr
-    ## (83): Geography, Geographic Area Name, Total!!Estimate!!Households!!One ... dbl
-    ## (39): Total!!Estimate!!Households, Total!!Margin of Error!!Households, M... lgl
-    ## (1): ...123
-    ## ℹ Use `spec()` to retrieve the full column specification for this data. ℹ
-    ## Specify the column types or set `show_col_types = FALSE` to quiet this message.
-    ## • `` -> `...123`
 
-``` r
 inc16 <- read_csv("./median income-2016.csv", skip = 1) |>
   janitor::clean_names() |>
   transmute(
@@ -383,20 +338,7 @@ inc16 <- read_csv("./median income-2016.csv", skip = 1) |>
     state_name = geographic_area_name,
     median_income = as.numeric(median_income_dollars_estimate_households)
   )
-```
 
-    ## New names:
-    ## Rows: 831 Columns: 123
-    ## ── Column specification
-    ## ──────────────────────────────────────────────────────── Delimiter: "," chr
-    ## (83): Geography, Geographic Area Name, Total!!Estimate!!Households!!One ... dbl
-    ## (39): Total!!Estimate!!Households, Total!!Margin of Error!!Households, M... lgl
-    ## (1): ...123
-    ## ℹ Use `spec()` to retrieve the full column specification for this data. ℹ
-    ## Specify the column types or set `show_col_types = FALSE` to quiet this message.
-    ## • `` -> `...123`
-
-``` r
 income_state <- bind_rows(inc15, inc16)
 ```
 
@@ -484,8 +426,6 @@ ggplot(az_income,
   )
 ```
 
-    ## `geom_smooth()` using formula = 'y ~ x'
-
 <img src="P8105_final_Alzheimei_files/figure-gfm/unnamed-chunk-17-1.png" width="90%" />
 
 ``` r
@@ -554,39 +494,13 @@ for the wide variation in cognitive outcomes across states.
 ``` r
 edu15_raw <- read_csv("./education2015.csv", skip = 1) |>
   janitor::clean_names()
-```
 
-    ## New names:
-    ## Rows: 882 Columns: 771
-    ## ── Column specification
-    ## ──────────────────────────────────────────────────────── Delimiter: "," chr
-    ## (424): Geography, Geographic Area Name, Total!!Margin of Error!!Populati... dbl
-    ## (346): Total!!Estimate!!Population 18 to 24 years, Males!!Estimate!!Popu... lgl
-    ## (1): ...771
-    ## ℹ Use `spec()` to retrieve the full column specification for this data. ℹ
-    ## Specify the column types or set `show_col_types = FALSE` to quiet this message.
-    ## • `` -> `...771`
-
-``` r
 edu15_state <- edu15_raw |>
   filter(!str_detect(geographic_area_name, ","))
 
 edu16_raw <- read_csv("./education2016.csv", skip = 1) |>
   janitor::clean_names()
-```
 
-    ## New names:
-    ## Rows: 883 Columns: 771
-    ## ── Column specification
-    ## ──────────────────────────────────────────────────────── Delimiter: "," chr
-    ## (428): Geography, Geographic Area Name, Total!!Margin of Error!!Populati... dbl
-    ## (342): Total!!Estimate!!Population 18 to 24 years, Males!!Estimate!!Popu... lgl
-    ## (1): ...771
-    ## ℹ Use `spec()` to retrieve the full column specification for this data. ℹ
-    ## Specify the column types or set `show_col_types = FALSE` to quiet this message.
-    ## • `` -> `...771`
-
-``` r
 edu16_state <- edu16_raw |>
   filter(!str_detect(geographic_area_name, ","))
 ```
@@ -645,8 +559,6 @@ ggplot(az_edu,
   ) +
   theme_minimal()
 ```
-
-    ## `geom_smooth()` using formula = 'y ~ x'
 
 <img src="P8105_final_Alzheimei_files/figure-gfm/unnamed-chunk-22-1.png" width="90%" />
 
@@ -753,31 +665,8 @@ head(az_state_year)
 
 ``` r
 air15 <- read_csv("data/clean_air_state_2015.csv")
-```
-
-    ## Rows: 52 Columns: 4
-    ## ── Column specification ────────────────────────────────────────────────────────
-    ## Delimiter: ","
-    ## chr (1): state_abbr
-    ## dbl (3): n_counties, pm25_wtd_mean, year
-    ## 
-    ## ℹ Use `spec()` to retrieve the full column specification for this data.
-    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
-
-``` r
 air16 <- read_csv("data/clean_air_state_2016.csv")
-```
 
-    ## Rows: 52 Columns: 4
-    ## ── Column specification ────────────────────────────────────────────────────────
-    ## Delimiter: ","
-    ## chr (1): state_abbr
-    ## dbl (3): n_counties, pm25_wtd_mean, year
-    ## 
-    ## ℹ Use `spec()` to retrieve the full column specification for this data.
-    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
-
-``` r
 air_state <- bind_rows(air15, air16)
 
 air_state |> head()
@@ -883,14 +772,6 @@ ggplot(az_air,
   ) +
   theme_minimal()
 ```
-
-    ## `geom_smooth()` using formula = 'y ~ x'
-
-    ## Warning: Removed 187 rows containing non-finite outside the scale range
-    ## (`stat_smooth()`).
-
-    ## Warning: Removed 187 rows containing missing values or values outside the scale range
-    ## (`geom_point()`).
 
 <img src="P8105_final_Alzheimei_files/figure-gfm/unnamed-chunk-28-1.png" width="90%" />
 

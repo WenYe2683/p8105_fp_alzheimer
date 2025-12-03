@@ -1,0 +1,31 @@
+name: "Alzheimer's Disease & Cognitive Health"
+output_dir: "."
+navbar:
+  title: "Alzheimer's & Cognitive Health Analysis"
+  left:
+    - text: "Home"
+      href: index.html
+    - text: "About Us"
+      href: about_us.html
+    - text: "Data"
+      href: data.html
+    - text: "Exploratory Analysis"
+      href: exploratory.html
+    - text: "Statistical Analysis"
+      href: statistical_analysis.html
+    - text: "Interactive Dashboard"
+      href: dashboard.html
+    - text: "Full Report"
+      href: report.html
+  right:
+    - icon: fa-github fa-lg
+      href: https://github.com/yourusername/alzheimers-analysis
+output:
+  html_document:
+    theme: united
+    highlight: textmate
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+    code_folding: hide
