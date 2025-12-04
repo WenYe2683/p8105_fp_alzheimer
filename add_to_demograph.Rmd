@@ -6,6 +6,7 @@ output:
     toc_float: true
     code_folding: hide
 ---
+# Prevalence of Cognitive Decline by State/Territory, Age, and Sex
 
 ```{r message=FALSE, warning=FALSE}
 library(tidyverse)
@@ -133,3 +134,58 @@ The remaining states in the top ten—South Dakota, Massachusetts, Alabama, Alas
 * Comparison of Table 2 and Table 3:
 
 Table 2 and Table 3 summarize different aspects of the data. Table 2 ranks specific demographic subgroups (e.g., women aged 50–64 in Puerto Rico), showing where the highest subgroup-level prevalences occur. In contrast, Table 3 focuses only on adults aged 65+ with sexes combined, providing one aggregated value per state. This ranking in Table 3 reflects the overall burden among older adults rather than the maximum value in any age–sex subgroup, offering useful context for subsequent stratified analyses or adjustment for potential confounders such as age, sex, or region.
+
+---
+
+# Aggreted State/Territory-Level Household Income Statistics
+Below is the aggregrated state/territory-level household income statistics from 2015 to 2016:
+```{r message=FALSE}
+#data import
+inc15 <- read_csv("data/median income-2015.csv", skip = 1) |>
+  janitor::clean_names() |>
+  transmute(
+    year = 2015,
+    state_name = geographic_area_name,
+    median_income = as.numeric(median_income_dollars_estimate_households)
+  )
+
+inc16 <- read_csv("data/median income-2016.csv", skip = 1) |>
+  janitor::clean_names() |>
+  transmute(
+    year = 2016,
+    state_name = geographic_area_name,
+    median_income = as.numeric(median_income_dollars_estimate_households)
+  )
+
+income_state <- bind_rows(inc15, inc16)
+
+income_state_with_state <- income_state |>
+  mutate(
+    state = str_squish(str_extract(state_name, "[^,]+$")))
+
+income_state_level <- income_state_with_state |>
+  group_by(year, state) |>
+  summarise(
+    n_counties = n(),
+    median_income_state = median(median_income, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+income_state_level <- income_state_with_state |>
+  group_by(year, state) |>
+  summarise(
+    n_counties = n(),
+    median_state = median(median_income, na.rm = TRUE),
+    mean_state   = mean(median_income, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+income_state_level |>
+  head(10) |>
+  kable(
+    col.names = c("Year", "State/Territory", "No. of Counties", "Median Income (usd)", "Average Income (usd)"),
+    caption = "Table 4: Aggregated State/Territory-Level Household Income Statistics (2015-2016)",
+    digits = 0,           
+    format.args = list(big.mark = ","),
+    align = "c"
+  )

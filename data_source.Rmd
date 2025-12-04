@@ -1,5 +1,5 @@
 ---
-title: "Data Analysis"
+title: "Data Source and Cleaning"
 output: 
   html_document:
     toc: true
@@ -39,8 +39,10 @@ scale_colour_discrete = scale_colour_viridis_d
 scale_fill_discrete = scale_fill_viridis_d
 ```
 
-# Data Cleaning and Initial Analysis
+# Data Cleaning
+
 ## Alzheimer's Disease and Healthy Aging Data: Sex and Age
+
 ```{r warning=FALSE, message=FALSE}
 raw_az_data <- read.csv("data/2015-2022 Alzheimer Data.csv") |>
   janitor::clean_names()
@@ -56,25 +58,6 @@ az_clean <- raw_az_data |>
 ```
 
 We obtained data from the Centers for Disease Control and Prevention (CDC) Alzheimer’s Disease and Healthy Aging Data, which are derived from the Behavioral Risk Factor Surveillance System (BRFSS). After excluding records with missing key identifiers, our analytic dataset contained **32,616** observations from **59** states and territories, covering survey years **2015–2022**. The dataset includes **39** distinct topics and specific questions on health status and health-related behaviors among middle-aged and older adults.
-
-Cleaning Steps:
-
-* Removed the last row of the dataset, which appeared to be an incomplete or `end-of-file` artifact
-
-* Filtered out records with missing values in three key variables:
-
-    * `data_value` (prevalence estimate)
-    * `year_start` (survey year)
-    * `location_abbr` (state abbreviation)
-
-* Filtered to cognitive-related topics only by keeping rows where the topic variable contained "cognitive decline" or "cognitive impairment" (case-insensitive matching)
-
-* Created new grouping variables:
-
-    * `age_group`: Extracted from stratification1 when stratification_category1 equals "Age Group", otherwise set to "Overall"
-    * `sex_group`: Extracted from stratification2 when stratification_category2 equals "Sex", otherwise set to "Overall"
-
-* Restricted analytic sample to adults aged 65+ years with overall sex grouping for the main state-level analyses.
 
 ```{r}
 # Generate summary table
@@ -94,6 +77,25 @@ az_clean |>
     align = "c"
   )
 ```
+
+Main steps of data wrangling was presenting below:
+
+* Removed the last row of the dataset, which appeared to be an incomplete or `end-of-file` artifact
+
+* Filtered out records with missing values in three key variables:
+
+    * `data_value` (prevalence estimate)
+    * `year_start` (survey year)
+    * `location_abbr` (state abbreviation)
+
+* Filtered to cognitive-related topics only by keeping rows where the topic variable contained "cognitive decline" or "cognitive impairment" (case-insensitive matching)
+
+* Created new grouping variables:
+
+    * `age_group`: Extracted from stratification1 when stratification_category1 equals "Age Group", otherwise set to "Overall"
+    * `sex_group`: Extracted from stratification2 when stratification_category2 equals "Sex", otherwise set to "Overall"
+
+* Restricted analytic sample to adults aged 65+ years with overall sex grouping for the main state-level analyses.
 
 For this study, we focused on BRFSS items whose topic was labeled **“cognitive decline”** or **“cognitive impairment”**. These items capture self-reported cognitive problems among middle-aged and older adults, and we treat them as Alzheimer’s-related cognitive indicators rather than clinically confirmed Alzheimer’s disease.
 
@@ -130,9 +132,7 @@ az_cog_state_age_sex <- az_cog_summary_base |>
     .groups = "drop"
   ) |>
   arrange(desc(mean_value))
-```
 
-```{r}
 # top 10 states (2015-2016)
 az_cog_65_overall <- az_cog_summary_base |>
   filter(
@@ -142,11 +142,7 @@ az_cog_65_overall <- az_cog_summary_base |>
 
 num_65 = nrow(az_cog_65_overall)
 years_available = sort(unique(az_cog_65_overall$year_start))
-```
 
-The CDC Healthy Aging dataset covers survey years 2015–2022. For topics coded as Cognitive Decline or Cognitive Impairment, data were only available in 2015–2016; therefore, our Alzheimer’s-related analyses are restricted to these two years.
-
-```{r}
 az_cog_65_overall <- az_cog_summary_base |>
   filter(
     age_group == "65 years or older",
@@ -169,8 +165,33 @@ top10_state_15_16 <- az_cog_65_overall_15_16 |>
   slice_head(n = 10)
 ```
 
-## Socioeconomic Factor: Income (U.S. Census ACS)
-As the Healthy Aging dataset is designed to monitor cognitive health in older adults and Alzheimer’s disease primarily affects seniors, we restricted our analytic sample to respondents aged 65+ years. For the main state-level analysis, we used sex-grouped estimates labeled “Overall” rather than sex-specific values so that each state–year contributed a single prevalence estimate, simplifying the comparison with state-level income and avoiding multiple correlated observations per state.
+
+The CDC Healthy Aging dataset covers survey years 2015–2022. For topics coded as Cognitive Decline or Cognitive Impairment, data were only available in 2015–2016; therefore, our Alzheimer’s-related analyses are restricted to these two years.
+
+---
+
+## Socioeconomic Factor: Income
+
+We obtained both income and education data from the U.S. Census Bureau's American Community Survey (ACS), which provides reliable state-level socioeconomic indicators.
+
+Main steps of data wrangling was presenting below:
+
+* Import two separate CSV files: `median income-2015.csv` and `median income-2016.csv`
+* Skipped the first row (header row) using skip = 1
+* Applied `janitor::clean_names()` to standardize column names
+* Selected and renamed key variables using transmute():
+    * Created year variable (set to 2015 or 2016)
+    * Kept `state_name` from `geographic_area_name`
+    * Converted `median_income_dollars_estimate_households` to numeric and renamed to `median_income`
+* Combined both years into a single dataset using `bind_rows()`
+* Extracted state names from the county-state format (e.g., "Albany County, New York" → "New York") by parsing the text after the comma using `str_extract()` and `str_squish()`
+* Aggregated to state level by grouping by year and state, then calculating:
+    * No. of each country
+    * Median of county-level median incomes: `median_state`
+    * Mean of county-level median incomes: `mean_state`
+    
+An example of cleaned dataset is shown below:
+
 ```{r message=FALSE}
 #data import
 inc15 <- read_csv("data/median income-2015.csv", skip = 1) |>
@@ -216,7 +237,7 @@ income_state_level |>
   head(10) |>
   kable(
     col.names = c("Year", "State/Territory", "No. of Counties", "Median Income (usd)", "Average Income (usd)"),
-    caption = "Table 4: Aggregated State/Territory-Level Household Income Statistics (2015)",
+    caption = "Table 4: Aggregated State/Territory-Level Household Income Statistics (2015-2016)",
     digits = 0,           
     format.args = list(big.mark = ","),
     align = "c"
@@ -241,7 +262,19 @@ az_income <- az_cog_65_overall_state |>
   )
 ```
 
+Then we merging with Primary Healthy Aging Dataset:
+
+* Filtered cognitive decline data to years 2015–2016, adults aged 65+, and overall sex grouping
+* Kept only states/territories that **exist in both datasets** using `location_desc %in% state_vec`
+* Performed a left join by matching `year_start` (from CDC data) to `year` (from income data) and `location_desc` (from CDC data) to `state` (from income data)
+
+As the Healthy Aging dataset is designed to monitor cognitive health in older adults and Alzheimer’s disease primarily affects seniors, we restricted our analytic sample to respondents aged 65+ years. For the main state/territory-level analysis, we used sex-grouped estimates labeled “Overall” rather than sex-specific values so that each state/territory–year contributed a single prevalence estimate, simplifying the comparison with state/territory-level income and avoiding multiple correlated observations per state.
+
+---
+
 ## Socioeconomic Factor: Education
+
+Educational attainment data were also obtained from the ACS for the same years (2015–2016).
 
 ```{r message=FALSE}
 edu15_raw <- read_csv("data/education2015.csv", skip = 1) |>
@@ -255,11 +288,7 @@ edu16_raw <- read_csv("data/education2016.csv", skip = 1) |>
 
 edu16_state <- edu16_raw |>
   filter(!str_detect(geographic_area_name, ","))
-```
 
-We used the proportion of adults aged 25 years and older with a bachelor’s degree or higher as our main education indicator. This measure is commonly reported in the ACS and captures individuals who have completed at least a four-year college education, which is often used as a marker of higher socioeconomic status and cognitive reserve in the literature. Compared with more detailed education categories, using “bachelor’s degree or higher” gives a simple, comparable summary of educational attainment across states and years.
-
-```{r message=FALSE}
 edu15_state_slim <- edu15_state |>
   transmute(
     year = 2015,
@@ -277,6 +306,18 @@ edu16_state_slim <- edu16_state |>
 edu_state <- bind_rows(edu15_state_slim, edu16_state_slim)
 ```
 
+Main steps of education data wrangling was presenting below:
+
+* Import two separate CSV files: `education2015.csv` and `education2016.csv`
+* Skipped the first row using `skip = 1`
+* Applied `janitor::clean_names()` to standardize column names
+* Filtered to state/territory-level rows only by removing rows where `geographic_area_name` contained a comma (which indicates county-level data like "Albany County, New York")
+* Selected and renamed key variables using `transmute()`:
+    * Created year variable (set to 2015 or 2016)
+    * Kept state from `geographic_area_name`
+    * Converted `percent_estimate_percent_bachelors_degree_or_higher` to numeric and renamed to `educ_bach`
+* Combined both years into a single dataset using `bind_rows()`
+
 ```{r}
 az_edu <- az_cog_65_overall_state |>
   left_join(
@@ -287,7 +328,29 @@ az_edu <- az_cog_65_overall_state |>
     ))
 ```
 
+Merging Education Data with Healthy Aging Data:
+
+* Used the same filtered cognitive decline dataset (2015–2016, adults 65+, overall sex)
+* Performed a left join by matching `year_start` to `year` and `location_desc` to `state`
+* Final merged dataset contains one observation per state-year with both cognitive prevalence and education attainment percentage
+
+We used the proportion of adults aged 25 years and older with a bachelor’s degree or higher as our main education indicator. This measure is commonly reported in the ACS and captures individuals who have completed at least a four-year college education, which is often used as a marker of higher socioeconomic status and cognitive reserve in the literature. Compared with more detailed education categories, using “bachelor’s degree or higher” gives a simple, comparable summary of educational attainment across states and years.
+
+---
+
 ## Environmental Factor: Air Pollution
+
+We obtained air pollution data from the U.S. Environmental Protection Agency (EPA) Air Quality System (AQS), specifically the 24-hour weighted mean PM2.5 concentrations aggregated at the state level.
+
+Main steps of data wrangling was presenting below:
+
+* Imported two pre-cleaned CSV files: `clean_air_state_2015.csv` and `clean_air_state_2016.csv` (these files were pre-processed from raw EPA AirData before the main analysis)
+* Combined both years into a single dataset using `bind_rows()`
+* Aggregated to state level by grouping by year and state name (`state_desc`), then calculating:
+    * Mean of PM2.5 weighted mean values (`pm25_state`) across all observations within each state-year
+* Filtered out rows with missing PM2.5 values using `filter(!is.na(pm25_state))` to ensure complete cases for regression analysis
+
+Summary of Air Quality Data is as below:
 
 ```{r message=FALSE}
 air15 <- read_csv("data/clean_air_state_2015.csv")
@@ -295,20 +358,6 @@ air16 <- read_csv("data/clean_air_state_2016.csv")
 
 air_state <- bind_rows(air15, air16)
 
-air_state |>
-  head(10) |>
-  mutate(year = as.character(year)) |> 
-  select(state_desc, n_counties, pm25_wtd_mean, year) |> 
-  kable(
-    col.names = c("State/Territory", "No. of Counties", "Mean PM2.5 (µg/m³)", "Year"),
-    caption = "Table 5: State/Territory-Level Air Quality Summary (PM2.5 Concentrations)",
-    digits = 2,             
-    align = "c"              
-  )
-```
-We used state-level fine particulate matter (PM2.5) concentrations as our primary indicator of air pollution. Specifically, we relied on the 24-hour weighted mean PM2.5 values derived from EPA AirData annual summary reports. These data were originally reported at the county level and then aggregated to obtain state–year averages for 2015 and 2016, matching the years available in the CDC Healthy Aging cognitive dataset.
-
-```{r}
 air_state_level <- air_state |>
   group_by(year, state_desc) |>
   summarise(
@@ -316,20 +365,26 @@ air_state_level <- air_state |>
     .groups = "drop"
   )
 
-air_state_level |> head(10)
-
 air_state_level |>
   head(10) |>
   mutate(year = as.character(year)) |> 
   kable(
     col.names = c("Year", "State/Territory", "Mean PM2.5 (µg/m³)"),
-    caption = "Table 6: Aggregated State/Territory-Level PM2.5 Concentrations",
+    caption = "Table 5: Aggregated State/Territory-Level PM2.5 Concentrations",
     digits = 2,              
     align = "c"
   )
 ```
 
-Then we merge with Alzheimer’s outcomes. For consistency with the income and education analyses, we restricted the sample to adults aged 65+ years and used the sex-grouped estimates labeled “Overall”. Each state–year therefore contributes a single Alzheimer’s-related prevalence value, which we then merged with the corresponding state–year PM2.5 concentration.
+We used state-level fine particulate matter (PM2.5) concentrations as our primary indicator of air pollution. Specifically, we relied on the 24-hour weighted mean PM2.5 values derived from EPA AirData annual summary reports. These data were originally reported at the county level and then aggregated to obtain state–year averages for 2015 and 2016, matching the years available in the CDC Healthy Aging cognitive dataset.
+
+Merging Air Pollution Data with Cognitive Decline Data:
+
+* For consistency, we used the same filtered cognitive decline dataset (2015–2016, adults 65+, overall sex)
+* Performed a left join by matching `year_start` to `year` and `location_desc` to `state_desc`
+* Removed rows with missing PM2.5 values after merging (some states/territories lacked air quality monitoring data)
+
+Final merged air pollution-AD dataset is presented as below:
 ```{r}
 az_cog_65_overall_state <- az_cog_65_overall |>
   filter(
@@ -352,12 +407,13 @@ az_air |>
   mutate(year_start = as.character(year_start)) |> 
   kable(
     col.names = c("Year", "State/Territory", "Mean PM2.5 (µg/m³)", "Prevalence. (%)"),
-    caption = "Table 7: Linked Dataset of Cognitive Decline and Air Quality (2015–2016)",
+    caption = "Table 6: Linked Dataset of Cognitive Decline and Air Quality (2015–2016)",
     digits = 2,    
     align = "c"   
   )
 ```
 
+---
 
 # Data Availability
 

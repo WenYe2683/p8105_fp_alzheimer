@@ -8,15 +8,18 @@ output:
 ---
 
 # Meet our amazing team 
-(Ver.childhood)!
+(Ver.childhood) and our cute pets!
 
 ---
 
-## Bing Li
+## [Bing Li](https://bonnielee3175.github.io)
+![](about_us_image/bing_li.jpg)
 
-## Chuhan Wang
+
+## [Chuhan Wang](https://chuhan-wch.github.io/)
+![](about_us_image/chuhan_wang.jpg)
 
 ## [Luyun Ge](https://akacloud0429.github.io/)
-![](about_us_image/childhood_pic_luyun_ge.jpg)
+![](about_us_image/luyun_ge.jpg)
 
 ## Ye Wen

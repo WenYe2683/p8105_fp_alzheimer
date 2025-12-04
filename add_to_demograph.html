@@ -328,7 +328,10 @@ div.tocify {
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
-  <a href="index.html">Home</a>
+  <a href="index.html">
+    <span class="fa fa-whiteboard fa-semibold fa-house"></span>
+     
+  </a>
 </li>
 <li>
   <a href="data_source.html">Data Analysis</a>
@@ -398,6 +401,10 @@ div.tocify {
 </div>
 
 
+<div id="prevalence-of-cognitive-decline-by-stateterritory-age-and-sex"
+class="section level1">
+<h1>Prevalence of Cognitive Decline by State/Territory, Age, and
+Sex</h1>
 <pre class="r"><code>library(tidyverse)
 library(patchwork)
 library(scales)
@@ -698,6 +705,155 @@ reflects the overall burden among older adults rather than the maximum
 value in any age–sex subgroup, offering useful context for subsequent
 stratified analyses or adjustment for potential confounders such as age,
 sex, or region.</p>
+<hr />
+</div>
+<div id="aggreted-stateterritory-level-household-income-statistics"
+class="section level1">
+<h1>Aggreted State/Territory-Level Household Income Statistics</h1>
+<p>Below is the aggregrated state/territory-level household income
+statistics from 2015 to 2016:</p>
+<pre class="r"><code>#data import
+inc15 &lt;- read_csv(&quot;data/median income-2015.csv&quot;, skip = 1) |&gt;
+  janitor::clean_names() |&gt;
+  transmute(
+    year = 2015,
+    state_name = geographic_area_name,
+    median_income = as.numeric(median_income_dollars_estimate_households)
+  )
+
+inc16 &lt;- read_csv(&quot;data/median income-2016.csv&quot;, skip = 1) |&gt;
+  janitor::clean_names() |&gt;
+  transmute(
+    year = 2016,
+    state_name = geographic_area_name,
+    median_income = as.numeric(median_income_dollars_estimate_households)
+  )
+
+income_state &lt;- bind_rows(inc15, inc16)
+
+income_state_with_state &lt;- income_state |&gt;
+  mutate(
+    state = str_squish(str_extract(state_name, &quot;[^,]+$&quot;)))
+
+income_state_level &lt;- income_state_with_state |&gt;
+  group_by(year, state) |&gt;
+  summarise(
+    n_counties = n(),
+    median_income_state = median(median_income, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  )
+
+income_state_level &lt;- income_state_with_state |&gt;
+  group_by(year, state) |&gt;
+  summarise(
+    n_counties = n(),
+    median_state = median(median_income, na.rm = TRUE),
+    mean_state   = mean(median_income, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  )
+
+income_state_level |&gt;
+  head(10) |&gt;
+  kable(
+    col.names = c(&quot;Year&quot;, &quot;State/Territory&quot;, &quot;No. of Counties&quot;, &quot;Median Income (usd)&quot;, &quot;Average Income (usd)&quot;),
+    caption = &quot;Table 4: Aggregated State/Territory-Level Household Income Statistics (2015-2016)&quot;,
+    digits = 0,           
+    format.args = list(big.mark = &quot;,&quot;),
+    align = &quot;c&quot;
+  )</code></pre>
+<table>
+<caption>Table 4: Aggregated State/Territory-Level Household Income
+Statistics (2015-2016)</caption>
+<colgroup>
+<col width="7%" />
+<col width="24%" />
+<col width="19%" />
+<col width="23%" />
+<col width="24%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center">Year</th>
+<th align="center">State/Territory</th>
+<th align="center">No. of Counties</th>
+<th align="center">Median Income (usd)</th>
+<th align="center">Average Income (usd)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">2,015</td>
+<td align="center">Alabama</td>
+<td align="center">21</td>
+<td align="center">43,553</td>
+<td align="center">46,460</td>
+</tr>
+<tr class="even">
+<td align="center">2,015</td>
+<td align="center">Alaska</td>
+<td align="center">3</td>
+<td align="center">76,427</td>
+<td align="center">76,021</td>
+</tr>
+<tr class="odd">
+<td align="center">2,015</td>
+<td align="center">Arizona</td>
+<td align="center">10</td>
+<td align="center">45,195</td>
+<td align="center">44,712</td>
+</tr>
+<tr class="even">
+<td align="center">2,015</td>
+<td align="center">Arkansas</td>
+<td align="center">11</td>
+<td align="center">46,070</td>
+<td align="center">45,950</td>
+</tr>
+<tr class="odd">
+<td align="center">2,015</td>
+<td align="center">California</td>
+<td align="center">40</td>
+<td align="center">58,954</td>
+<td align="center">62,095</td>
+</tr>
+<tr class="even">
+<td align="center">2,015</td>
+<td align="center">Colorado</td>
+<td align="center">12</td>
+<td align="center">65,960</td>
+<td align="center">67,584</td>
+</tr>
+<tr class="odd">
+<td align="center">2,015</td>
+<td align="center">Connecticut</td>
+<td align="center">8</td>
+<td align="center">70,144</td>
+<td align="center">72,854</td>
+</tr>
+<tr class="even">
+<td align="center">2,015</td>
+<td align="center">Delaware</td>
+<td align="center">3</td>
+<td align="center">56,778</td>
+<td align="center">59,366</td>
+</tr>
+<tr class="odd">
+<td align="center">2,015</td>
+<td align="center">District of Columbia</td>
+<td align="center">1</td>
+<td align="center">75,628</td>
+<td align="center">75,628</td>
+</tr>
+<tr class="even">
+<td align="center">2,015</td>
+<td align="center">Florida</td>
+<td align="center">40</td>
+<td align="center">49,466</td>
+<td align="center">49,624</td>
+</tr>
+</tbody>
+</table>
+</div>
 
 
 
