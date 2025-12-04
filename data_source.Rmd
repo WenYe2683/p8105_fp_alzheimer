@@ -40,7 +40,7 @@ scale_fill_discrete = scale_fill_viridis_d
 ```
 
 # Data Cleaning and Initial Analysis
-## Alzheimer's Disease and Healthy Aging Data
+## Alzheimer's Disease and Healthy Aging Data: Sex and Age
 ```{r warning=FALSE, message=FALSE}
 raw_az_data <- read.csv("data/2015-2022 Alzheimer Data.csv") |>
   janitor::clean_names()
@@ -101,7 +101,7 @@ az_cog_summary_base <- az_cog |>
 ### state × age × sex table
 az_cog_state_age_sex <- az_cog_summary_base |>
   group_by(
-    location_abbr, location_desc,
+    location_desc,
     age_group,
     sex_group
   ) |>
@@ -116,8 +116,8 @@ az_cog_state_age_sex <- az_cog_summary_base |>
 az_cog_state_age_sex |>
   head(10) |>
   kable(
-    col.names = c("State Abbr", "State", "Age Group", "Sex", "Obs Count", "Mean Prevalence (%)"),
-    caption = "Table 2: Top 10 Mean Prevalence of Cognitive Decline by State, Age, and Sex",
+    col.names = c("State/Territory", "Age Group", "Sex", "Obs Count", "Mean Prevalence (%)"),
+    caption = "Table 2: Top 10 Mean Prevalence of Cognitive Decline by State/Territory, Age, and Sex",
     digits = 1,
     align = "c"
   )
@@ -150,7 +150,7 @@ az_cog_65_overall_15_16 <- az_cog_65_overall |>
   filter(year_start %in% years_use)
 
 top10_state_15_16 <- az_cog_65_overall_15_16 |>
-  group_by(location_abbr, location_desc) |>
+  group_by(location_desc) |>
   summarise(
     n_obs = n(),
     mean_15_16 = mean(data_value, na.rm = TRUE),
@@ -161,8 +161,8 @@ top10_state_15_16 <- az_cog_65_overall_15_16 |>
 
 top10_state_15_16 |>
   kable(
-    col.names = c("Abbreviation", "Location", "Obs Count", "Mean Prevalence (%)"),
-    caption = "Table 3: Top 10 Locations with Highest Cognitive Decline Prevalence (Age 65+, 2015–2016)",
+    col.names = c("State/Territory", "Obs Count", "Mean Prevalence (%)"),
+    caption = "Table 3: Top 10 State/Territory with Highest Cognitive Decline Prevalence (Age 65+, 2015–2016)",
     digits = 1,
     align = "c"
   )
@@ -225,8 +225,8 @@ income_state_level <- income_state_with_state |>
 income_state_level |>
   head(10) |>
   kable(
-    col.names = c("Year", "State", "No. of Counties", "Median Income (usd)", "Average Income (usd)"),
-    caption = "Table 4: Aggregated State-Level Household Income Statistics (2015)",
+    col.names = c("Year", "State/Territory", "No. of Counties", "Median Income (usd)", "Average Income (usd)"),
+    caption = "Table 4: Aggregated State/Territory-Level Household Income Statistics (2015)",
     digits = 0,           
     format.args = list(big.mark = ","),
     align = "c"
@@ -298,19 +298,76 @@ az_edu <- az_cog_65_overall_state |>
     ))
 ```
 
+## Environmental Factor: Air Pollution
 
+```{r message=FALSE}
+air15 <- read_csv("data/clean_air_state_2015.csv")
+air16 <- read_csv("data/clean_air_state_2016.csv")
 
+air_state <- bind_rows(air15, air16)
 
+air_state |>
+  head(10) |>
+  mutate(year = as.character(year)) |> 
+  select(state_desc, n_counties, pm25_wtd_mean, year) |> 
+  kable(
+    col.names = c("State/Territory", "No. of Counties", "Mean PM2.5 (µg/m³)", "Year"),
+    caption = "Table 5: State/Territory-Level Air Quality Summary (PM2.5 Concentrations)",
+    digits = 2,             
+    align = "c"              
+  )
+```
+We used state-level fine particulate matter (PM2.5) concentrations as our primary indicator of air pollution. Specifically, we relied on the 24-hour weighted mean PM2.5 values derived from EPA AirData annual summary reports. These data were originally reported at the county level and then aggregated to obtain state–year averages for 2015 and 2016, matching the years available in the CDC Healthy Aging cognitive dataset.
 
+```{r}
+air_state_level <- air_state |>
+  group_by(year, state_desc) |>
+  summarise(
+    pm25_state = mean(pm25_wtd_mean, na.rm = TRUE),
+    .groups = "drop"
+  )
 
+air_state_level |> head(10)
 
+air_state_level |>
+  head(10) |>
+  mutate(year = as.character(year)) |> 
+  kable(
+    col.names = c("Year", "State/Territory", "Mean PM2.5 (µg/m³)"),
+    caption = "Table 6: Aggregated State/Territory-Level PM2.5 Concentrations",
+    digits = 2,              
+    align = "c"
+  )
+```
 
+Then we merge with Alzheimer’s outcomes. For consistency with the income and education analyses, we restricted the sample to adults aged 65+ years and used the sex-grouped estimates labeled “Overall”. Each state–year therefore contributes a single Alzheimer’s-related prevalence value, which we then merged with the corresponding state–year PM2.5 concentration.
+```{r}
+az_cog_65_overall_state <- az_cog_65_overall |>
+  filter(
+    year_start %in% c(2015, 2016),
+    sex_group == "Overall"
+  )
 
+az_air <- az_cog_65_overall_state |>
+  left_join(
+    air_state_level,
+    by = c(
+      "year_start"    = "year",
+      "location_desc" = "state_desc"
+    )
+  )
 
-
-
-
-
+az_air |>
+  select(year_start, location_desc, pm25_state, data_value) |>
+  head(10) |>
+  mutate(year_start = as.character(year_start)) |> 
+  kable(
+    col.names = c("Year", "State/Territory", "Mean PM2.5 (µg/m³)", "Prevalence. (%)"),
+    caption = "Table 7: Linked Dataset of Cognitive Decline and Air Quality (2015–2016)",
+    digits = 2,    
+    align = "c"   
+  )
+```
 
 
 # Data Availability

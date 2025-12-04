@@ -432,9 +432,9 @@ scale_fill_discrete = scale_fill_viridis_d</code></pre>
 </div>
 <div id="data-cleaning-and-initial-analysis" class="section level1">
 <h1>Data Cleaning and Initial Analysis</h1>
-<div id="alzheimers-disease-and-healthy-aging-data"
+<div id="alzheimers-disease-and-healthy-aging-data-sex-and-age"
 class="section level2">
-<h2>Alzheimer’s Disease and Healthy Aging Data</h2>
+<h2>Alzheimer’s Disease and Healthy Aging Data: Sex and Age</h2>
 <pre class="r"><code>raw_az_data &lt;- read.csv(&quot;data/2015-2022 Alzheimer Data.csv&quot;) |&gt;
   janitor::clean_names()
 
@@ -531,7 +531,7 @@ az_cog_summary_base &lt;- az_cog |&gt;
 ### state × age × sex table
 az_cog_state_age_sex &lt;- az_cog_summary_base |&gt;
   group_by(
-    location_abbr, location_desc,
+    location_desc,
     age_group,
     sex_group
   ) |&gt;
@@ -546,26 +546,24 @@ az_cog_state_age_sex &lt;- az_cog_summary_base |&gt;
 az_cog_state_age_sex |&gt;
   head(10) |&gt;
   kable(
-    col.names = c(&quot;State Abbr&quot;, &quot;State&quot;, &quot;Age Group&quot;, &quot;Sex&quot;, &quot;Obs Count&quot;, &quot;Mean Prevalence (%)&quot;),
-    caption = &quot;Table 2: Top 10 Mean Prevalence of Cognitive Decline by State, Age, and Sex&quot;,
+    col.names = c(&quot;State/Territory&quot;, &quot;Age Group&quot;, &quot;Sex&quot;, &quot;Obs Count&quot;, &quot;Mean Prevalence (%)&quot;),
+    caption = &quot;Table 2: Top 10 Mean Prevalence of Cognitive Decline by State/Territory, Age, and Sex&quot;,
     digits = 1,
     align = &quot;c&quot;
   )</code></pre>
 <table>
-<caption>Table 2: Top 10 Mean Prevalence of Cognitive Decline by State,
-Age, and Sex</caption>
+<caption>Table 2: Top 10 Mean Prevalence of Cognitive Decline by
+State/Territory, Age, and Sex</caption>
 <colgroup>
-<col width="13%" />
-<col width="16%" />
 <col width="22%" />
-<col width="10%" />
-<col width="12%" />
 <col width="24%" />
+<col width="11%" />
+<col width="14%" />
+<col width="27%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th align="center">State Abbr</th>
-<th align="center">State</th>
+<th align="center">State/Territory</th>
 <th align="center">Age Group</th>
 <th align="center">Sex</th>
 <th align="center">Obs Count</th>
@@ -574,7 +572,6 @@ Age, and Sex</caption>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="center">PR</td>
 <td align="center">Puerto Rico</td>
 <td align="center">50-64 years</td>
 <td align="center">Female</td>
@@ -582,7 +579,6 @@ Age, and Sex</caption>
 <td align="center">59.8</td>
 </tr>
 <tr class="even">
-<td align="center">PR</td>
 <td align="center">Puerto Rico</td>
 <td align="center">50-64 years</td>
 <td align="center">Overall</td>
@@ -590,7 +586,6 @@ Age, and Sex</caption>
 <td align="center">58.2</td>
 </tr>
 <tr class="odd">
-<td align="center">PR</td>
 <td align="center">Puerto Rico</td>
 <td align="center">Overall</td>
 <td align="center">Male</td>
@@ -598,7 +593,6 @@ Age, and Sex</caption>
 <td align="center">54.5</td>
 </tr>
 <tr class="even">
-<td align="center">PR</td>
 <td align="center">Puerto Rico</td>
 <td align="center">Overall</td>
 <td align="center">Overall</td>
@@ -606,7 +600,6 @@ Age, and Sex</caption>
 <td align="center">53.6</td>
 </tr>
 <tr class="odd">
-<td align="center">PR</td>
 <td align="center">Puerto Rico</td>
 <td align="center">Overall</td>
 <td align="center">Female</td>
@@ -614,7 +607,6 @@ Age, and Sex</caption>
 <td align="center">52.8</td>
 </tr>
 <tr class="even">
-<td align="center">PR</td>
 <td align="center">Puerto Rico</td>
 <td align="center">65 years or older</td>
 <td align="center">Overall</td>
@@ -622,7 +614,6 @@ Age, and Sex</caption>
 <td align="center">47.9</td>
 </tr>
 <tr class="odd">
-<td align="center">RI</td>
 <td align="center">Rhode Island</td>
 <td align="center">50-64 years</td>
 <td align="center">Female</td>
@@ -630,7 +621,6 @@ Age, and Sex</caption>
 <td align="center">47.2</td>
 </tr>
 <tr class="even">
-<td align="center">OK</td>
 <td align="center">Oklahoma</td>
 <td align="center">50-64 years</td>
 <td align="center">Female</td>
@@ -638,7 +628,6 @@ Age, and Sex</caption>
 <td align="center">46.6</td>
 </tr>
 <tr class="odd">
-<td align="center">DE</td>
 <td align="center">Delaware</td>
 <td align="center">50-64 years</td>
 <td align="center">Female</td>
@@ -646,7 +635,6 @@ Age, and Sex</caption>
 <td align="center">46.1</td>
 </tr>
 <tr class="even">
-<td align="center">PR</td>
 <td align="center">Puerto Rico</td>
 <td align="center">65 years or older</td>
 <td align="center">Female</td>
@@ -680,7 +668,7 @@ az_cog_65_overall_15_16 &lt;- az_cog_65_overall |&gt;
   filter(year_start %in% years_use)
 
 top10_state_15_16 &lt;- az_cog_65_overall_15_16 |&gt;
-  group_by(location_abbr, location_desc) |&gt;
+  group_by(location_desc) |&gt;
   summarise(
     n_obs = n(),
     mean_15_16 = mean(data_value, na.rm = TRUE),
@@ -691,79 +679,68 @@ top10_state_15_16 &lt;- az_cog_65_overall_15_16 |&gt;
 
 top10_state_15_16 |&gt;
   kable(
-    col.names = c(&quot;Abbreviation&quot;, &quot;Location&quot;, &quot;Obs Count&quot;, &quot;Mean Prevalence (%)&quot;),
-    caption = &quot;Table 3: Top 10 Locations with Highest Cognitive Decline Prevalence (Age 65+, 2015–2016)&quot;,
+    col.names = c(&quot;State/Territory&quot;, &quot;Obs Count&quot;, &quot;Mean Prevalence (%)&quot;),
+    caption = &quot;Table 3: Top 10 State/Territory with Highest Cognitive Decline Prevalence (Age 65+, 2015–2016)&quot;,
     digits = 1,
     align = &quot;c&quot;
   )</code></pre>
 <table>
-<caption>Table 3: Top 10 Locations with Highest Cognitive Decline
+<caption>Table 3: Top 10 State/Territory with Highest Cognitive Decline
 Prevalence (Age 65+, 2015–2016)</caption>
 <thead>
 <tr class="header">
-<th align="center">Abbreviation</th>
-<th align="center">Location</th>
+<th align="center">State/Territory</th>
 <th align="center">Obs Count</th>
 <th align="center">Mean Prevalence (%)</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="center">PR</td>
 <td align="center">Puerto Rico</td>
 <td align="center">8</td>
 <td align="center">47.9</td>
 </tr>
 <tr class="even">
-<td align="center">NRE</td>
 <td align="center">Northeast</td>
 <td align="center">30</td>
 <td align="center">33.6</td>
 </tr>
 <tr class="odd">
-<td align="center">OK</td>
 <td align="center">Oklahoma</td>
 <td align="center">8</td>
 <td align="center">31.5</td>
 </tr>
 <tr class="even">
-<td align="center">MS</td>
 <td align="center">Mississippi</td>
 <td align="center">14</td>
 <td align="center">31.4</td>
 </tr>
 <tr class="odd">
-<td align="center">SOU</td>
 <td align="center">South</td>
 <td align="center">30</td>
 <td align="center">31.0</td>
 </tr>
 <tr class="even">
-<td align="center">SD</td>
 <td align="center">South Dakota</td>
 <td align="center">8</td>
 <td align="center">30.9</td>
 </tr>
 <tr class="odd">
-<td align="center">MA</td>
 <td align="center">Massachusetts</td>
 <td align="center">5</td>
 <td align="center">30.8</td>
 </tr>
 <tr class="even">
-<td align="center">AL</td>
 <td align="center">Alabama</td>
 <td align="center">14</td>
 <td align="center">30.2</td>
 </tr>
 <tr class="odd">
-<td align="center">AK</td>
 <td align="center">Alaska</td>
 <td align="center">7</td>
 <td align="center">29.8</td>
 </tr>
 <tr class="even">
-<td align="center">SC</td>
 <td align="center">South Carolina</td>
 <td align="center">14</td>
 <td align="center">29.5</td>
@@ -846,15 +823,15 @@ income_state_level &lt;- income_state_with_state |&gt;
 income_state_level |&gt;
   head(10) |&gt;
   kable(
-    col.names = c(&quot;Year&quot;, &quot;State&quot;, &quot;No. of Counties&quot;, &quot;Median Income (usd)&quot;, &quot;Average Income (usd)&quot;),
-    caption = &quot;Table 4: Aggregated State-Level Household Income Statistics (2015)&quot;,
+    col.names = c(&quot;Year&quot;, &quot;State/Territory&quot;, &quot;No. of Counties&quot;, &quot;Median Income (usd)&quot;, &quot;Average Income (usd)&quot;),
+    caption = &quot;Table 4: Aggregated State/Territory-Level Household Income Statistics (2015)&quot;,
     digits = 0,           
     format.args = list(big.mark = &quot;,&quot;),
     align = &quot;c&quot;
   )</code></pre>
 <table>
-<caption>Table 4: Aggregated State-Level Household Income Statistics
-(2015)</caption>
+<caption>Table 4: Aggregated State/Territory-Level Household Income
+Statistics (2015)</caption>
 <colgroup>
 <col width="7%" />
 <col width="24%" />
@@ -865,7 +842,7 @@ income_state_level |&gt;
 <thead>
 <tr class="header">
 <th align="center">Year</th>
-<th align="center">State</th>
+<th align="center">State/Territory</th>
 <th align="center">No. of Counties</th>
 <th align="center">Median Income (usd)</th>
 <th align="center">Average Income (usd)</th>
@@ -1003,6 +980,303 @@ edu_state &lt;- bind_rows(edu15_state_slim, edu16_state_slim)</code></pre>
       &quot;year_start&quot; = &quot;year&quot;,
       &quot;location_desc&quot; = &quot;state&quot;
     ))</code></pre>
+</div>
+<div id="environmental-factor-air-pollution" class="section level2">
+<h2>Environmental Factor: Air Pollution</h2>
+<pre class="r"><code>air15 &lt;- read_csv(&quot;data/clean_air_state_2015.csv&quot;)
+air16 &lt;- read_csv(&quot;data/clean_air_state_2016.csv&quot;)
+
+air_state &lt;- bind_rows(air15, air16)
+
+air_state |&gt;
+  head(10) |&gt;
+  mutate(year = as.character(year)) |&gt; 
+  select(state_desc, n_counties, pm25_wtd_mean, year) |&gt; 
+  kable(
+    col.names = c(&quot;State/Territory&quot;, &quot;No. of Counties&quot;, &quot;Mean PM2.5 (µg/m³)&quot;, &quot;Year&quot;),
+    caption = &quot;Table 5: State/Territory-Level Air Quality Summary (PM2.5 Concentrations)&quot;,
+    digits = 2,             
+    align = &quot;c&quot;              
+  )</code></pre>
+<table>
+<caption>Table 5: State/Territory-Level Air Quality Summary (PM2.5
+Concentrations)</caption>
+<thead>
+<tr class="header">
+<th align="center">State/Territory</th>
+<th align="center">No. of Counties</th>
+<th align="center">Mean PM2.5 (µg/m³)</th>
+<th align="center">Year</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">Alaska</td>
+<td align="center">5</td>
+<td align="center">10.28</td>
+<td align="center">2015</td>
+</tr>
+<tr class="even">
+<td align="center">Alabama</td>
+<td align="center">18</td>
+<td align="center">9.02</td>
+<td align="center">2015</td>
+</tr>
+<tr class="odd">
+<td align="center">Arkansas</td>
+<td align="center">11</td>
+<td align="center">8.82</td>
+<td align="center">2015</td>
+</tr>
+<tr class="even">
+<td align="center">Arizona</td>
+<td align="center">13</td>
+<td align="center">7.70</td>
+<td align="center">2015</td>
+</tr>
+<tr class="odd">
+<td align="center">California</td>
+<td align="center">51</td>
+<td align="center">9.83</td>
+<td align="center">2015</td>
+</tr>
+<tr class="even">
+<td align="center">Colorado</td>
+<td align="center">26</td>
+<td align="center">6.38</td>
+<td align="center">2015</td>
+</tr>
+<tr class="odd">
+<td align="center">Connecticut</td>
+<td align="center">8</td>
+<td align="center">8.10</td>
+<td align="center">2015</td>
+</tr>
+<tr class="even">
+<td align="center">Delaware</td>
+<td align="center">3</td>
+<td align="center">8.57</td>
+<td align="center">2015</td>
+</tr>
+<tr class="odd">
+<td align="center">Florida</td>
+<td align="center">38</td>
+<td align="center">6.54</td>
+<td align="center">2015</td>
+</tr>
+<tr class="even">
+<td align="center">Georgia</td>
+<td align="center">30</td>
+<td align="center">9.03</td>
+<td align="center">2015</td>
+</tr>
+</tbody>
+</table>
+<p>We used state-level fine particulate matter (PM2.5) concentrations as
+our primary indicator of air pollution. Specifically, we relied on the
+24-hour weighted mean PM2.5 values derived from EPA AirData annual
+summary reports. These data were originally reported at the county level
+and then aggregated to obtain state–year averages for 2015 and 2016,
+matching the years available in the CDC Healthy Aging cognitive
+dataset.</p>
+<pre class="r"><code>air_state_level &lt;- air_state |&gt;
+  group_by(year, state_desc) |&gt;
+  summarise(
+    pm25_state = mean(pm25_wtd_mean, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  )
+
+air_state_level |&gt; head(10)</code></pre>
+<pre><code>## # A tibble: 10 × 3
+##     year state_desc  pm25_state
+##    &lt;dbl&gt; &lt;chr&gt;            &lt;dbl&gt;
+##  1  2015 Alabama           9.02
+##  2  2015 Alaska           10.3 
+##  3  2015 Arizona           7.7 
+##  4  2015 Arkansas          8.82
+##  5  2015 California        9.83
+##  6  2015 Colorado          6.38
+##  7  2015 Connecticut       8.1 
+##  8  2015 Delaware          8.57
+##  9  2015 Florida           6.54
+## 10  2015 Georgia           9.02</code></pre>
+<pre class="r"><code>air_state_level |&gt;
+  head(10) |&gt;
+  mutate(year = as.character(year)) |&gt; 
+  kable(
+    col.names = c(&quot;Year&quot;, &quot;State/Territory&quot;, &quot;Mean PM2.5 (µg/m³)&quot;),
+    caption = &quot;Table 6: Aggregated State/Territory-Level PM2.5 Concentrations&quot;,
+    digits = 2,              
+    align = &quot;c&quot;
+  )</code></pre>
+<table>
+<caption>Table 6: Aggregated State/Territory-Level PM2.5
+Concentrations</caption>
+<thead>
+<tr class="header">
+<th align="center">Year</th>
+<th align="center">State/Territory</th>
+<th align="center">Mean PM2.5 (µg/m³)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">2015</td>
+<td align="center">Alabama</td>
+<td align="center">9.02</td>
+</tr>
+<tr class="even">
+<td align="center">2015</td>
+<td align="center">Alaska</td>
+<td align="center">10.28</td>
+</tr>
+<tr class="odd">
+<td align="center">2015</td>
+<td align="center">Arizona</td>
+<td align="center">7.70</td>
+</tr>
+<tr class="even">
+<td align="center">2015</td>
+<td align="center">Arkansas</td>
+<td align="center">8.82</td>
+</tr>
+<tr class="odd">
+<td align="center">2015</td>
+<td align="center">California</td>
+<td align="center">9.83</td>
+</tr>
+<tr class="even">
+<td align="center">2015</td>
+<td align="center">Colorado</td>
+<td align="center">6.38</td>
+</tr>
+<tr class="odd">
+<td align="center">2015</td>
+<td align="center">Connecticut</td>
+<td align="center">8.10</td>
+</tr>
+<tr class="even">
+<td align="center">2015</td>
+<td align="center">Delaware</td>
+<td align="center">8.57</td>
+</tr>
+<tr class="odd">
+<td align="center">2015</td>
+<td align="center">Florida</td>
+<td align="center">6.54</td>
+</tr>
+<tr class="even">
+<td align="center">2015</td>
+<td align="center">Georgia</td>
+<td align="center">9.03</td>
+</tr>
+</tbody>
+</table>
+<p>Then we merge with Alzheimer’s outcomes. For consistency with the
+income and education analyses, we restricted the sample to adults aged
+65+ years and used the sex-grouped estimates labeled “Overall”. Each
+state–year therefore contributes a single Alzheimer’s-related prevalence
+value, which we then merged with the corresponding state–year PM2.5
+concentration.</p>
+<pre class="r"><code>az_cog_65_overall_state &lt;- az_cog_65_overall |&gt;
+  filter(
+    year_start %in% c(2015, 2016),
+    sex_group == &quot;Overall&quot;
+  )
+
+az_air &lt;- az_cog_65_overall_state |&gt;
+  left_join(
+    air_state_level,
+    by = c(
+      &quot;year_start&quot;    = &quot;year&quot;,
+      &quot;location_desc&quot; = &quot;state_desc&quot;
+    )
+  )
+
+az_air |&gt;
+  select(year_start, location_desc, pm25_state, data_value) |&gt;
+  head(10) |&gt;
+  mutate(year_start = as.character(year_start)) |&gt; 
+  kable(
+    col.names = c(&quot;Year&quot;, &quot;State/Territory&quot;, &quot;Mean PM2.5 (µg/m³)&quot;, &quot;Prevalence. (%)&quot;),
+    caption = &quot;Table 7: Linked Dataset of Cognitive Decline and Air Quality (2015–2016)&quot;,
+    digits = 2,    
+    align = &quot;c&quot;   
+  )</code></pre>
+<table>
+<caption>Table 7: Linked Dataset of Cognitive Decline and Air Quality
+(2015–2016)</caption>
+<thead>
+<tr class="header">
+<th align="center">Year</th>
+<th align="center">State/Territory</th>
+<th align="center">Mean PM2.5 (µg/m³)</th>
+<th align="center">Prevalence. (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">2015</td>
+<td align="center">District of Columbia</td>
+<td align="center">NA</td>
+<td align="center">46.4</td>
+</tr>
+<tr class="even">
+<td align="center">2015</td>
+<td align="center">Alabama</td>
+<td align="center">9.02</td>
+<td align="center">36.8</td>
+</tr>
+<tr class="odd">
+<td align="center">2015</td>
+<td align="center">Colorado</td>
+<td align="center">6.38</td>
+<td align="center">19.6</td>
+</tr>
+<tr class="even">
+<td align="center">2015</td>
+<td align="center">Alabama</td>
+<td align="center">9.02</td>
+<td align="center">12.5</td>
+</tr>
+<tr class="odd">
+<td align="center">2015</td>
+<td align="center">Georgia</td>
+<td align="center">9.03</td>
+<td align="center">37.5</td>
+</tr>
+<tr class="even">
+<td align="center">2015</td>
+<td align="center">Hawaii</td>
+<td align="center">6.72</td>
+<td align="center">15.1</td>
+</tr>
+<tr class="odd">
+<td align="center">2015</td>
+<td align="center">Iowa</td>
+<td align="center">8.42</td>
+<td align="center">9.8</td>
+</tr>
+<tr class="even">
+<td align="center">2015</td>
+<td align="center">Colorado</td>
+<td align="center">6.38</td>
+<td align="center">10.5</td>
+</tr>
+<tr class="odd">
+<td align="center">2015</td>
+<td align="center">Alabama</td>
+<td align="center">9.02</td>
+<td align="center">33.4</td>
+</tr>
+<tr class="even">
+<td align="center">2015</td>
+<td align="center">Arizona</td>
+<td align="center">7.70</td>
+<td align="center">20.7</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div id="data-availability" class="section level1">

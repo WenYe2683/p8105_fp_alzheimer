@@ -7,10 +7,10 @@ navbar:
       href: index.html
     - text: "Data Analysis"
       href: data_source.html
-    - text: "Demographic Analysis"
-      href: demographic_analysis.html
-    - text: "Geographic Analysis"
-      href: geographic_analysis.html
+        - text: "Demographic Analysis"
+          href: demographic_analysis.html
+        - text: "Geographic Analysis"
+          href: geographic_analysis.html
     - text: "Interactive Map"
       href: interactive_maps.html
     - text: "Report"
@@ -24,7 +24,7 @@ navbar:
         - text: "Bing Li"
           href: mailto:bl3175@cumc.columbia.edu
         - text: "Chuhan Wang"
-          href: mailto:cw3747@cumc.columbia.edu   
+          href: mailto:cw3747@cumc.columbia.edu
         - text: "Luyun Ge"
           href: mailto:lg3450@cumc.columbia.edu
         - text: "Ye Wen"
