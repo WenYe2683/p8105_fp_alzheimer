@@ -1,5 +1,5 @@
 ---
-title: "Deographic Analysis"
+title: "Demographic Analysis"
 output: 
   html_document:
     toc: true

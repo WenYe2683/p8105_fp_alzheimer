@@ -22,4 +22,4 @@ output:
 ## [Luyun Ge](https://akacloud0429.github.io/)
 ![](about_us_image/luyun_ge.jpg)
 
-## Ye Wen
+## [Ye Wen](https://wenye2683.github.io/p8105_hw4_yw4662.github.io/)

@@ -8,7 +8,11 @@ navbar:
     - text: "Data Analysis"
       href: data_source.html
     - text: "Demographic Analysis"
-      href: demographic_analysis.html
+      menu:
+        - text: "Demographic Models"
+          href: demographic_analysis.html
+        - text: "Summary Statistics"
+          href: add_to_demograph.html
     - text: "Geographic Analysis"
       href: geographic_analysis.html
     - text: "Interactive Map"
