@@ -330,14 +330,23 @@ div.tocify {
         <li>
   <a href="index.html">Home</a>
 </li>
-<li>
-  <a href="data_source.html">Data Analysis</a>
-</li>
-<li>
-  <a href="demographic_analysis.html">Demographic Analysis</a>
-</li>
-<li>
-  <a href="geographic_analysis.html">Geographic Analysis</a>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Data Analysis
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="data_source.html">Data Source</a>
+    </li>
+    <li>
+      <a href="deographic_analysis.html">Demographic Analysis</a>
+    </li>
+    <li>
+      <a href="geographic_analysis.html">Geographic Analysis</a>
+    </li>
+  </ul>
 </li>
 <li>
   <a href="interactive_maps.html">Interactive Map</a>
@@ -398,10 +407,239 @@ div.tocify {
 </div>
 
 
+<div id="data-loading" class="section level1">
+<h1>Data Loading</h1>
+<pre class="r"><code># Load Alzheimer&#39;s data
+raw_az_data &lt;- read.csv(&quot;data/2015-2022 Alzheimer Data.csv&quot;) |&gt;
+  janitor::clean_names()
+
+raw_az_data &lt;- raw_az_data[-nrow(raw_az_data), ]
+
+az_clean &lt;- raw_az_data |&gt;
+  filter(
+    !is.na(data_value),
+    !is.na(year_start),
+    !is.na(location_abbr)
+  )
+
+# Filter for cognitive decline/impairment
+az_cog &lt;- az_clean |&gt;
+  filter(
+    str_detect(topic, regex(&quot;cognitive decline|cognitive impairment&quot;,
+                            ignore_case = TRUE))
+  )
+
+# Create base summary with age and sex groups
+az_cog_summary_base &lt;- az_cog |&gt;
+  mutate(
+    age_group = case_when(
+      stratification_category1 == &quot;Age Group&quot; ~ stratification1,
+      TRUE ~ &quot;Overall&quot;
+    ),
+    sex_group = case_when(
+      stratification_category2 == &quot;Sex&quot; ~ stratification2,
+      TRUE ~ &quot;Overall&quot;
+    )
+  )
+
+# Filter for 65+ overall
+az_cog_65_overall &lt;- az_cog_summary_base |&gt;
+  filter(
+    age_group == &quot;65 years or older&quot;,
+    sex_group == &quot;Overall&quot;
+  )
+
+# Load income data
+inc15 &lt;- read_csv(&quot;data/median income-2015.csv&quot;, skip = 1) |&gt;
+  janitor::clean_names() |&gt;
+  transmute(
+    year = 2015,
+    state_name = geographic_area_name,
+    median_income = as.numeric(median_income_dollars_estimate_households)
+  )
+
+inc16 &lt;- read_csv(&quot;data/median income-2016.csv&quot;, skip = 1) |&gt;
+  janitor::clean_names() |&gt;
+  transmute(
+    year = 2016,
+    state_name = geographic_area_name,
+    median_income = as.numeric(median_income_dollars_estimate_households)
+  )
+
+income_state &lt;- bind_rows(inc15, inc16)
+
+income_state_with_state &lt;- income_state |&gt;
+  mutate(
+    state = str_squish(str_extract(state_name, &quot;[^,]+$&quot;)))
+
+income_state_level &lt;- income_state_with_state |&gt;
+  group_by(year, state) |&gt;
+  summarise(
+    n_counties = n(),
+    median_state = median(median_income, na.rm = TRUE),
+    mean_state   = mean(median_income, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  )
+
+# Merge income with Alzheimer&#39;s data
+state_vec &lt;- unique(income_state_level$state)
+
+az_cog_65_overall_state &lt;- az_cog_65_overall |&gt;
+  filter(
+    year_start %in% c(2015, 2016),
+    sex_group == &quot;Overall&quot;,
+    location_desc %in% state_vec
+  )
+
+az_income &lt;- az_cog_65_overall_state |&gt;
+  left_join(
+    income_state_level,
+    by = c(&quot;year_start&quot; = &quot;year&quot;,
+           &quot;location_desc&quot; = &quot;state&quot;)
+  )
+
+# Load education data
+edu15_raw &lt;- read_csv(&quot;data/education2015.csv&quot;, skip = 1) |&gt;
+  janitor::clean_names()
+
+edu15_state &lt;- edu15_raw |&gt;
+  filter(!str_detect(geographic_area_name, &quot;,&quot;))
+
+edu16_raw &lt;- read_csv(&quot;data/education2016.csv&quot;, skip = 1) |&gt;
+  janitor::clean_names()
+
+edu16_state &lt;- edu16_raw |&gt;
+  filter(!str_detect(geographic_area_name, &quot;,&quot;))
+
+edu15_state_slim &lt;- edu15_state |&gt;
+  transmute(
+    year = 2015,
+    state = geographic_area_name,
+    educ_bach = as.numeric(percent_estimate_percent_bachelors_degree_or_higher)
+  )
+
+edu16_state_slim &lt;- edu16_state |&gt;
+  transmute(
+    year = 2016,
+    state = geographic_area_name,
+    educ_bach = as.numeric(percent_estimate_percent_bachelors_degree_or_higher)
+  )
+
+edu_state &lt;- bind_rows(edu15_state_slim, edu16_state_slim)
+
+# Merge education with Alzheimer&#39;s data
+az_edu &lt;- az_cog_65_overall_state |&gt;
+  left_join(
+    edu_state,
+    by = c(
+      &quot;year_start&quot; = &quot;year&quot;,
+      &quot;location_desc&quot; = &quot;state&quot;
+    ))
+
+# Load air pollution data
+air15 &lt;- read_csv(&quot;data/clean_air_state_2015.csv&quot;)
+air16 &lt;- read_csv(&quot;data/clean_air_state_2016.csv&quot;)
+
+air_state &lt;- bind_rows(air15, air16)
+
+air_state_level &lt;- air_state |&gt;
+  group_by(year, state_desc) |&gt;
+  summarise(
+    pm25_state = mean(pm25_wtd_mean, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  )
+
+# Merge air pollution with Alzheimer&#39;s data
+az_air &lt;- az_cog_65_overall_state |&gt;
+  left_join(
+    air_state_level,
+    by = c(
+      &quot;year_start&quot;    = &quot;year&quot;,
+      &quot;location_desc&quot; = &quot;state_desc&quot;
+    )
+  )</code></pre>
+</div>
+<div id="healthy-aging-data" class="section level1">
+<h1>Healthy Aging Data</h1>
+<div id="distribution-difference" class="section level2">
+<h2>Distribution Difference</h2>
+<div id="prevelance-year" class="section level3">
+<h3>prevelance ~ year</h3>
+<pre class="r"><code>az_nat_65_overall &lt;- az_cog_65_overall |&gt;
+  group_by(year = year_start) |&gt;
+  summarise(
+    mean_prev = mean(data_value, na.rm = TRUE),
+    sd_prev   = sd(data_value, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  )
+
+az_nat_65_overall |&gt;
+  mutate(year = factor(year)) |&gt;
+  ggplot(aes(x = year, y = mean_prev)) +
+  geom_col() +
+  labs(
+    x = &quot;Year&quot;,
+    y = &quot;Mean prevalence (%)&quot;,
+    title = &quot;Alzheimer&#39;s-related cognitive indicators among adults 65+, 2015–2016&quot;
+  )</code></pre>
+<p><img src="deographic_analysis_files/figure-html/unnamed-chunk-1-1.png" width="90%" /></p>
+<p>At the national level, the mean prevalence of Alzheimer’s-related
+cognitive indicators among adults aged 65+ was very similar in 2015
+(26.0%) and 2016 (25.8%). The small difference of 0.2 percentage points
+is well within the between-state variation and does not suggest any
+clear change over this two-year period.</p>
+</div>
+<div id="prevelance-age" class="section level3">
+<h3>prevelance ~ age</h3>
+<pre class="r"><code>az_age_desc &lt;- az_cog_summary_base |&gt;
+  group_by(age_group) |&gt;
+  summarise(
+    n_obs      = n(),
+    mean_value = mean(data_value, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  )
+
+ggplot(az_age_desc,
+       aes(x = age_group, y = mean_value)) +
+  geom_col() +
+  labs(
+    x = &quot;Age group&quot;,
+    y = &quot;Mean prevalence (%)&quot;,
+    title = &quot;Alzheimer&#39;s-related cognitive indicators by age group&quot;
+  )</code></pre>
+<p><img src="deographic_analysis_files/figure-html/unnamed-chunk-2-1.png" width="90%" /></p>
+<p>Across all cognitive items, the mean prevalence was about 31.8% among
+adults aged 50–64 years and 25.8% among those aged 65 years or
+older.</p>
+</div>
+<div id="prevelance-sex" class="section level3">
+<h3>prevelance ~ sex</h3>
+<pre class="r"><code>az_sex_desc &lt;- az_cog_summary_base |&gt;
+  group_by(sex_group) |&gt;
+  summarise(
+    n_obs      = n(),
+    mean_value = mean(data_value, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  )
+
+ggplot(az_sex_desc,
+       aes(x = sex_group, y = mean_value)) +
+  geom_col() +
+  labs(
+    x = &quot;Sex&quot;,
+    y = &quot;Mean prevalence (%)&quot;,
+    title = &quot;Alzheimer&#39;s-related cognitive indicators by sex&quot;
+  )</code></pre>
+<p><img src="deographic_analysis_files/figure-html/unnamed-chunk-3-1.png" width="90%" /></p>
+<p>Across all states and cognitive items in 2015–2016, women had a
+higher mean prevalence of Alzheimer’s-related cognitive indicators than
+men (30.9% vs 26.8%), suggesting a consistently greater reported
+cognitive burden among female respondents.</p>
+</div>
+</div>
+</div>
 <div id="relationship-between-income-and-ad" class="section level1">
 <h1>Relationship between Income and AD</h1>
-<div id="relationship" class="section level3">
-<h3>relationship</h3>
 <pre class="r"><code>ggplot(az_income,
        aes(x = median_state, y = data_value,
            color = factor(year_start))) +
@@ -409,12 +647,12 @@ div.tocify {
   geom_smooth(method = &quot;lm&quot;, se = FALSE) +
   labs(
     x = &quot;State-level median household income (USD)&quot;,
-    y = &quot;Alzheimer’s-related cognitive prevalence (%)&quot;,
+    y = &quot;Alzheimer&#39;s-related cognitive prevalence (%)&quot;,
     color = &quot;Year&quot;,
     title = &quot;State-level cognitive burden vs income among adults 65+ (2015–2016)&quot;
   )</code></pre>
 <pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
-<p><img src="deographic_analysis_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+<p><img src="deographic_analysis_files/figure-html/unnamed-chunk-4-1.png" width="90%" /></p>
 <pre class="r"><code>model_inc &lt;- lm(
   data_value ~ median_state + factor(year_start),
   data = az_income
@@ -470,6 +708,167 @@ many other state-level determinants—such as education, health care
 access, demographic composition, and prevalence of vascular risk
 factors—were not adjusted for, so income alone is unlikely to account
 for the wide variation in cognitive outcomes across states.</p>
+<div id="education-effects" class="section level2">
+<h2>Education Effects</h2>
+<div id="relationship-analysis" class="section level3">
+<h3>relationship analysis</h3>
+<pre class="r"><code>ggplot(az_edu,
+       aes(x = educ_bach,
+           y = data_value,
+           color = factor(year_start))) +
+  geom_point(alpha = 0.8) +
+  geom_smooth(method = &quot;lm&quot;, se = FALSE) +
+  labs(
+    x = &quot;State-level % with bachelor&#39;s degree or higher (25+)&quot;,
+    y = &quot;Alzheimer&#39;s-related cognitive prevalence (%)&quot;,
+    color = &quot;Year&quot;,
+    title = &quot;State-level cognitive burden vs education among adults 65+ (2015–2016)&quot;
+  ) +
+  theme_minimal()</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="deographic_analysis_files/figure-html/unnamed-chunk-6-1.png" width="90%" /></p>
+<pre class="r"><code>model_edu &lt;- 
+  lm(
+  data_value ~ educ_bach + factor(year_start),
+  data = az_edu)
+
+summary(model_edu)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = data_value ~ educ_bach + factor(year_start), data = az_edu)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -19.554 -12.737  -2.077  10.376  39.346 
+## 
+## Coefficients:
+##                        Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)            29.87275    2.95268  10.117   &lt;2e-16 ***
+## educ_bach              -0.16205    0.09617  -1.685   0.0927 .  
+## factor(year_start)2016 -1.13543    1.73643  -0.654   0.5135    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 13.53 on 431 degrees of freedom
+## Multiple R-squared:  0.008142,   Adjusted R-squared:  0.003539 
+## F-statistic: 1.769 on 2 and 431 DF,  p-value: 0.1717</code></pre>
+<p>In a linear regression of state-level Alzheimer’s-related cognitive
+prevalence on the percentage of adults with a bachelor’s degree or
+higher and survey year, higher education was associated with lower
+cognitive burden. The estimated coefficient for education was <span
+class="math inline">\(\hat\beta_{\text{educ}} = -0.16\)</span>, meaning
+that a 1–percentage-point increase in the share of adults 25 years and
+older with at least a bachelor’s degree was associated with about a
+prevalence of Alzheimer’s-related cognitive problems among adults aged
+65+. A 10–percentage-point increase in educational attainment would
+correspond to roughly a prevalence. However, this association was
+relatively weak and not conventionally statistically significant (the
+approximate 95% confidence interval for <span
+class="math inline">\(\hat\beta_{\text{educ}}\)</span> ranges from about
+<span class="math inline">\(-0.35\)</span> to <span
+class="math inline">\(0.03\)</span>). The coefficient for survey year
+(2016 vs 2015) was small (<span class="math inline">\(\hat\beta =
+-1.14\)</span>), suggesting no clear overall difference between the two
+years after accounting for education. The model <span
+class="math inline">\(R^2\)</span> was only about , indicating that
+education and year together explain only a small fraction of the large
+between-state variation in cognitive outcomes.</p>
+<p>Although states with higher levels of college education tended to
+have slightly lower Alzheimer’s-related cognitive prevalence, the
+relationship was weak and most of the between-state variability remained
+unexplained. Several factors may help explain this. First, the analysis
+is ecological: each data point is a state–year average, so big
+within-state differences in education and cognitive health are smoothed
+out, and any individual-level association is likely diluted. Second,
+both education and cognitive burden come from survey-based estimates and
+can be measured with error; on top of that, we aggregated county-level
+education indicators to the state level, which probably adds extra
+noise. Third, we only looked at two survey years (2015–2016), so there
+is not much variation over time in either education or cognitive
+outcomes. Finally, many other state-level factors—such as income, access
+to health care, population structure, and the prevalence of vascular and
+lifestyle risk factors—were not included in the model, so education
+alone is unlikely to explain the wide differences in cognitive outcomes
+across states.</p>
+</div>
+</div>
+<div id="air-pollution-effects" class="section level2">
+<h2>Air Pollution Effects</h2>
+<div id="merge-with-alzheimers-outcomes" class="section level3">
+<h3>merge with Alzheimer’s outcomes</h3>
+</div>
+<div id="relationship-analysis-1" class="section level3">
+<h3>relationship analysis</h3>
+<pre class="r"><code>ggplot(az_air,
+       aes(x = pm25_state,
+           y = data_value, 
+           color = factor(year_start))) +
+  geom_point(alpha = 0.8) +
+  geom_smooth(method = &quot;lm&quot;, se = FALSE) +
+  labs(
+    x = &quot;State-level PM2.5 weighted mean (µg/m³)&quot;,
+    y = &quot;Alzheimer&#39;s-related cognitive prevalence (%)&quot;,
+    color = &quot;Year&quot;,
+    title = &quot;State-level cognitive burden vs PM2.5 among adults 65+ (2015–2016)&quot;
+  ) +
+  theme_minimal()</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<pre><code>## Warning: Removed 12 rows containing non-finite outside the scale range
+## (`stat_smooth()`).</code></pre>
+<pre><code>## Warning: Removed 12 rows containing missing values or values outside the scale range
+## (`geom_point()`).</code></pre>
+<p><img src="deographic_analysis_files/figure-html/unnamed-chunk-8-1.png" width="90%" /></p>
+<pre class="r"><code>model_air &lt;- lm(
+  data_value ~ pm25_state + factor(year_start),
+  data = az_air
+)
+
+summary(model_air)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = data_value ~ pm25_state + factor(year_start), data = az_air)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -18.972 -12.651  -2.391  10.294  39.928 
+## 
+## Coefficients:
+##                        Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)             26.5460     4.4889   5.914 6.95e-09 ***
+## pm25_state              -0.2067     0.5494  -0.376    0.707    
+## factor(year_start)2016  -1.1602     1.7507  -0.663    0.508    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 13.49 on 419 degrees of freedom
+##   (12 observations deleted due to missingness)
+## Multiple R-squared:  0.001254,   Adjusted R-squared:  -0.003514 
+## F-statistic: 0.263 on 2 and 419 DF,  p-value: 0.7689</code></pre>
+<p>In a linear regression of state-level Alzheimer’s-related cognitive
+prevalence on PM2.5 and survey year, we did not observe a clear
+association between air pollution and cognitive burden among adults aged
+65+. The estimated coefficient for PM2.5 was <span
+class="math inline">\(\hat\beta_{\text{PM2.5}} =\)</span> -0.207,
+meaning that a 1–µg/m³ increase in the state-level PM2.5 weighted mean
+was associated with an estimated -0.207–percentage-point change in
+Alzheimer’s-related cognitive prevalence. A 10–µg/m³ difference in PM2.5
+would therefore correspond to roughly -2.07 percentage points. However,
+this association was small and not statistically significant (p =
+0.707), indicating that PM2.5 is not a strong predictor of between-state
+differences in cognitive burden in this model.</p>
+<p>The coefficient for survey year (2016 vs 2015) was <span
+class="math inline">\(\hat\beta_{\text{year}} =\)</span> -1.16 with p =
+0.508, suggesting no meaningful overall change in prevalence between the
+two years after accounting for PM2.5. The model <span
+class="math inline">\(R^2\)</span> was only 0.001, implying that PM2.5
+and year together explain only a negligible fraction of the substantial
+between-state variation in Alzheimer’s-related cognitive outcomes. This
+is not surprising given the ecological nature of the analysis
+(state-level averages), potential measurement error in both pollution
+and cognitive indicators, the short two-year time window, and the
+absence of other important determinants such as income, education,
+demographics, and health care access.</p>
+</div>
 </div>
 </div>
 

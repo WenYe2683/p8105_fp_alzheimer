@@ -5,16 +5,16 @@ navbar:
   right:
     - text: "Home"
       href: index.html
-    - text: "Data Analysis"
-      href: data_source.html
-        - text: "Demographic Analysis"
-          href: demographic_analysis.html
-        - text: "Geographic Analysis"
-          href: geographic_analysis.html
-    - text: "Interactive Map"
-      href: interactive_maps.html
+    - text: "Plan"
+      href: plan.html
     - text: "Report"
       href: report.html
+    - text: "Data"
+      href: data_source.html
+    - text: "Analysis"
+      href: analysis.html
+    - text: "Visualization"
+      href: visualisation.html
     - text: "About Us"
       href: about_us.html
     - icon: fa-github fa-lg

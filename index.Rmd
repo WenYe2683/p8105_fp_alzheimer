@@ -1,79 +1,350 @@
 ---
 output: 
     html_document:
-      toc: true
+      toc: false
       toc_float: true
-      theme: united
+      theme: flatly
 ---
 
 <style>
+/* Global Styles */
+html, body {
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  line-height: 1.8;
+  color: #333;
+  margin: 0;
+  padding: 0;
+  background-image: url('background.jpg'); 
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+/* Transparent Floating Navigation Bar */
+.navbar {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  border: none !important;
+  position: fixed !important;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.navbar-default .navbar-brand,
+.navbar-default .navbar-nav > li > a {
+  color: white !important;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.navbar-default .navbar-brand:hover,
+.navbar-default .navbar-nav > li > a:hover {
+  color: #f0f0f0 !important;
+}
+
+.navbar-default .navbar-toggle {
+  border-color: rgba(255,255,255,0.5);
+}
+
+.navbar-default .navbar-toggle .icon-bar {
+  background-color: white;
+}
+
+.navbar-default .navbar-toggle:hover,
+.navbar-default .navbar-toggle:focus {
+  background-color: rgba(255,255,255,0.1);
+}
+
+/* Add padding to body to account for fixed navbar */
+body {
+  padding-top: 50px;
+}
+
+/* Hero Section */
 .hero-section {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 60px 30px;
-  border-radius: 15px;
-  margin-bottom: 30px;
+  padding: 150px 30px;
   text-align: center;
+  margin-bottom: 0;
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero-section > * {
+  position: relative;
+  z-index: 2;
 }
 
 .hero-section h1 {
-  font-size: 2.5em;
+  font-size: 4.5em;
   margin-bottom: 20px;
+  font-weight: 700;
+  text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+  letter-spacing: 2px;
+  font-family: Georgia, 'Times New Roman', Times, serif;
 }
 
-.hero-section p {
-  font-size: 1.2em;
-  max-width: 800px;
+.hero-section .subtitle {
+  font-size: 1.8em;
+  font-weight: 300;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  margin-bottom: 30px;
+}
+
+/* Content Sections */
+.content-section {
+  padding: 20px 20px;
+  max-width: 1200px;
   margin: 0 auto;
-}
-
-.card-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 20px;
-  margin: 30px 0;
-}
-
-.card {
-  background: white;
+  background: rgba(255, 255, 255, 0.8);
   border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  padding: 25px;
-  width: 300px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.content-section h2 {
+  font-size: 2.5em;
+  color: #2c3e50;
+  margin-top: 15px;
+  margin-bottom: 20px;
+  font-weight: 600;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.content-section h3 {
+  font-size: 1.8em;
+  color: #34495e;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  font-weight: 600;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.content-section h4 {
+  font-size: 1.3em;
+  color: #d97706;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  font-weight: 600;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.content-section p {
+  font-size: 1.1em;
+  color: #555;
+  margin-bottom: 20px;
+  line-height: 1.8;
+}
+
+.content-section strong {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.factor-box {
+  background: rgba(255, 255, 255, 0.8);
+  border-left: 4px solid #d97706;
+  padding: 20px 25px;
+  margin: 5px 0;
+  border-radius: 5px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.factor-box:first-child {
+  margin-top: 0;
+}
+
+.factor-box summary {
+  padding: 20px 25px;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+  color: #d97706;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-size: 1.3em;
+  user-select: none;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.factor-box summary::-webkit-details-marker {
+  display: none;
+}
+
+.factor-box summary::before {
+  content: '+';
+  position: absolute;
+  right: 25px;
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #d97706;
   transition: transform 0.3s ease;
 }
 
-.card:hover {
-  transform: translateY(-5px);
+.factor-box[open] summary::before {
+  content: '−';
+  transform: rotate(0deg);
 }
 
-.card h3 {
-  color: #667eea;
+.factor-box summary:hover {
+  background: rgba(217, 119, 6, 0.05);
+}
+
+.factor-box .factor-content {
+  padding: 0 25px 20px 25px;
+  color: #555;
+  line-height: 1.8;
+  font-size: 1.05em;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.factor-box:hover {
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
+}
+
+/* Card Grid */
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  margin: 50px 0;
+  padding: 0 20px;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  padding: 35px;
+  transition: all 0.3s ease;
+  border: 1px solid #e0e0e0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(90deg, #d97706, #ea580c);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.card:hover::before {
+  transform: scaleX(1);
+}
+
+.card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 30px rgba(217, 119, 6, 0.3);
+}
+
+.card-icon {
+  font-size: 3em;
+  margin-bottom: 20px;
+  display: block;
+}
+
+.card h4 {
+  color: #d97706;
   margin-bottom: 15px;
+  font-size: 1.5em;
+  font-weight: 600;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.card h4 a {
+  color: #d97706;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.card h4 a:hover {
+  color: #ea580c;
+}
+
+.card p {
+  color: #666;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Stat Boxes */
+.stats-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 30px;
+  margin: 50px 0;
 }
 
 .stat-box {
-  background: #f8f9fa;
-  border-left: 4px solid #667eea;
-  padding: 20px;
-  margin: 20px 0;
+  background: rgba(255, 255, 255, 0.7);
+  border-left: 5px solid #d97706;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.stat-box:hover {
+  transform: translateX(5px);
+  box-shadow: 0 5px 20px rgba(217, 119, 6, 0.2);
 }
 
 .stat-number {
-  font-size: 2.5em;
+  font-size: 2em;
   font-weight: bold;
-  color: #667eea;
+  color: #d97706;
+  margin-bottom: 10px;
+  line-height: 1;
+  font-family: Georgia, 'Times New Roman', Times, serif;
 }
 
+.stat-box p {
+  color: #555;
+  margin: 10px 0 0 0;
+  font-size: 1.05em;
+}
+
+.stat-box strong {
+  color: #ea580c;
+}
+
+/* Video Container */
 .video-container {
   position: relative;
   padding-bottom: 56.25%;
   height: 0;
   overflow: hidden;
   max-width: 100%;
-  margin: 30px 0;
-  border-radius: 10px;
+  margin: 50px 0;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 
 .video-container iframe {
@@ -82,57 +353,226 @@ output:
   left: 0;
   width: 100%;
   height: 100%;
+  border-radius: 15px;
+}
+
+/* Project Information Section */
+.project-info-section {
+  background: linear-gradient(135deg, rgba(217, 119, 6, 0.85) 0%, rgba(234, 88, 12, 0.85) 100%);
+  color: white;
+  text-align: center;
+}
+
+.project-info-section h2 {
+  color: white;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.project-info-section h3 {
+  color: white;
+  margin-top: 50px;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.project-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 25px;
+  margin: 40px 0;
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.project-link {
+  background: rgba(255, 255, 255, 0.7);
+  color: #2c3e50;
+  padding: 30px;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  cursor: pointer;
+}
+
+.project-link:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  color: #d97706;
+}
+
+.project-link h4 {
+  color: #d97706;
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.project-link p {
+  color: #666;
+  margin: 0;
+  font-size: 0.95em;
+}
+
+/* Contact Section */
+.contact-section {
+  background: rgba(44, 62, 80, 0.95);
+  color: white;
+  padding: 60px 30px;
+  text-align: center;
+  border-radius: 10px;
+  margin: 30px auto;
+  max-width: 1200px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.contact-section h2 {
+  color: white;
+  margin-bottom: 20px;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.contact-section h4 {
+  color: #f59e0b;
+  margin-top: 30px;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.contact-section p {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.contact-section a {
+  color: #f59e0b;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.contact-section a:hover {
+  color: #d97706;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 100px 20px;
+    min-height: 80vh;
+  }
+  
+  .hero-section h1 {
+    font-size: 2.5em;
+  }
+  
+  .hero-section .subtitle {
+    font-size: 1.3em;
+  }
+  
+  .content-section {
+    padding: 50px 20px;
+  }
+  
+  .project-links {
+    grid-template-columns: 1fr;
+  }
+  
+  .card-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .team-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
 
 <div class="hero-section">
-  <h1>🧠 Cognitive Decline & Alzheimer's Disease in the U.S.</h1>
-  <p>A complete analysis of geographic, socioeconomic, and environmental factors associated with self-reported cognitive decline among middle-aged and older adults across the United States (2015-2016)</p>
+  <h1>Cognitive Decline & Alzheimer's Disease</h1>
 </div>
 
-# Motivation and Project Overview
+<div class="content-section motivation-section">
+  <h2>Motivation and Project Overview</h2>
+  <p>As U.S. Alzheimer's disease (AD) cases are projected to reach <strong>7.2 million by 2025</strong>, identifying environmental and social risk factors such as age, sex and income, is urgent. We aim to inform prevention efforts by analyzing <strong>state-level variations</strong> in AD data. Our project investigates <strong>temporal</strong> and <strong>geographic</strong> trends in AD mortality and prevalence (2015-2016) to determine their association with education levels and air quality.</p>
+</div>
 
-As U.S. Alzheimer's disease (AD) cases are projected to reach 7.2 million by 2025, identifying environmental and social risk factors such as age, sex and income, is urgent. We aim to inform prevention efforts by analyzing **state-level variations** in AD data. Our project investigates **temporal** and **geographic** trends in AD mortality and prevalence (2015-2016) to determine their association with education levels and air quality. 
+<div class="content-section importance-section">
+  <h2>Importance and Desire of Longevity</h2>
+  <p>Over the years, people wonder about the maximum lifespan for human beings and how to achieve longevity with cognitive health. To that end, scientists have published numerous articles exploring perspectives such as genetics, diet, exercise, lifestyle habits, attitude, and stress management to prolong human life and maintain cognitive function. Although life expectancy has reached an 80-year high, limited resources and environmental challenges have made the goal of maximizing human cognitive health challenging. Understanding the factors that contribute to cognitive decline is crucial for developing effective prevention strategies.</p>
+</div>
 
-# Explore Our Work in Details
+<div class="content-section factors-section">
 
-<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 30px;">
+  <h2>Associated Factors</h2>
+  
+```{=html}
+<details class="factor-box">
+  <summary>Cognitive Decline and Age</summary>
+  <div class="factor-content">
+    Age is the strongest known risk factor for cognitive decline and Alzheimer's disease. The prevalence of cognitive problems increases significantly with age, particularly after 65 years. Understanding age-related patterns helps identify critical intervention points.
+  </div>
+</details>
+
+<details class="factor-box">
+  <summary>Cognitive Decline and Socioeconomic Status</summary>
+  <div class="factor-content">
+    Higher socioeconomic status, including education and income levels, is associated with lower rates of cognitive decline. Education may provide cognitive reserve, while income affects access to healthcare, healthy lifestyles, and living conditions that support brain health.
+  </div>
+</details>
+
+<details class="factor-box">
+  <summary>Cognitive Decline and Environmental Factors</summary>
+  <div class="factor-content">
+    Environmental exposures, particularly air pollution (PM2.5), have been linked to increased risk of cognitive decline and neurodegenerative diseases. Long-term exposure to poor air quality may accelerate cognitive aging and increase dementia risk.
+  </div>
+</details>
+```
+
+</div>
+
+<div class="content-section">
+  <h2>Explore Our Work in Details</h2>
+  
+
+<div class="card-container">
 
 <div class="card">
-<h4>📊 [Data Analysis](data_source.html)</h4>
+<h4>[Plan](plan.html)</h4>
+Information about our analysis plan
+</div>
+
+<div class="card">
+<h4>[Data](data_source.html)</h4>
 Information about our data sources and cleaning procedures
 </div>
 
 <div class="card">
-<h4>👥 [Demographic Models](deographic_analysis.html)</h4>
-Exploratory analysis by age, sex, and year
+<h4>[Analysis](deographic_analysis.html)</h4>
+Exploratory analysis by demographics and geographics
 </div>
 
 <div class="card">
-<h4>🗺️ [Geographic EDA](geographic_analysis.html)</h4>
-State-level patterns and top burden states
-</div>
-
-<div class="card">
-<h4>📍 [Interactive Maps](interactive_maps.html)</h4>
+<h4>[Visualization](visualization.html)</h4>
 Choropleth maps and plotly visualizations
 </div>
 
 <div class="card">
-<h4>📋 [Project Report](report.html)</h4>
+<h4>[Report](report.html)</h4>
 Complete project report with all findings
 </div>
 
 <div class="card">
-<h4>👋 [About Us](about_us.html)</h4>
+<h4>[About Us](about_us.html)</h4>
 Meet our lovely team
 </div>
-
 </div>
-
-
-# Key Findings
-
+</div>
+<div class="content-section">
+  <h2>Key Findings</h2>
+  
+  <div class="stats-container">
 <div class="stat-box">
   <div class="stat-number">32,616</div>
   <p>Total observations from CDC Healthy Aging Data across <strong>59 states and territories</strong></p>
@@ -147,33 +587,41 @@ Meet our lovely team
   <div class="stat-number">30.9% vs 26.8%</div>
   <p><strong>Women</strong> reported higher cognitive burden than <strong>men</strong> across all states</p>
 </div>
-
-# Research Questions
-
-Our analysis addresses the following key questions:
-
-1. **Geographic Variation**: How does the prevalence of self-reported cognitive decline vary across U.S. states and territories?
-
-2. **Demographic Patterns**: Are there differences in cognitive burden by age group and sex?
-
-3. **Socioeconomic Factors**: Is state-level median household income associated with cognitive decline prevalence?
-
-4. **Educational Attainment**: Does the proportion of adults with higher education relate to cognitive outcomes?
-
-5. **Environmental Exposures**: Is air pollution (PM2.5) associated with cognitive decline at the state level?
-
-# Screencast
-
-<div class="video-container">
-  <iframe src="https://www.youtube.com/embed/YOUR_VIDEO_ID" frameborder="0" allowfullscreen></iframe>
+</div>
 </div>
 
-*Click on the video above to learn about our project findings and methodology.*
+<div class="content-section">
+  <h2>Research Questions</h2>
+  <p>Our analysis addresses the following key questions:</p>
+  
+  <ol>
+    <li><strong>Geographic Variation</strong>: How does the prevalence of self-reported cognitive decline vary across U.S. states and territories?</li>
+    
+    <li><strong>Demographic Patterns</strong>: Are there differences in cognitive burden by age group and sex?</li>
+    
+    <li><strong>Socioeconomic Factors</strong>: Is state-level median household income associated with cognitive decline prevalence?</li>
+    
+    <li><strong>Educational Attainment</strong>: Does the proportion of adults with higher education relate to cognitive outcomes?</li>
+    
+    <li><strong>Environmental Exposures</strong>: Is air pollution (PM2.5) associated with cognitive decline at the state level?</li>
+  </ol>
+</div>
 
-<center>
-**GitHub Repository**: [View Code](https://github.com/WenYe2683/p8105_fp_alzheimer)
+<div class="content-section">
+  <h2>Screencast</h2>
+  
+  <div class="video-container">
+  <iframe src="https://www.youtube.com/embed/YOUR_VIDEO_ID" frameborder="0" allowfullscreen></iframe>
+  </div>
+  
+  <p style="text-align: center; color: #666; font-style: italic; margin-top: 20px;">Click on the video above to learn about our project findings and methodology.</p>
+</div>
 
-*P8105 Data Science I Final Project | Fall 2025*
 
-*Team Members: bl3175, cw3747, lg3450, yw4662*
-</center>
+<div class="contact-section">
+  <p style="text-align: center; margin-top: 30px;">
+    <strong>GitHub Repository</strong>: <a href="https://github.com/WenYe2683/p8105_fp_alzheimer" target="_blank">View Code</a>
+  </p>
+  <p style="text-align: center; margin-top: 20px; opacity: 0.9;">P8105 Data Science I Final Project | Fall 2025</p>
+  <p style="text-align: center; margin-top: 10px; opacity: 0.8; font-size: 0.9em;">Team Members: bl3175, cw3747, lg3450, yw4662</p>
+</div>
