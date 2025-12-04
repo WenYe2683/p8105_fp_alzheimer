@@ -1,0 +1,85 @@
+---
+output: 
+    html_document:
+      toc: false
+      toc_float: true
+      theme: flatly
+---
+
+## Tentative Title
+
+Mapping and Modeling Alzheimer's Mortality and Cognitive Decline in the U.S. (2015-2022)
+
+## Motivation
+
+Alzheimer's disease (AD) is one of the leading causes of death among older adults in the United States and a growing public health challenge as the population ages. According to the Alzheimer's Association, approximately **7.2 million Americans aged 65 or above are projected to be living with Alzheimer's in 2025**, a number expected to rise significantly in coming decades. Understanding how Alzheimer's mortality and self-reported cognitive decline vary across states - and how these patterns relate to social, environmental, and health factors - can inform prevention and policy efforts.
+
+Our project aims to explore **temporal and geographic trends in Alzheimer's disease mortality and prevalence** from 2015-2022 and examine how these are associated with contextual factors such as cardiovascular disease burden, education level, and air quality. 
+
+## Intended Final Products
+
+- A **reproducible written report** summarising data sources, cleaning process, analyses, and findings
+- An **interactive project website** including summary dashboards and state-level visualizations
+- A **2-minute narrated screencast** presenting key results and interpretations
+- A **public GitHub repository** with all code, data wrangling scripts, and documentation
+
+## Anticipated Data Sources
+1. CDC WONDER - Multiple Cause of Death Data (1999-2022)
+    - Variables of interest:
+        - Age-adjusted mortality rate per 100,000
+        - State, year, and demographic breakdowns (age group, sex, race)
+    - Usage in project: primary measure of Alzheimer's mortality rates by state and year
+    - URL: https://wonder.cdc.gov/mcd.html
+
+2. CDC Alzheimer's Disease and Healthy Aging Data Portal (2015-2022)
+    - Variables of interest:
+        - Prevalence rate
+        - Cognitive decline for Alzheimer's-related outcomes
+    - Usage in project: proxy measure for Alzheimer's prevalence 
+    - URL: https://data.cdc.gov/Healthy-Aging/Alzheimer-s-Disease-and-Healthy-Aging-Data/hfr9-rurv/about_data
+
+3. CDC BRFSS Chronic Disease Indicators
+    - Variables of interest: prevalence of covariates - cardiovascular disease, diabetes, hypertention, etc. 
+    - Usage: association measure between Alzheimer's and cardiovascular comorbidities
+    - URL: https://data.cdc.gov
+
+4. U.S. Census American Community Survey (ACS)
+    - Variables of interest:
+        - Percent of adults aged 25+ with a bachelor's degree or higher (education)
+        - Median household income (socioeconomic covariate)
+    - Usage: covariates for education level and socioeconomic context
+    - URL: https://data.census.gov
+    
+5. EPA Air Quality System (AQS) Data
+    - Variables of interest: annual average PM2.5 concentration and Ozone levels by state/year
+    - Usage: environmental factors for modeling Alzheimer's disease burden
+    - URL: https://www.epa.gov/outdoor-air-quality-data
+    
+## Planned Analyses / Visualizations / Coding Challenges
+1. **Data Wrangling**
+    - Import and clean state-year-level data from multiple sources
+    - Harmonize variable names (e.g., `state`, `year`, `rate`, `prevalence`) and join datasets
+    - Handle missing or suppressed rates for low-population states
+2. **Exploratory Analysis**
+    - Create **time-series plots** showing trends in Alzheimer's mortality
+    - Generate **choropleth heatmaps** comparing state-level mortality and cognitive decline
+    - Summarize national trends and identify outlier states
+3. **Modeling & Association**
+    - Use **multiple linear regression or mixed-effects models** to examine associations between Alzheimer's outcomes and risk factors such as cardiovascular prevalence, education, and air quality
+    - Assess potential interactions (e.g., region × year)
+4. **Visualization & Communication**
+    - Develop a **dashboard-style web page**
+    - Use packages such as `ggplot2`, `plotly`, `sf` and `tidycensus` for visualizations
+    - Emphasize clear labeling, color-blind-friendly palettes, and interpretability
+5. **Coding Challenges**
+    - Merging datasets from multiple public APIs with different formats
+    - Managing large CDC WONDER exports and maintaining reproducibility with code-based data pulls
+    - Ensuring consistent geospatial joins and age-adjusted comparisons
+
+## Planned timeline
+
+- Week of Nov 3: Team proposal
+- Week of Nov 10: Project review meeting; data cleaning and preliminary EDA
+- Weeks of Nov 17-24: Main analyses, plots and initial models
+- Week of Dec 1: Report, website, screencast 
+- Dec 6: Final deliverables + peer assessment
