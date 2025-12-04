@@ -5,7 +5,7 @@ navbar:
   right:
     - icon: fa-whiteboard fa-semibold fa-house
       href: index.html
-    - text: "Data Analysis"
+    - text: "Data Source"
       href: data_source.html
     - text: "Demographic Analysis"
       menu:

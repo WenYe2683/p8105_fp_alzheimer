@@ -5,15 +5,17 @@ output:
     toc: true
     toc_float: true
     code_folding: hide
+    theme: cosmo
 ---
 
 # Overview
 
 This page documents the data sources used in our analysis of cognitive decline and Alzheimer's-related indicators across the United States. We integrated multiple publicly available datasets to examine geographic, socioeconomic, and environmental factors associated with self-reported cognitive problems among middle-aged and older adults.
 
+
 ---
 
-```{r message=FALSE}
+```{r message=FALSE, warning=FALSE}
 library(tidyverse)
 library(patchwork)
 library(scales)
@@ -21,6 +23,7 @@ library(dplyr)
 library(knitr)
 library(stringr)
 library(ggplot2)
+library(kableExtra)
 
 knitr::opts_chunk$set(
   fig.width = 6,
@@ -38,6 +41,31 @@ options(
 scale_colour_discrete = scale_colour_viridis_d
 scale_fill_discrete = scale_fill_viridis_d
 ```
+
+We integrated four publicly available datasets:
+
+```{r data-sources, echo=FALSE}
+tibble(
+  `Data Source` = c(
+    "CDC Alzheimer's Disease and Healthy Aging Data",
+    "U.S. Census American Community Survey (ACS)",
+    "U.S. Census American Community Survey (ACS)",
+    "EPA Air Quality System (AQS)"
+  ),
+  `Variables` = c(
+    "Cognitive decline prevalence by state, age, sex",
+    "Median household income by state",
+    "Educational attainment (% bachelor's degree+)",
+    "PM2.5 concentrations by state"
+  ),
+  `Years` = c("2015–2016", "2015–2016", "2015–2016", "2015–2016"),
+  `Geographic Level` = c("State", "State (aggregated from county)", "State", "State (aggregated from county)")
+) |>
+  kable(caption = "Summary of Data Sources") |>
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+---
 
 # Data Cleaning
 
