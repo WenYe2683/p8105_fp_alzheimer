@@ -41,7 +41,9 @@ scale_colour_discrete = scale_colour_viridis_d
 scale_fill_discrete = scale_fill_viridis_d
 ```
 
-We integrated 4 publicly available datasets to examine geographic, socioeconomic, and environmental factors associated with self-reported cognitive problems among middle-aged and older adults:
+# Data Source
+
+We integrated 4 publicly available datasets to examine demographic, socioeconomic, environmental, and geographic factors associated with self-reported cognitive problems among middle-aged and older adults:
 
 ```{r data-sources, echo=FALSE}
 tibble(
