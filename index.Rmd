@@ -99,12 +99,12 @@ As U.S. Alzheimer's disease (AD) cases are projected to reach 7.2 million by 202
 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 30px;">
 
 <div class="card">
-<h4>📊 [Data Sources](data_source.html)</h4>
+<h4>📊 [Data Analysis](data_source.html)</h4>
 Information about our data sources and cleaning procedures
 </div>
 
 <div class="card">
-<h4>👥 [Demographic EDA](deographic_analysis.html)</h4>
+<h4>👥 [Demographic Models](deographic_analysis.html)</h4>
 Exploratory analysis by age, sex, and year
 </div>
 

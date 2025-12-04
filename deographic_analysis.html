@@ -11,7 +11,7 @@
 
 
 
-<title>Demographic Analysis</title>
+<title>Deographic Analysis</title>
 
 <script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -331,7 +331,7 @@ div.tocify {
   <a href="index.html">Home</a>
 </li>
 <li>
-  <a href="data_source.html">Data Source</a>
+  <a href="data_source.html">Data Analysis</a>
 </li>
 <li>
   <a href="demographic_analysis.html">Demographic Analysis</a>
@@ -349,7 +349,7 @@ div.tocify {
   <a href="about_us.html">About Us</a>
 </li>
 <li>
-  <a href="https://github.com/yourusername/alzheimer_project">
+  <a href="https://github.com/WenYe2683/p8105_fp_alzheimer">
     <span class="fa fa-github fa-lg"></span>
      
   </a>
@@ -393,12 +393,85 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Demographic Analysis</h1>
+<h1 class="title toc-ignore">Deographic Analysis</h1>
 
 </div>
 
 
+<div id="relationship-between-income-and-ad" class="section level1">
+<h1>Relationship between Income and AD</h1>
+<div id="relationship" class="section level3">
+<h3>relationship</h3>
+<pre class="r"><code>ggplot(az_income,
+       aes(x = median_state, y = data_value,
+           color = factor(year_start))) +
+  geom_point() +
+  geom_smooth(method = &quot;lm&quot;, se = FALSE) +
+  labs(
+    x = &quot;State-level median household income (USD)&quot;,
+    y = &quot;Alzheimer’s-related cognitive prevalence (%)&quot;,
+    color = &quot;Year&quot;,
+    title = &quot;State-level cognitive burden vs income among adults 65+ (2015–2016)&quot;
+  )</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="deographic_analysis_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+<pre class="r"><code>model_inc &lt;- lm(
+  data_value ~ median_state + factor(year_start),
+  data = az_income
+)
 
+summary(model_inc)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = data_value ~ median_state + factor(year_start), 
+##     data = az_income)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -26.243 -12.189  -1.897   9.829  35.404 
+## 
+## Coefficients:
+##                          Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)             3.805e+01  3.260e+00  11.672  &lt; 2e-16 ***
+## median_state           -2.354e-04  5.762e-05  -4.085 5.25e-05 ***
+## factor(year_start)2016 -2.920e-01  1.723e+00  -0.169    0.866    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 13.32 on 431 degrees of freedom
+## Multiple R-squared:  0.03882,    Adjusted R-squared:  0.03436 
+## F-statistic: 8.704 on 2 and 431 DF,  p-value: 0.0001968</code></pre>
+<p>In a linear regression of state-level Alzheimer’s-related cognitive
+prevalence on median household income and survey year, higher income was
+associated with lower cognitive burden. The estimated coefficient for
+income was <span class="math inline">\(\hat\beta_{\text{income}} = -2.35
+\times 10^{-4}\)</span>, meaning that a $1000 increase in state median
+income was associated with about a prevalence, and a $10000 increase was
+associated with about a prevalence among adults aged 65+. The
+coefficient for survey year (2016 vs 2015) was small (<span
+class="math inline">\(\hat\beta = -0.29\)</span>), suggesting no clear
+overall difference between the two years after accounting for income.
+However, the model <span class="math inline">\(R^2\)</span> was only ,
+indicating that income explains only a small fraction of the large
+between-state variation in cognitive outcomes.</p>
+<p>Although higher state-level income was statistically associated with
+lower Alzheimer’s-related cognitive prevalence, income explained only a
+small share of the between-state variability. Several factors may
+contribute to this weak relationship. First, the analysis is ecological:
+each observation is an aggregated state–year estimate, so large
+within-state differences in income and cognitive health are not
+captured, and any individual-level association is diluted. Second, both
+cognitive burden and income are measured with error (self-reported
+survey indicators and ACS estimates), and we further aggregated
+county-level income up to the state level, which may introduce
+additional noise. Third, we only examined two years (2015–2016), over
+which variation in both income and prevalence is fairly modest. Finally,
+many other state-level determinants—such as education, health care
+access, demographic composition, and prevalence of vascular risk
+factors—were not adjusted for, so income alone is unlikely to account
+for the wide variation in cognitive outcomes across states.</p>
+</div>
+</div>
 
 
 

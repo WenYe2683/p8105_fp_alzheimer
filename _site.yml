@@ -5,7 +5,7 @@ navbar:
   right:
     - text: "Home"
       href: index.html
-    - text: "Data Source"
+    - text: "Data Analysis"
       href: data_source.html
     - text: "Demographic Analysis"
       href: demographic_analysis.html
@@ -18,7 +18,7 @@ navbar:
     - text: "About Us"
       href: about_us.html
     - icon: fa-github fa-lg
-      href: https://github.com/yourusername/alzheimer_project
+      href: https://github.com/WenYe2683/p8105_fp_alzheimer
     - icon: fa-envelope fa-lg
       menu:
         - text: "Bing Li"

@@ -9,7 +9,21 @@ output:
 
 # Motivation
 
-# Initial Research Questions
+# Research Questions
+
+The purposes of this project is to answer the following questions:
+
+1. **Geographic Variation**: How does the prevalence of self-reported cognitive decline vary across U.S. states and territories?
+
+2. **Demographic Patterns**: Are there differences in cognitive burden by age group and sex?
+
+3. **Socioeconomic Factors**: Is state-level median household income associated with cognitive decline prevalence?
+
+4. **Educational Attainment**: Does the proportion of adults with higher education relate to cognitive outcomes?
+
+5. **Environmental Exposures**: Is air pollution (PM2.5) associated with cognitive decline at the state level?
+
+
 
 # Methods
 

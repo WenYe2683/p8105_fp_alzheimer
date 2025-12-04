@@ -10,6 +10,8 @@ output:
 # Meet our amazing team 
 (Ver.childhood)!
 
+---
+
 ## Bing Li
 
 ## Chuhan Wang

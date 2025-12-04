@@ -11,7 +11,7 @@
 
 
 
-<title>Data Sources and Cleaning</title>
+<title>Data Analysis</title>
 
 <script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -36,8 +36,6 @@
 <script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
-<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
 <link href="site_libs/font-awesome-6.5.2/css/all.min.css" rel="stylesheet" />
 <link href="site_libs/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet" />
 
@@ -333,7 +331,7 @@ div.tocify {
   <a href="index.html">Home</a>
 </li>
 <li>
-  <a href="data_source.html">Data Source</a>
+  <a href="data_source.html">Data Analysis</a>
 </li>
 <li>
   <a href="demographic_analysis.html">Demographic Analysis</a>
@@ -351,7 +349,7 @@ div.tocify {
   <a href="about_us.html">About Us</a>
 </li>
 <li>
-  <a href="https://github.com/yourusername/alzheimer_project">
+  <a href="https://github.com/WenYe2683/p8105_fp_alzheimer">
     <span class="fa fa-github fa-lg"></span>
      
   </a>
@@ -395,132 +393,654 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Data Sources and Cleaning</h1>
+<h1 class="title toc-ignore">Data Analysis</h1>
 
 </div>
 
 
-<div id="data-sources" class="section level1">
-<h1>Data Sources</h1>
-<p>Our project integrates data from three primary sources to analyze the
-relationship between Alzheimer’s disease prevalence, socioeconomic
-factors, and environmental quality among middle-aged and older
-adults.</p>
-<div id="cdc-alzheimers-disease-and-healthy-aging-data-2015-2022"
+<div id="overview" class="section level1">
+<h1>Overview</h1>
+<p>This page documents the data sources used in our analysis of
+cognitive decline and Alzheimer’s-related indicators across the United
+States. We integrated multiple publicly available datasets to examine
+geographic, socioeconomic, and environmental factors associated with
+self-reported cognitive problems among middle-aged and older adults.</p>
+<hr />
+<pre class="r"><code>library(tidyverse)
+library(patchwork)
+library(scales)
+library(dplyr)
+library(knitr)
+library(stringr)
+library(ggplot2)
+
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.asp = .6,
+  out.width = &quot;90%&quot;
+)
+
+theme_set(theme_minimal() + theme(legend.position = &quot;bottom&quot;))
+
+options(
+  ggplot2.continuous.colour = &quot;viridis&quot;,
+  ggplot2.continuous.fill = &quot;viridis&quot;
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d</code></pre>
+</div>
+<div id="data-cleaning-and-initial-analysis" class="section level1">
+<h1>Data Cleaning and Initial Analysis</h1>
+<div id="alzheimers-disease-and-healthy-aging-data"
 class="section level2">
-<h2>CDC Alzheimer’s Disease and Healthy Aging Data (2015-2022)</h2>
-<table class="table table-striped table-hover" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<h2>Alzheimer’s Disease and Healthy Aging Data</h2>
+<pre class="r"><code>raw_az_data &lt;- read.csv(&quot;data/2015-2022 Alzheimer Data.csv&quot;) |&gt;
+  janitor::clean_names()
+
+raw_az_data &lt;- raw_az_data[-nrow(raw_az_data), ]
+
+az_clean &lt;- raw_az_data |&gt;
+  filter(
+    !is.na(data_value),
+    !is.na(year_start),
+    !is.na(location_abbr)
+  )</code></pre>
+<p>We obtained data from the Centers for Disease Control and Prevention
+(CDC) Alzheimer’s Disease and Healthy Aging Data, which are derived from
+the Behavioral Risk Factor Surveillance System (BRFSS). After excluding
+records with missing key identifiers, our analytic dataset contained
+<strong>32,616</strong> observations from <strong>59</strong> states and
+territories, covering survey years <strong>2015–2022</strong>. The
+dataset includes <strong>39</strong> distinct topics and specific
+questions on health status and health-related behaviors among
+middle-aged and older adults.</p>
+<pre class="r"><code># Generate summary table
+az_clean |&gt;
+  summarise(
+    n_rows = n(),
+    n_states = n_distinct(location_abbr),
+    year_min = min(year_start),
+    year_max = max(year_start),
+    n_topics = n_distinct(topic),
+    n_questions = n_distinct(question)
+  ) |&gt;
+  kable(
+    col.names = c(&quot;Total Observations&quot;, &quot;States/Territories&quot;, &quot;Min Year&quot;, &quot;Max Year&quot;, &quot;Topics&quot;, &quot;Questions&quot;),
+    caption = &quot;Table 1: Descriptive Statistics of the Initial Cleaned Dataset&quot;,
+    format.args = list(big.mark = &quot;,&quot;),
+    align = &quot;c&quot;
+  )</code></pre>
+<table>
+<caption>Table 1: Descriptive Statistics of the Initial Cleaned
+Dataset</caption>
+<colgroup>
+<col width="25%" />
+<col width="25%" />
+<col width="12%" />
+<col width="12%" />
+<col width="10%" />
+<col width="13%" />
+</colgroup>
 <thead>
-<tr>
-<th style="text-align:left;">
-Attribute
-</th>
-<th style="text-align:left;">
-Details
-</th>
+<tr class="header">
+<th align="center">Total Observations</th>
+<th align="center">States/Territories</th>
+<th align="center">Min Year</th>
+<th align="center">Max Year</th>
+<th align="center">Topics</th>
+<th align="center">Questions</th>
 </tr>
 </thead>
 <tbody>
-<tr>
-<td style="text-align:left;">
-Source
-</td>
-<td style="text-align:left;">
-Centers for Disease Control and Prevention (CDC)
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Dataset
-</td>
-<td style="text-align:left;">
-Alzheimer’s Disease and Healthy Aging Data
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Survey
-</td>
-<td style="text-align:left;">
-Behavioral Risk Factor Surveillance System (BRFSS)
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Years
-</td>
-<td style="text-align:left;">
-2015–2022
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Geographic Coverage
-</td>
-<td style="text-align:left;">
-59 U.S. states and territories
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-File Used
-</td>
-<td style="text-align:left;">
-2015-2022 Alzheimer Data.csv
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-URL
-</td>
-<td style="text-align:left;">
-<a
-href="https://data.cdc.gov/Healthy-Aging/Alzheimer-s-Disease-and-Healthy-Aging-Data/hfr9-rurv/about_data"
-class="uri">https://data.cdc.gov/Healthy-Aging/Alzheimer-s-Disease-and-Healthy-Aging-Data/hfr9-rurv/about_data</a>
-</td>
+<tr class="odd">
+<td align="center">32,616</td>
+<td align="center">59</td>
+<td align="center">2,015</td>
+<td align="center">2,022</td>
+<td align="center">39</td>
+<td align="center">39</td>
 </tr>
 </tbody>
 </table>
-<p><a href="https://data.census.gov">U.S. Census American Community
-Survey (ACS)</a></p>
-<p>The CDC Alzheimer’s Disease and Healthy Aging Data provides
-state-level estimates of health indicators among middle-aged and older
-adults.</p>
-<p>Source: Centers for Disease Control and Prevention (CDC)</p>
-<p>Description: We obtained data from the CDC’s Alzheimer’s Disease and
-Healthy Aging Data set. This dataset is derived from the Behavioral Risk
-Factor Surveillance System (BRFSS).</p>
-<p>Scope: The raw dataset covers survey years 2015–2022 and includes
-data from 59 states and territories.</p>
-<p>Focus: We specifically filtered for topics related to “Cognitive
-Decline” to capture self-reported cognitive problems among middle-aged
-and older adults.</p>
-<p>Description: We obtained data from the CDC’s Alzheimer’s Disease and
-Healthy Aging Data set. This dataset is derived from the Behavioral Risk
-Factor Surveillance System (BRFSS).</p>
-<p>Scope: The raw dataset covers survey years 2015–2022 and includes
-data from 59 states and territories.</p>
-<p>Focus: We specifically filtered for topics related to “Cognitive
-Decline” to capture self-reported cognitive problems among middle-aged
-and older adults.</p>
-<ol start="2" style="list-style-type: decimal">
-<li>CDC Alzheimer’s Disease and Healthy Aging Data Portal (2015-2022)
-<ul>
-<li>Variables of interest:
-<ul>
-<li>Prevalence rate</li>
-<li>Cognitive decline for Alzheimer’s-related outcomes</li>
-</ul></li>
-<li>Usage in project: proxy measure for Alzheimer’s prevalence</li>
-<li>URL: <a
-href="https://data.cdc.gov/Healthy-Aging/Alzheimer-s-Disease-and-Healthy-Aging-Data/hfr9-rurv/about_data"
-class="uri">https://data.cdc.gov/Healthy-Aging/Alzheimer-s-Disease-and-Healthy-Aging-Data/hfr9-rurv/about_data</a></li>
-</ul></li>
-</ol>
+<p>For this study, we focused on BRFSS items whose topic was labeled
+<strong>“cognitive decline”</strong> or <strong>“cognitive
+impairment”</strong>. These items capture self-reported cognitive
+problems among middle-aged and older adults, and we treat them as
+Alzheimer’s-related cognitive indicators rather than clinically
+confirmed Alzheimer’s disease.</p>
+<pre class="r"><code>az_cog &lt;- az_clean |&gt;
+  filter(
+    str_detect(topic, regex(&quot;cognitive decline|cognitive impairment&quot;,
+                            ignore_case = TRUE))
+  )
+
+# sex and age summary
+az_cog_summary_base &lt;- az_cog |&gt;
+  mutate(
+    age_group = case_when(
+      stratification_category1 == &quot;Age Group&quot; ~ stratification1,
+      TRUE ~ &quot;Overall&quot;
+    ),
+    sex_group = case_when(
+      stratification_category2 == &quot;Sex&quot; ~ stratification2,
+      TRUE ~ &quot;Overall&quot;
+    )
+  )
+
+### state × age × sex table
+az_cog_state_age_sex &lt;- az_cog_summary_base |&gt;
+  group_by(
+    location_abbr, location_desc,
+    age_group,
+    sex_group
+  ) |&gt;
+  summarise(
+    n_obs = n(),
+    mean_value = mean(data_value, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  ) |&gt;
+  arrange(desc(mean_value))
+
+# make it into table
+az_cog_state_age_sex |&gt;
+  head(10) |&gt;
+  kable(
+    col.names = c(&quot;State Abbr&quot;, &quot;State&quot;, &quot;Age Group&quot;, &quot;Sex&quot;, &quot;Obs Count&quot;, &quot;Mean Prevalence (%)&quot;),
+    caption = &quot;Table 2: Top 10 Mean Prevalence of Cognitive Decline by State, Age, and Sex&quot;,
+    digits = 1,
+    align = &quot;c&quot;
+  )</code></pre>
+<table>
+<caption>Table 2: Top 10 Mean Prevalence of Cognitive Decline by State,
+Age, and Sex</caption>
+<colgroup>
+<col width="13%" />
+<col width="16%" />
+<col width="22%" />
+<col width="10%" />
+<col width="12%" />
+<col width="24%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center">State Abbr</th>
+<th align="center">State</th>
+<th align="center">Age Group</th>
+<th align="center">Sex</th>
+<th align="center">Obs Count</th>
+<th align="center">Mean Prevalence (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">PR</td>
+<td align="center">Puerto Rico</td>
+<td align="center">50-64 years</td>
+<td align="center">Female</td>
+<td align="center">4</td>
+<td align="center">59.8</td>
+</tr>
+<tr class="even">
+<td align="center">PR</td>
+<td align="center">Puerto Rico</td>
+<td align="center">50-64 years</td>
+<td align="center">Overall</td>
+<td align="center">8</td>
+<td align="center">58.2</td>
+</tr>
+<tr class="odd">
+<td align="center">PR</td>
+<td align="center">Puerto Rico</td>
+<td align="center">Overall</td>
+<td align="center">Male</td>
+<td align="center">4</td>
+<td align="center">54.5</td>
+</tr>
+<tr class="even">
+<td align="center">PR</td>
+<td align="center">Puerto Rico</td>
+<td align="center">Overall</td>
+<td align="center">Overall</td>
+<td align="center">8</td>
+<td align="center">53.6</td>
+</tr>
+<tr class="odd">
+<td align="center">PR</td>
+<td align="center">Puerto Rico</td>
+<td align="center">Overall</td>
+<td align="center">Female</td>
+<td align="center">4</td>
+<td align="center">52.8</td>
+</tr>
+<tr class="even">
+<td align="center">PR</td>
+<td align="center">Puerto Rico</td>
+<td align="center">65 years or older</td>
+<td align="center">Overall</td>
+<td align="center">8</td>
+<td align="center">47.9</td>
+</tr>
+<tr class="odd">
+<td align="center">RI</td>
+<td align="center">Rhode Island</td>
+<td align="center">50-64 years</td>
+<td align="center">Female</td>
+<td align="center">4</td>
+<td align="center">47.2</td>
+</tr>
+<tr class="even">
+<td align="center">OK</td>
+<td align="center">Oklahoma</td>
+<td align="center">50-64 years</td>
+<td align="center">Female</td>
+<td align="center">4</td>
+<td align="center">46.6</td>
+</tr>
+<tr class="odd">
+<td align="center">DE</td>
+<td align="center">Delaware</td>
+<td align="center">50-64 years</td>
+<td align="center">Female</td>
+<td align="center">4</td>
+<td align="center">46.1</td>
+</tr>
+<tr class="even">
+<td align="center">PR</td>
+<td align="center">Puerto Rico</td>
+<td align="center">65 years or older</td>
+<td align="center">Female</td>
+<td align="center">4</td>
+<td align="center">44.7</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code># top 10 states (2015-2016)
+az_cog_65_overall &lt;- az_cog_summary_base |&gt;
+  filter(
+    age_group == &quot;65 years or older&quot;,
+    sex_group == &quot;Overall&quot;
+  )
+
+num_65 = nrow(az_cog_65_overall)
+years_available = sort(unique(az_cog_65_overall$year_start))</code></pre>
+<p>The CDC Healthy Aging dataset covers survey years 2015–2022. For
+topics coded as Cognitive Decline or Cognitive Impairment, data were
+only available in 2015–2016; therefore, our Alzheimer’s-related analyses
+are restricted to these two years.</p>
+<pre class="r"><code>az_cog_65_overall &lt;- az_cog_summary_base |&gt;
+  filter(
+    age_group == &quot;65 years or older&quot;,
+    sex_group == &quot;Overall&quot;
+  )
+
+years_use &lt;- c(2015, 2016)
+
+az_cog_65_overall_15_16 &lt;- az_cog_65_overall |&gt;
+  filter(year_start %in% years_use)
+
+top10_state_15_16 &lt;- az_cog_65_overall_15_16 |&gt;
+  group_by(location_abbr, location_desc) |&gt;
+  summarise(
+    n_obs = n(),
+    mean_15_16 = mean(data_value, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  ) |&gt;
+  arrange(desc(mean_15_16)) |&gt;
+  slice_head(n = 10)
+
+top10_state_15_16 |&gt;
+  kable(
+    col.names = c(&quot;Abbreviation&quot;, &quot;Location&quot;, &quot;Obs Count&quot;, &quot;Mean Prevalence (%)&quot;),
+    caption = &quot;Table 3: Top 10 Locations with Highest Cognitive Decline Prevalence (Age 65+, 2015–2016)&quot;,
+    digits = 1,
+    align = &quot;c&quot;
+  )</code></pre>
+<table>
+<caption>Table 3: Top 10 Locations with Highest Cognitive Decline
+Prevalence (Age 65+, 2015–2016)</caption>
+<thead>
+<tr class="header">
+<th align="center">Abbreviation</th>
+<th align="center">Location</th>
+<th align="center">Obs Count</th>
+<th align="center">Mean Prevalence (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">PR</td>
+<td align="center">Puerto Rico</td>
+<td align="center">8</td>
+<td align="center">47.9</td>
+</tr>
+<tr class="even">
+<td align="center">NRE</td>
+<td align="center">Northeast</td>
+<td align="center">30</td>
+<td align="center">33.6</td>
+</tr>
+<tr class="odd">
+<td align="center">OK</td>
+<td align="center">Oklahoma</td>
+<td align="center">8</td>
+<td align="center">31.5</td>
+</tr>
+<tr class="even">
+<td align="center">MS</td>
+<td align="center">Mississippi</td>
+<td align="center">14</td>
+<td align="center">31.4</td>
+</tr>
+<tr class="odd">
+<td align="center">SOU</td>
+<td align="center">South</td>
+<td align="center">30</td>
+<td align="center">31.0</td>
+</tr>
+<tr class="even">
+<td align="center">SD</td>
+<td align="center">South Dakota</td>
+<td align="center">8</td>
+<td align="center">30.9</td>
+</tr>
+<tr class="odd">
+<td align="center">MA</td>
+<td align="center">Massachusetts</td>
+<td align="center">5</td>
+<td align="center">30.8</td>
+</tr>
+<tr class="even">
+<td align="center">AL</td>
+<td align="center">Alabama</td>
+<td align="center">14</td>
+<td align="center">30.2</td>
+</tr>
+<tr class="odd">
+<td align="center">AK</td>
+<td align="center">Alaska</td>
+<td align="center">7</td>
+<td align="center">29.8</td>
+</tr>
+<tr class="even">
+<td align="center">SC</td>
+<td align="center">South Carolina</td>
+<td align="center">14</td>
+<td align="center">29.5</td>
+</tr>
+</tbody>
+</table>
+<p>Using data from 2015–2016, we ranked states and regions by the mean
+prevalence of Alzheimer’s-related cognitive indicators among adults aged
+65 years and older (all sexes combined).</p>
+<p>The highest burden was observed in Puerto Rico (mean prevalence
+47.9%), which was notably higher than any U.S. state or region. The
+Northeast region ranked second (33.6%), followed by Oklahoma (31.5%),
+Mississippi (31.4%), and the South region as a whole (31.0%).</p>
+<p>The remaining states in the top ten—South Dakota, Massachusetts,
+Alabama, Alaska, and South Carolina—all had mean prevalences around 30%.
+Overall, these results suggest substantial geographic variation in
+self-reported cognitive problems among older adults, with several
+Southern states and Puerto Rico showing particularly high levels.</p>
+<p>The Top 10 list for 2015–2016 is different from the earlier
+state–age–sex table because they summarize different things. The
+state–age–sex table ranks specific subgroups (for example, women aged
+50–64 in Puerto Rico), so it shows where the highest subgroup
+prevalences occur.</p>
+<p>In contrast, the 2015–2016 Top 10 is based only on adults aged 65+
+with sexes combined, giving one value per state. This ranking reflects
+overall burden in older adults, not the maximum value in any age–sex
+subgroup, and provides useful context for later stratified analyses or
+adjustment for potential confounders such as age, sex, or region.</p>
+</div>
+<div id="socioeconomic-factor-income" class="section level2">
+<h2>Socioeconomic Factor: Income</h2>
+<p>As the Healthy Aging dataset is designed to monitor cognitive health
+in older adults and Alzheimer’s disease primarily affects seniors, we
+restricted our analytic sample to respondents aged 65+ years. For the
+main state-level analysis, we used sex-grouped estimates labeled
+“Overall” rather than sex-specific values so that each state–year
+contributed a single prevalence estimate, simplifying the comparison
+with state-level income and avoiding multiple correlated observations
+per state.</p>
+<pre class="r"><code>#data import
+inc15 &lt;- read_csv(&quot;data/median income-2015.csv&quot;, skip = 1) |&gt;
+  janitor::clean_names() |&gt;
+  transmute(
+    year = 2015,
+    state_name = geographic_area_name,
+    median_income = as.numeric(median_income_dollars_estimate_households)
+  )
+
+inc16 &lt;- read_csv(&quot;data/median income-2016.csv&quot;, skip = 1) |&gt;
+  janitor::clean_names() |&gt;
+  transmute(
+    year = 2016,
+    state_name = geographic_area_name,
+    median_income = as.numeric(median_income_dollars_estimate_households)
+  )
+
+income_state &lt;- bind_rows(inc15, inc16)
+
+income_state_with_state &lt;- income_state |&gt;
+  mutate(
+    state = str_squish(str_extract(state_name, &quot;[^,]+$&quot;)))
+
+income_state_level &lt;- income_state_with_state |&gt;
+  group_by(year, state) |&gt;
+  summarise(
+    n_counties = n(),
+    median_income_state = median(median_income, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  )
+
+income_state_level &lt;- income_state_with_state |&gt;
+  group_by(year, state) |&gt;
+  summarise(
+    n_counties = n(),
+    median_state = median(median_income, na.rm = TRUE),
+    mean_state   = mean(median_income, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  )
+
+income_state_level |&gt;
+  head(10) |&gt;
+  kable(
+    col.names = c(&quot;Year&quot;, &quot;State&quot;, &quot;No. of Counties&quot;, &quot;Median Income (usd)&quot;, &quot;Average Income (usd)&quot;),
+    caption = &quot;Table 4: Aggregated State-Level Household Income Statistics (2015)&quot;,
+    digits = 0,           
+    format.args = list(big.mark = &quot;,&quot;),
+    align = &quot;c&quot;
+  )</code></pre>
+<table>
+<caption>Table 4: Aggregated State-Level Household Income Statistics
+(2015)</caption>
+<colgroup>
+<col width="7%" />
+<col width="24%" />
+<col width="19%" />
+<col width="23%" />
+<col width="24%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center">Year</th>
+<th align="center">State</th>
+<th align="center">No. of Counties</th>
+<th align="center">Median Income (usd)</th>
+<th align="center">Average Income (usd)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">2,015</td>
+<td align="center">Alabama</td>
+<td align="center">21</td>
+<td align="center">43,553</td>
+<td align="center">46,460</td>
+</tr>
+<tr class="even">
+<td align="center">2,015</td>
+<td align="center">Alaska</td>
+<td align="center">3</td>
+<td align="center">76,427</td>
+<td align="center">76,021</td>
+</tr>
+<tr class="odd">
+<td align="center">2,015</td>
+<td align="center">Arizona</td>
+<td align="center">10</td>
+<td align="center">45,195</td>
+<td align="center">44,712</td>
+</tr>
+<tr class="even">
+<td align="center">2,015</td>
+<td align="center">Arkansas</td>
+<td align="center">11</td>
+<td align="center">46,070</td>
+<td align="center">45,950</td>
+</tr>
+<tr class="odd">
+<td align="center">2,015</td>
+<td align="center">California</td>
+<td align="center">40</td>
+<td align="center">58,954</td>
+<td align="center">62,095</td>
+</tr>
+<tr class="even">
+<td align="center">2,015</td>
+<td align="center">Colorado</td>
+<td align="center">12</td>
+<td align="center">65,960</td>
+<td align="center">67,584</td>
+</tr>
+<tr class="odd">
+<td align="center">2,015</td>
+<td align="center">Connecticut</td>
+<td align="center">8</td>
+<td align="center">70,144</td>
+<td align="center">72,854</td>
+</tr>
+<tr class="even">
+<td align="center">2,015</td>
+<td align="center">Delaware</td>
+<td align="center">3</td>
+<td align="center">56,778</td>
+<td align="center">59,366</td>
+</tr>
+<tr class="odd">
+<td align="center">2,015</td>
+<td align="center">District of Columbia</td>
+<td align="center">1</td>
+<td align="center">75,628</td>
+<td align="center">75,628</td>
+</tr>
+<tr class="even">
+<td align="center">2,015</td>
+<td align="center">Florida</td>
+<td align="center">40</td>
+<td align="center">49,466</td>
+<td align="center">49,624</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>state_vec &lt;- unique(income_state_level$state)
+
+az_cog_65_overall_state &lt;- az_cog_65_overall |&gt;
+  filter(
+    year_start %in% c(2015, 2016),
+    sex_group == &quot;Overall&quot;,
+    location_desc %in% state_vec
+  )
+
+az_income &lt;- az_cog_65_overall_state |&gt;
+  left_join(
+    income_state_level,
+    by = c(&quot;year_start&quot; = &quot;year&quot;,
+           &quot;location_desc&quot; = &quot;state&quot;)
+  )</code></pre>
+</div>
+<div id="socioeconomic-factor-education" class="section level2">
+<h2>Socioeconomic Factor: Education</h2>
+<pre class="r"><code>edu15_raw &lt;- read_csv(&quot;data/education2015.csv&quot;, skip = 1) |&gt;
+  janitor::clean_names()
+
+edu15_state &lt;- edu15_raw |&gt;
+  filter(!str_detect(geographic_area_name, &quot;,&quot;))
+
+edu16_raw &lt;- read_csv(&quot;data/education2016.csv&quot;, skip = 1) |&gt;
+  janitor::clean_names()
+
+edu16_state &lt;- edu16_raw |&gt;
+  filter(!str_detect(geographic_area_name, &quot;,&quot;))</code></pre>
+<p>We used the proportion of adults aged 25 years and older with a
+bachelor’s degree or higher as our main education indicator. This
+measure is commonly reported in the ACS and captures individuals who
+have completed at least a four-year college education, which is often
+used as a marker of higher socioeconomic status and cognitive reserve in
+the literature. Compared with more detailed education categories, using
+“bachelor’s degree or higher” gives a simple, comparable summary of
+educational attainment across states and years.</p>
+<pre class="r"><code>edu15_state_slim &lt;- edu15_state |&gt;
+  transmute(
+    year = 2015,
+    state = geographic_area_name,
+    educ_bach = as.numeric(percent_estimate_percent_bachelors_degree_or_higher)
+  )
+
+edu16_state_slim &lt;- edu16_state |&gt;
+  transmute(
+    year = 2016,
+    state = geographic_area_name,
+    educ_bach = as.numeric(percent_estimate_percent_bachelors_degree_or_higher)
+  )
+
+edu_state &lt;- bind_rows(edu15_state_slim, edu16_state_slim)</code></pre>
+<pre class="r"><code>az_edu &lt;- az_cog_65_overall_state |&gt;
+  left_join(
+    edu_state,
+    by = c(
+      &quot;year_start&quot; = &quot;year&quot;,
+      &quot;location_desc&quot; = &quot;state&quot;
+    ))</code></pre>
 </div>
 </div>
-<div id="data-import-and-cleaning" class="section level1">
-<h1>Data Import and Cleaning</h1>
+<div id="data-availability" class="section level1">
+<h1>Data Availability</h1>
+<p>All data sources used in this project are publicly available:</p>
+<table style="width:100%;">
+<colgroup>
+<col width="33%" />
+<col width="38%" />
+<col width="28%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Data</th>
+<th>Source</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>AD and Healthy Aging Data</td>
+<td>CDC Healthy Aging Data</td>
+<td><a
+href="https://data.cdc.gov/Healthy-Aging/Alzheimer-s-Disease-and-Healthy-Aging-Data/hfr9-rurv/about_data">https://data.cdc.gov/Healthy-Aging</a></td>
+</tr>
+<tr class="even">
+<td>Income and Education Data</td>
+<td>U.S. Census Bureau ACS</td>
+<td><a href="https://data.census.gov">https://data.census.gov</a></td>
+</tr>
+<tr class="odd">
+<td>Air Pollution Data</td>
+<td>EPA AirData</td>
+<td><a
+href="https://www.epa.gov/outdoor-air-quality-data">https://www.epa.gov/outdoor-air-quality-data</a></td>
+</tr>
+</tbody>
+</table>
 </div>
 
 
