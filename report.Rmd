@@ -1,0 +1,26 @@
+---
+title: "Project Report"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+---
+
+# Motivation
+
+# Initial Research Questions
+
+# Methods
+
+
+# EDA
+
+# Model Building
+
+
+# Conclusion
+
+
+# Discussion and Limitations
+Our analysis relies on data from 2015–2016 due to the availability of specific 'Cognitive Decline' modules in the BRFSS dataset during these years. While this data is a decade old, it serves as a vital pre-pandemic baseline for cognitive health in the US. Furthermore, given the chronic nature of Alzheimer's disease and the stability of state-level socioeconomic stratifications, the associations identified here likely reflect persistent structural inequalities. This project establishes a reproducible workflow that can be applied to future dataset releases to track longitudinal shifts in these associations.

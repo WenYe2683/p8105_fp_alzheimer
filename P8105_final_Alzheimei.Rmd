@@ -33,7 +33,7 @@ scale_fill_discrete = scale_fill_viridis_d
 ## Data Import
 
 ```{r}
-raw_az_data <- read.csv("./2015-2022 Alzheimer Data.csv") |>
+raw_az_data <- read.csv("data/2015-2022 Alzheimer Data.csv") |>
   janitor::clean_names()
 
 raw_az_data <- raw_az_data[-nrow(raw_az_data), ]
@@ -242,7 +242,7 @@ Across all states and cognitive items in 2015–2016, women had a higher mean pr
 ### data import
 
 ```{r}
-inc15 <- read_csv("./median income-2015.csv", skip = 1) |>
+inc15 <- read_csv("data/median income-2015.csv", skip = 1) |>
   janitor::clean_names() |>
   transmute(
     year = 2015,
@@ -251,7 +251,7 @@ inc15 <- read_csv("./median income-2015.csv", skip = 1) |>
   )
 
 
-inc16 <- read_csv("./median income-2016.csv", skip = 1) |>
+inc16 <- read_csv("data/median income-2016.csv", skip = 1) |>
   janitor::clean_names() |>
   transmute(
     year = 2016,
@@ -347,13 +347,13 @@ Although higher state-level income was statistically associated with lower Alzhe
 ### data import
 
 ```{r}
-edu15_raw <- read_csv("./education2015.csv", skip = 1) |>
+edu15_raw <- read_csv("data/education2015.csv", skip = 1) |>
   janitor::clean_names()
 
 edu15_state <- edu15_raw |>
   filter(!str_detect(geographic_area_name, ","))
 
-edu16_raw <- read_csv("./education2016.csv", skip = 1) |>
+edu16_raw <- read_csv("data/education2016.csv", skip = 1) |>
   janitor::clean_names()
 
 edu16_state <- edu16_raw |>

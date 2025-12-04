@@ -1,0 +1,57 @@
+---
+title: "Data Sources and Cleaning"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+---
+
+# Data Sources
+
+Our project integrates data from three primary sources to analyze the relationship between Alzheimer's disease prevalence, socioeconomic factors, and environmental quality.
+
+1. [CDC Alzheimer’s Disease and Healthy Aging Data (2015-2022)](https://data.cdc.gov/Healthy-Aging/Alzheimer-s-Disease-and-Healthy-Aging-Data/hfr9-rurv/about_data)
+
+Source: Centers for Disease Control and Prevention (CDC)
+
+Description: We obtained data from the CDC’s Alzheimer’s Disease and Healthy Aging Data set. This dataset is derived from the Behavioral Risk Factor Surveillance System (BRFSS).
+
+Scope: The raw dataset covers survey years 2015–2022 and includes data from 59 states and territories.
+
+Focus: We specifically filtered for topics related to “Cognitive Decline” to capture self-reported cognitive problems among middle-aged and older adults.
+
+
+
+Description: We obtained data from the CDC’s Alzheimer’s Disease and Healthy Aging Data set. This dataset is derived from the Behavioral Risk Factor Surveillance System (BRFSS).
+
+Scope: The raw dataset covers survey years 2015–2022 and includes data from 59 states and territories.
+
+Focus: We specifically filtered for topics related to “Cognitive Decline” to capture self-reported cognitive problems among middle-aged and older adults.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2. CDC Alzheimer's Disease and Healthy Aging Data Portal (2015-2022)
+    - Variables of interest:
+        - Prevalence rate
+        - Cognitive decline for Alzheimer's-related outcomes
+    - Usage in project: proxy measure for Alzheimer's prevalence 
+    - URL: https://data.cdc.gov/Healthy-Aging/Alzheimer-s-Disease-and-Healthy-Aging-Data/hfr9-rurv/about_data
+    
+    
+    
+    
+    
+# Data Import and Cleaning

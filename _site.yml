@@ -1,31 +1,27 @@
-name: "Alzheimer's Disease & Cognitive Health"
+name: "Alzheimer's & Cognitive Decline"
 output_dir: "."
 navbar:
-  title: "Alzheimer's & Cognitive Health Analysis"
-  left:
+  title: "Cognitive Decline in the U.S."
+  right:
     - text: "Home"
       href: index.html
+    - text: "Data Source"
+      href: data_source.html
+    - text: "Demographic Analysis"
+      href: demographic_analysis.html
+    - text: "Geographic Analysis"
+      href: geographic_analysis.html
+    - text: "Interactive Map"
+      href: interactive_maps.html
+    - text: "Report"
+      href: report.html
     - text: "About Us"
       href: about_us.html
-    - text: "Data"
-      href: data.html
-    - text: "Exploratory Analysis"
-      href: exploratory.html
-    - text: "Statistical Analysis"
-      href: statistical_analysis.html
-    - text: "Interactive Dashboard"
-      href: dashboard.html
-    - text: "Full Report"
-      href: report.html
-  right:
     - icon: fa-github fa-lg
-      href: https://github.com/yourusername/alzheimers-analysis
+      href: https://github.com/yourusername/alzheimer_project
 output:
   html_document:
     theme: united
-    highlight: textmate
     toc: true
-    toc_float:
-      collapsed: false
-      smooth_scroll: true
+    toc_float: true
     code_folding: hide
