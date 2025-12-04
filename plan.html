@@ -29,6 +29,9 @@
        h6 {font-size: 12px;}
        code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
        pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
@@ -225,6 +228,69 @@ $(document).ready(function () {
 
 
 
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
 
 </head>
 
@@ -232,6 +298,16 @@ $(document).ready(function () {
 
 
 <div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -327,12 +403,12 @@ html, body {
   font-family: Georgia, 'Times New Roman', Times, serif;
   line-height: 1.8;
   color: #333;
-  margin: 0;
-  padding: 0;
+  margin: 10px;
+  padding: 10px;
   background-color: white;
 }
 
-/* Navigation Bar */
+/* Floating Navigation Bar */
 .navbar {
   background-color: rgba(0, 0, 0, 0.3) !important;
   border: none !important;
@@ -369,217 +445,75 @@ html, body {
 }
 
 body {
-  padding-top: 50px;
+  padding-top: 70px;
 }
 
-/* Content wrapper */
-.content-wrapper {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 20px 30px;
-  transition: all 0.3s ease;
-}
-
-/* Collapsible Floating Sidebar */
-.sidebar {
-  position: fixed;
-  left: 20px;
-  top: 70px;
-  width: 220px;
-  background: #f5f5f5;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 20px;
-  transition: all 0.3s ease;
-  z-index: 999;
+/* Content Sections */
+.content-section {
+  padding: 5px 10px;
+  max-width: 1200px;
+  margin: 0 auto 10px auto;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 10px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
-.sidebar.collapsed {
-  width: 50px;
-}
-
-.sidebar-toggle {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: #d97706;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 5px 10px;
-  cursor: pointer;
-  font-size: 0.85em;
-  font-family: Georgia, 'Times New Roman', Times, serif;
-  transition: all 0.3s ease;
-}
-
-.sidebar-toggle:hover {
-  background: #ea580c;
-}
-
-.sidebar-content {
-  transition: opacity 0.3s ease;
-}
-
-.sidebar.collapsed .sidebar-content {
-  opacity: 0;
-  pointer-events: none;
-  height: 0;
-  overflow: hidden;
-}
-
-.sidebar h3 {
-  margin-top: 0;
-  margin-bottom: 15px;
+.content-section h1 {
+  font-size: 1.5em;
   color: #d97706;
-  font-size: 1.2em;
+  margin-top: 0;
+  margin-bottom: 5px;
+  font-weight: 900;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.content-section h2 {
+  font-size: 1em;
+  color: #ea580c;
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-weight: 800;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.content-section h3 {
+  font-size: 0.8em;
+  color: #d97706;
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-weight: 600;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.content-section p {
+  font-size: 1.1em;
+  color: #555;
+  margin-bottom: 15px;
+  line-height: 1.8;
+}
+
+.content-section strong {
+  color: #d97706;
   font-weight: 700;
 }
 
-.sidebar ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.sidebar li {
-  margin: 10px 0;
-}
-
-.sidebar a {
-  color: #555;
-  text-decoration: none;
-  font-size: 0.95em;
-  display: block;
-  padding: 8px 12px;
-  border-radius: 4px;
-  transition: all 0.3s ease;
-}
-
-.sidebar a:hover {
-  background: rgba(217, 119, 6, 0.1);
-  color: #d97706;
-}
-
-.sidebar a.active {
-  background: rgba(217, 119, 6, 0.15);
-  color: #d97706;
-  font-weight: 600;
-}
-
-/* Main content area */
-.main-content {
-  margin-left: 280px;
-  max-width: 1000px;
-  transition: all 0.3s ease;
-}
-
-.main-content.sidebar-collapsed {
-  margin-left: 90px;
-}
-
-/* Headings - Thicker/Bolder */
-h2 {
-  color: #d97706;
-  font-family: Georgia, 'Times New Roman', Times, serif;
-  font-weight: 900;
-  margin-top: 5px;
-  margin-bottom: 10px;
-  font-size: 2em;
-}
-
-h2:first-of-type {
-  margin-top: 0;
-}
-
-h3 {
-  color: #ea580c;
-  font-family: Georgia, 'Times New Roman', Times, serif;
-  font-weight: 800;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  font-size: 1.4em;
-}
-
-/* Text styling */
-p, li {
+.content-section ul, .content-section ol {
   color: #555;
   line-height: 1.8;
   margin-bottom: 15px;
 }
 
-strong {
-  color: #d97706;
-  font-weight: 700;
+.content-section li {
+  margin-bottom: 8px;
 }
 </style>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  var sidebar = document.querySelector('.sidebar');
-  var toggleBtn = document.querySelector('.sidebar-toggle');
-  var mainContent = document.querySelector('.main-content');
-  
-  if (toggleBtn) {
-    toggleBtn.addEventListener('click', function() {
-      sidebar.classList.toggle('collapsed');
-      if (mainContent) {
-        if (sidebar.classList.contains('collapsed')) {
-          mainContent.classList.add('sidebar-collapsed');
-          toggleBtn.textContent = '▶';
-        } else {
-          mainContent.classList.remove('sidebar-collapsed');
-          toggleBtn.textContent = '◀';
-        }
-      }
-    });
-  }
-  
-  // Update active nav link on scroll
-  var sections = document.querySelectorAll('h2[id]');
-  var navLinks = document.querySelectorAll('.sidebar a');
-  
-  window.addEventListener('scroll', function() {
-    var current = '';
-    sections.forEach(function(section) {
-      var sectionTop = section.offsetTop;
-      if (window.pageYOffset >= (sectionTop - 150)) {
-        current = section.getAttribute('id');
-      }
-    });
-    
-    navLinks.forEach(function(link) {
-      link.classList.remove('active');
-      if (link.getAttribute('href') === '#' + current) {
-        link.classList.add('active');
-      }
-    });
-  });
-});
-</script>
-<div class="content-wrapper">
-<div class="sidebar">
-  <button class="sidebar-toggle">◀</button>
-  <div class="sidebar-content">
-    <h3>Navigation</h3>
-    <ul>
-      <li><a href="#title" class="active">Title</a></li>
-      <li><a href="#motivation">Motivation</a></li>
-      <li><a href="#products">Final Products</a></li>
-      <li><a href="#data">Data Sources</a></li>
-      <li><a href="#analyses">Analyses</a></li>
-      <li><a href="#timeline">Timeline</a></li>
-    </ul>
-  </div>
-</div>
-<div class="main-content">
-<div id="title" class="section level2">
-<h2>Tentative Title</h2>
+<div id="title" class="section level1 content-section">
+<h1>Title</h1>
 <p>Mapping and Modeling Alzheimer’s Mortality and Cognitive Decline in
 the U.S. (2015-2022)</p>
 </div>
-<div id="motivation" class="section level2">
-<h2>Motivation</h2>
+<div id="motivation" class="section level1 content-section">
+<h1>Motivation</h1>
 <p>Alzheimer’s disease (AD) is one of the leading causes of death among
 older adults in the United States and a growing public health challenge
 as the population ages. According to the Alzheimer’s Association,
@@ -594,147 +528,143 @@ Alzheimer’s disease mortality and prevalence</strong> from 2015-2022 and
 examine how these are associated with contextual factors such as
 cardiovascular disease burden, education level, and air quality.</p>
 </div>
-<div id="products" class="section level2">
-<h2>Intended Final Products</h2>
+<div id="intended-final-products"
+class="section level1 content-section">
+<h1>Intended Final Products</h1>
 <ul>
-<li><p>A <strong>reproducible written report</strong> summarising data
-sources, cleaning process, analyses, and findings</p></li>
-<li><p>An <strong>interactive project website</strong> including summary
-dashboards and state-level visualizations</p></li>
-<li><p>A <strong>2-minute narrated screencast</strong> presenting key
-results and interpretations</p></li>
-<li><p>A <strong>public GitHub repository</strong> with all code, data
-wrangling scripts, and documentation</p></li>
+<li>A <strong>reproducible written report</strong> summarising data
+sources, cleaning process, analyses, and findings</li>
+<li>An <strong>interactive project website</strong> including summary
+dashboards and state-level visualizations</li>
+<li>A <strong>2-minute narrated screencast</strong> presenting key
+results and interpretations</li>
+<li>A <strong>public GitHub repository</strong> with all code, data
+wrangling scripts, and documentation</li>
 </ul>
 </div>
-<div id="data" class="section level2">
-<h2>Anticipated Data Sources</h2>
+<div id="anticipated-data-sources"
+class="section level1 content-section">
+<h1>Anticipated Data Sources</h1>
 <ol style="list-style-type: decimal">
-<li><p>CDC WONDER - Multiple Cause of Death Data (1999-2022)</p>
+<li>CDC WONDER - Multiple Cause of Death Data (1999-2022)
 <ul>
-<li><p>Variables of interest:</p>
+<li>Variables of interest:
 <ul>
-<li><p>Age-adjusted mortality rate per 100,000</p></li>
-<li><p>State, year, and demographic breakdowns (age group, sex,
-race)</p></li>
+<li>Age-adjusted mortality rate per 100,000</li>
+<li>State, year, and demographic breakdowns (age group, sex, race)</li>
 </ul></li>
-<li><p>Usage in project: primary measure of Alzheimer’s mortality rates
-by state and year</p></li>
-<li><p>URL: <a href="https://wonder.cdc.gov/mcd.html"
-class="uri">https://wonder.cdc.gov/mcd.html</a></p></li>
+<li>Usage in project: primary measure of Alzheimer’s mortality rates by
+state and year</li>
+<li>URL: <a href="https://wonder.cdc.gov/mcd.html"
+class="uri">https://wonder.cdc.gov/mcd.html</a></li>
 </ul></li>
-<li><p>CDC Alzheimer’s Disease and Healthy Aging Data Portal
-(2015-2022)</p>
+<li>CDC Alzheimer’s Disease and Healthy Aging Data Portal (2015-2022)
 <ul>
-<li><p>Variables of interest:</p>
+<li>Variables of interest:
 <ul>
-<li><p>Prevalence rate</p></li>
-<li><p>Cognitive decline for Alzheimer’s-related outcomes</p></li>
+<li>Prevalence rate</li>
+<li>Cognitive decline for Alzheimer’s-related outcomes</li>
 </ul></li>
-<li><p>Usage in project: proxy measure for Alzheimer’s
-prevalence</p></li>
-<li><p>URL: <a
+<li>Usage in project: proxy measure for Alzheimer’s prevalence</li>
+<li>URL: <a
 href="https://data.cdc.gov/Healthy-Aging/Alzheimer-s-Disease-and-Healthy-Aging-Data/hfr9-rurv/about_data"
-class="uri">https://data.cdc.gov/Healthy-Aging/Alzheimer-s-Disease-and-Healthy-Aging-Data/hfr9-rurv/about_data</a></p></li>
+class="uri">https://data.cdc.gov/Healthy-Aging/Alzheimer-s-Disease-and-Healthy-Aging-Data/hfr9-rurv/about_data</a></li>
 </ul></li>
-<li><p>CDC BRFSS Chronic Disease Indicators</p>
+<li>CDC BRFSS Chronic Disease Indicators
 <ul>
-<li><p>Variables of interest: prevalence of covariates - cardiovascular
-disease, diabetes, hypertention, etc.</p></li>
-<li><p>Usage: association measure between Alzheimer’s and cardiovascular
-comorbidities</p></li>
-<li><p>URL: <a href="https://data.cdc.gov"
-class="uri">https://data.cdc.gov</a></p></li>
+<li>Variables of interest: prevalence of covariates - cardiovascular
+disease, diabetes, hypertention, etc.</li>
+<li>Usage: association measure between Alzheimer’s and cardiovascular
+comorbidities</li>
+<li>URL: <a href="https://data.cdc.gov"
+class="uri">https://data.cdc.gov</a></li>
 </ul></li>
-<li><p>U.S. Census American Community Survey (ACS)</p>
+<li>U.S. Census American Community Survey (ACS)
 <ul>
-<li><p>Variables of interest:</p>
+<li>Variables of interest:
 <ul>
-<li><p>Percent of adults aged 25+ with a bachelor’s degree or higher
-(education)</p></li>
-<li><p>Median household income (socioeconomic covariate)</p></li>
+<li>Percent of adults aged 25+ with a bachelor’s degree or higher
+(education)</li>
+<li>Median household income (socioeconomic covariate)</li>
 </ul></li>
-<li><p>Usage: covariates for education level and socioeconomic
-context</p></li>
-<li><p>URL: <a href="https://data.census.gov"
-class="uri">https://data.census.gov</a></p></li>
+<li>Usage: covariates for education level and socioeconomic context</li>
+<li>URL: <a href="https://data.census.gov"
+class="uri">https://data.census.gov</a></li>
 </ul></li>
-<li><p>EPA Air Quality System (AQS) Data</p>
+<li>EPA Air Quality System (AQS) Data
 <ul>
-<li><p>Variables of interest: annual average PM2.5 concentration and
-Ozone levels by state/year</p></li>
-<li><p>Usage: environmental factors for modeling Alzheimer’s disease
-burden</p></li>
-<li><p>URL: <a href="https://www.epa.gov/outdoor-air-quality-data"
-class="uri">https://www.epa.gov/outdoor-air-quality-data</a></p></li>
+<li>Variables of interest: annual average PM2.5 concentration and Ozone
+levels by state/year</li>
+<li>Usage: environmental factors for modeling Alzheimer’s disease
+burden</li>
+<li>URL: <a href="https://www.epa.gov/outdoor-air-quality-data"
+class="uri">https://www.epa.gov/outdoor-air-quality-data</a></li>
 </ul></li>
 </ol>
 </div>
-<div id="analyses" class="section level2">
-<h2>Planned Analyses / Visualizations / Coding Challenges</h2>
+<div id="planned-analyses-visualizations-coding-challenges"
+class="section level1 content-section">
+<h1>Planned Analyses / Visualizations / Coding Challenges</h1>
 <ol style="list-style-type: decimal">
-<li><p><strong>Data Wrangling</strong></p>
+<li><strong>Data Wrangling</strong>
 <ul>
-<li><p>Import and clean state-year-level data from multiple
-sources</p></li>
-<li><p>Harmonize variable names (e.g., <code>state</code>,
+<li>Import and clean state-year-level data from multiple sources</li>
+<li>Harmonize variable names (e.g., <code>state</code>,
 <code>year</code>, <code>rate</code>, <code>prevalence</code>) and join
-datasets</p></li>
-<li><p>Handle missing or suppressed rates for low-population
-states</p></li>
+datasets</li>
+<li>Handle missing or suppressed rates for low-population states</li>
 </ul></li>
-<li><p><strong>Exploratory Analysis</strong></p>
+<li><strong>Exploratory Analysis</strong>
 <ul>
-<li><p>Create <strong>time-series plots</strong> showing trends in
-Alzheimer’s mortality</p></li>
-<li><p>Generate <strong>choropleth heatmaps</strong> comparing
-state-level mortality and cognitive decline</p></li>
-<li><p>Summarize national trends and identify outlier states</p></li>
+<li>Create <strong>time-series plots</strong> showing trends in
+Alzheimer’s mortality</li>
+<li>Generate <strong>choropleth heatmaps</strong> comparing state-level
+mortality and cognitive decline</li>
+<li>Summarize national trends and identify outlier states</li>
 </ul></li>
-<li><p><strong>Modeling &amp; Association</strong></p>
+<li><strong>Modeling &amp; Association</strong>
 <ul>
-<li><p>Use <strong>multiple linear regression or mixed-effects
+<li>Use <strong>multiple linear regression or mixed-effects
 models</strong> to examine associations between Alzheimer’s outcomes and
 risk factors such as cardiovascular prevalence, education, and air
-quality</p></li>
-<li><p>Assess potential interactions (e.g., region × year)</p></li>
+quality</li>
+<li>Assess potential interactions (e.g., region × year)</li>
 </ul></li>
-<li><p><strong>Visualization &amp; Communication</strong></p>
+<li><strong>Visualization &amp; Communication</strong>
 <ul>
-<li><p>Develop a <strong>dashboard-style web page</strong></p></li>
-<li><p>Use packages such as <code>ggplot2</code>, <code>plotly</code>,
-<code>sf</code> and <code>tidycensus</code> for visualizations</p></li>
-<li><p>Emphasize clear labeling, color-blind-friendly palettes, and
-interpretability</p></li>
+<li>Develop a <strong>dashboard-style web page</strong></li>
+<li>Use packages such as <code>ggplot2</code>, <code>plotly</code>,
+<code>sf</code> and <code>tidycensus</code> for visualizations</li>
+<li>Emphasize clear labeling, color-blind-friendly palettes, and
+interpretability</li>
 </ul></li>
-<li><p><strong>Coding Challenges</strong></p>
+<li><strong>Coding Challenges</strong>
 <ul>
-<li><p>Merging datasets from multiple public APIs with different
-formats</p></li>
-<li><p>Managing large CDC WONDER exports and maintaining reproducibility
-with code-based data pulls</p></li>
-<li><p>Ensuring consistent geospatial joins and age-adjusted
-comparisons</p></li>
+<li>Merging datasets from multiple public APIs with different
+formats</li>
+<li>Managing large CDC WONDER exports and maintaining reproducibility
+with code-based data pulls</li>
+<li>Ensuring consistent geospatial joins and age-adjusted
+comparisons</li>
 </ul></li>
 </ol>
 </div>
-<div id="timeline" class="section level2">
-<h2>Planned timeline</h2>
+<div id="planned-timeline" class="section level1 content-section">
+<h1>Planned timeline</h1>
 <ul>
-<li><p>Week of Nov 3: Team proposal</p></li>
-<li><p>Week of Nov 10: Project review meeting; data cleaning and
-preliminary EDA</p></li>
-<li><p>Weeks of Nov 17-24: Main analyses, plots and initial
-models</p></li>
-<li><p>Week of Dec 1: Report, website, screencast</p></li>
-<li><p>Dec 6: Final deliverables + peer assessment</p></li>
+<li>Week of Nov 3: Team proposal</li>
+<li>Week of Nov 10: Project review meeting; data cleaning and
+preliminary EDA</li>
+<li>Weeks of Nov 17-24: Main analyses, plots and initial models</li>
+<li>Week of Dec 1: Report, website, screencast</li>
+<li>Dec 6: Final deliverables + peer assessment</li>
 </ul>
 </div>
+
+
+
 </div>
 </div>
-
-
-
 
 </div>
 
@@ -772,6 +702,35 @@ $(document).ready(function () {
 });
 </script>
 
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>
