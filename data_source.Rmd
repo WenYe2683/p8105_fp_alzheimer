@@ -10,8 +10,7 @@ output:
 
 # Overview
 
-This page documents the data sources used in our analysis of cognitive decline and Alzheimer's-related indicators across the United States. We integrated multiple publicly available datasets to examine geographic, socioeconomic, and environmental factors associated with self-reported cognitive problems among middle-aged and older adults.
-
+This page documents the data sources used in our analysis of cognitive decline and Alzheimer's-related indicators across the United States. 
 
 ---
 
@@ -42,7 +41,7 @@ scale_colour_discrete = scale_colour_viridis_d
 scale_fill_discrete = scale_fill_viridis_d
 ```
 
-We integrated four publicly available datasets:
+We integrated 4 publicly available datasets to examine geographic, socioeconomic, and environmental factors associated with self-reported cognitive problems among middle-aged and older adults:
 
 ```{r data-sources, echo=FALSE}
 tibble(
