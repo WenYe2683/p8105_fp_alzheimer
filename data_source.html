@@ -36,6 +36,8 @@
 <script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
 <link href="site_libs/font-awesome-6.5.2/css/all.min.css" rel="stylesheet" />
 <link href="site_libs/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet" />
 
@@ -354,6 +356,28 @@ div.tocify {
      
   </a>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <span class="fa fa-envelope fa-lg"></span>
+     
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="mailto:bl3175@cumc.columbia.edu">Bing Li</a>
+    </li>
+    <li>
+      <a href="mailto:cw3747@cumc.columbia.edu">Chuhan Wang</a>
+    </li>
+    <li>
+      <a href="mailto:lg3450@cumc.columbia.edu">Luyun Ge</a>
+    </li>
+    <li>
+      <a href="mailto:yw4662@cumc.columbia.edu">Ye Wen</a>
+    </li>
+  </ul>
+</li>
       </ul>
     </div><!--/.nav-collapse -->
   </div><!--/.container -->
@@ -380,12 +404,88 @@ div.tocify {
 <h1>Data Sources</h1>
 <p>Our project integrates data from three primary sources to analyze the
 relationship between Alzheimer’s disease prevalence, socioeconomic
-factors, and environmental quality.</p>
-<ol style="list-style-type: decimal">
-<li><a
-href="https://data.cdc.gov/Healthy-Aging/Alzheimer-s-Disease-and-Healthy-Aging-Data/hfr9-rurv/about_data">CDC
-Alzheimer’s Disease and Healthy Aging Data (2015-2022)</a></li>
-</ol>
+factors, and environmental quality among middle-aged and older
+adults.</p>
+<div id="cdc-alzheimers-disease-and-healthy-aging-data-2015-2022"
+class="section level2">
+<h2>CDC Alzheimer’s Disease and Healthy Aging Data (2015-2022)</h2>
+<table class="table table-striped table-hover" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Attribute
+</th>
+<th style="text-align:left;">
+Details
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Source
+</td>
+<td style="text-align:left;">
+Centers for Disease Control and Prevention (CDC)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Dataset
+</td>
+<td style="text-align:left;">
+Alzheimer’s Disease and Healthy Aging Data
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Survey
+</td>
+<td style="text-align:left;">
+Behavioral Risk Factor Surveillance System (BRFSS)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Years
+</td>
+<td style="text-align:left;">
+2015–2022
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Geographic Coverage
+</td>
+<td style="text-align:left;">
+59 U.S. states and territories
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+File Used
+</td>
+<td style="text-align:left;">
+2015-2022 Alzheimer Data.csv
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+URL
+</td>
+<td style="text-align:left;">
+<a
+href="https://data.cdc.gov/Healthy-Aging/Alzheimer-s-Disease-and-Healthy-Aging-Data/hfr9-rurv/about_data"
+class="uri">https://data.cdc.gov/Healthy-Aging/Alzheimer-s-Disease-and-Healthy-Aging-Data/hfr9-rurv/about_data</a>
+</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://data.census.gov">U.S. Census American Community
+Survey (ACS)</a></p>
+<p>The CDC Alzheimer’s Disease and Healthy Aging Data provides
+state-level estimates of health indicators among middle-aged and older
+adults.</p>
 <p>Source: Centers for Disease Control and Prevention (CDC)</p>
 <p>Description: We obtained data from the CDC’s Alzheimer’s Disease and
 Healthy Aging Data set. This dataset is derived from the Behavioral Risk
@@ -417,6 +517,7 @@ href="https://data.cdc.gov/Healthy-Aging/Alzheimer-s-Disease-and-Healthy-Aging-D
 class="uri">https://data.cdc.gov/Healthy-Aging/Alzheimer-s-Disease-and-Healthy-Aging-Data/hfr9-rurv/about_data</a></li>
 </ul></li>
 </ol>
+</div>
 </div>
 <div id="data-import-and-cleaning" class="section level1">
 <h1>Data Import and Cleaning</h1>

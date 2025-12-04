@@ -7,11 +7,61 @@ output:
     code_folding: hide
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 8,
+  fig.asp = 0.6,
+  out.width = "90%"
+)
+
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+```
+
 # Data Sources
 
-Our project integrates data from three primary sources to analyze the relationship between Alzheimer's disease prevalence, socioeconomic factors, and environmental quality.
+Our project integrates data from three primary sources to analyze the relationship between Alzheimer's disease prevalence, socioeconomic factors, and environmental quality among middle-aged and older adults.
 
-1. [CDC Alzheimer’s Disease and Healthy Aging Data (2015-2022)](https://data.cdc.gov/Healthy-Aging/Alzheimer-s-Disease-and-Healthy-Aging-Data/hfr9-rurv/about_data)
+## CDC Alzheimer’s Disease and Healthy Aging Data (2015-2022)
+```{r cdc-table, echo=FALSE}
+tibble(
+  Attribute = c("Source", "Dataset", "Survey", "Years", "Geographic Coverage", "File Used", "URL"),
+  Details = c(
+    "Centers for Disease Control and Prevention (CDC)",
+    "Alzheimer's Disease and Healthy Aging Data",
+    "Behavioral Risk Factor Surveillance System (BRFSS)",
+    "2015–2022",
+    "59 U.S. states and territories",
+    "2015-2022 Alzheimer Data.csv",
+    "https://data.cdc.gov/Healthy-Aging/Alzheimer-s-Disease-and-Healthy-Aging-Data/hfr9-rurv/about_data")) |>
+  kable() |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+```
+
+
+
+
+
+
+
+
+
+
+
+[U.S. Census American Community Survey (ACS)](https://data.census.gov)
+
+
+
+
+The CDC Alzheimer's Disease and Healthy Aging Data provides state-level estimates of health indicators among middle-aged and older adults. 
+
+    
+
+
 
 Source: Centers for Disease Control and Prevention (CDC)
 

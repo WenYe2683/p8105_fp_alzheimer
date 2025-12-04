@@ -94,42 +94,22 @@ output:
 
 As U.S. Alzheimer's disease (AD) cases are projected to reach 7.2 million by 2025, identifying environmental and social risk factors such as age, sex and income, is urgent. We aim to inform prevention efforts by analyzing **state-level variations** in AD data. Our project investigates **temporal** and **geographic** trends in AD mortality and prevalence (2015-2016) to determine their association with education levels and air quality. 
 
-<div class="card-container">
-<div class="card">
-<h3>📊 Data Source</h3>
-<p>Comprehensive analysis of 32,616 observations across 59 states and territories, examining cognitive decline patterns by age, sex, and geographic region.</p>
-<a href="data_source.html" class="btn-primary">Explore Data →</a>
-</div>
-
-<div class="card">
-<h3>🗺️ Interactive Maps</h3>
-<p>Visualize state-level cognitive burden through interactive choropleth maps and explore geographic patterns across the United States.</p>
-<a href="interactive_maps.html" class="btn-primary">View Maps →</a>
-</div>
-
-<div class="card">
-<h3>📈 Statistical Models</h3>
-<p>Linear regression analyses examining associations between cognitive decline and income, education, and air pollution at the state level.</p>
-<a href="statistical_analysis.html" class="btn-primary">See Analysis →</a>
-</div>
-</div>
-
 # Explore Our Work in Details
 
 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 30px;">
 
 <div class="card">
-<h4>📁 [Data Sources](data.html)</h4>
+<h4>📊 [Data Sources](data_source.html)</h4>
 Information about our data sources and cleaning procedures
 </div>
 
 <div class="card">
-<h4>👥 [Demographic EDA](eda_demographics.html)</h4>
+<h4>👥 [Demographic EDA](deographic_analysis.html)</h4>
 Exploratory analysis by age, sex, and year
 </div>
 
 <div class="card">
-<h4>🗺️ [Geographic EDA](eda_geographic.html)</h4>
+<h4>🗺️ [Geographic EDA](geographic_analysis.html)</h4>
 State-level patterns and top burden states
 </div>
 
@@ -139,13 +119,13 @@ Choropleth maps and plotly visualizations
 </div>
 
 <div class="card">
-<h4>📋 [Full Report](report.html)</h4>
+<h4>📋 [Project Report](report.html)</h4>
 Complete project report with all findings
 </div>
 
 <div class="card">
-<h4>👋 [About Us](about.html)</h4>
-Meet our team
+<h4>👋 [About Us](about_us.html)</h4>
+Meet our lovely team
 </div>
 
 </div>
@@ -191,7 +171,7 @@ Our analysis addresses the following key questions:
 *Click on the video above to learn about our project findings and methodology.*
 
 <center>
-**GitHub Repository**: [View Code](https://github.com/yourusername/alzheimer_project)
+**GitHub Repository**: [View Code](https://github.com/WenYe2683/p8105_fp_alzheimer)
 
 *P8105 Data Science I Final Project | Fall 2025*
 

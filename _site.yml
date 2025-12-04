@@ -19,6 +19,17 @@ navbar:
       href: about_us.html
     - icon: fa-github fa-lg
       href: https://github.com/yourusername/alzheimer_project
+    - icon: fa-envelope fa-lg
+      menu:
+        - text: "Bing Li"
+          href: mailto:bl3175@cumc.columbia.edu
+        - text: "Chuhan Wang"
+          href: mailto:cw3747@cumc.columbia.edu   
+        - text: "Luyun Ge"
+          href: mailto:lg3450@cumc.columbia.edu
+        - text: "Ye Wen"
+          href: mailto:yw4662@cumc.columbia.edu
+          
 output:
   html_document:
     theme: united

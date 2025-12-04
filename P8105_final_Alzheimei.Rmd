@@ -1,5 +1,5 @@
 ---
-title: "P8105_final_Alzheimei"
+title: "P8105_final_Alzheimer"
 date: "2025-11-27"
 author: "bl3175, cw3747, lg3450, yw4662"
 output: github_document
@@ -67,7 +67,7 @@ We obtained data from the Centers for Disease Control and Prevention (CDC) Alzhe
 
 For this study, we focused on BRFSS items whose topic was labeled **“cognitive decline”** or **“cognitive impairment”**. These items capture self-reported cognitive problems among middle-aged and older adults, and we treat them as Alzheimer’s-related cognitive indicators rather than clinically confirmed Alzheimer’s disease.
 
-## Data considering Alzheimei
+## Data considering Alzheimer
 
 ```{r}
 library(stringr)

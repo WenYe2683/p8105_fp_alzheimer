@@ -1,4 +1,4 @@
-P8105_final_Alzheimei
+P8105_final_Alzheimer
 ================
 bl3175, cw3747, lg3450, yw4662
 2025-11-27
@@ -82,7 +82,7 @@ capture self-reported cognitive problems among middle-aged and older
 adults, and we treat them as Alzheimer’s-related cognitive indicators
 rather than clinically confirmed Alzheimer’s disease.
 
-## Data considering Alzheimei
+## Data considering Alzheimer
 
 ``` r
 library(stringr)
