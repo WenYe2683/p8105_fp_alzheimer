@@ -455,6 +455,31 @@ territories, covering survey years <strong>2015–2022</strong>. The
 dataset includes <strong>39</strong> distinct topics and specific
 questions on health status and health-related behaviors among
 middle-aged and older adults.</p>
+<p>Cleaning Steps:</p>
+<ul>
+<li><p>Removed the last row of the dataset, which appeared to be an
+incomplete or <code>end-of-file</code> artifact</p></li>
+<li><p>Filtered out records with missing values in three key
+variables:</p>
+<ul>
+<li><code>data_value</code> (prevalence estimate)</li>
+<li><code>year_start</code> (survey year)</li>
+<li><code>location_abbr</code> (state abbreviation)</li>
+</ul></li>
+<li><p>Filtered to cognitive-related topics only by keeping rows where
+the topic variable contained “cognitive decline” or “cognitive
+impairment” (case-insensitive matching)</p></li>
+<li><p>Created new grouping variables:</p>
+<ul>
+<li><code>age_group</code>: Extracted from stratification1 when
+stratification_category1 equals “Age Group”, otherwise set to
+“Overall”</li>
+<li><code>sex_group</code>: Extracted from stratification2 when
+stratification_category2 equals “Sex”, otherwise set to “Overall”</li>
+</ul></li>
+<li><p>Restricted analytic sample to adults aged 65+ years with overall
+sex grouping for the main state-level analyses.</p></li>
+</ul>
 <pre class="r"><code># Generate summary table
 az_clean |&gt;
   summarise(
@@ -540,109 +565,7 @@ az_cog_state_age_sex &lt;- az_cog_summary_base |&gt;
     mean_value = mean(data_value, na.rm = TRUE),
     .groups = &quot;drop&quot;
   ) |&gt;
-  arrange(desc(mean_value))
-
-# make it into table
-az_cog_state_age_sex |&gt;
-  head(10) |&gt;
-  kable(
-    col.names = c(&quot;State/Territory&quot;, &quot;Age Group&quot;, &quot;Sex&quot;, &quot;Obs Count&quot;, &quot;Mean Prevalence (%)&quot;),
-    caption = &quot;Table 2: Top 10 Mean Prevalence of Cognitive Decline by State/Territory, Age, and Sex&quot;,
-    digits = 1,
-    align = &quot;c&quot;
-  )</code></pre>
-<table>
-<caption>Table 2: Top 10 Mean Prevalence of Cognitive Decline by
-State/Territory, Age, and Sex</caption>
-<colgroup>
-<col width="22%" />
-<col width="24%" />
-<col width="11%" />
-<col width="14%" />
-<col width="27%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th align="center">State/Territory</th>
-<th align="center">Age Group</th>
-<th align="center">Sex</th>
-<th align="center">Obs Count</th>
-<th align="center">Mean Prevalence (%)</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="center">Puerto Rico</td>
-<td align="center">50-64 years</td>
-<td align="center">Female</td>
-<td align="center">4</td>
-<td align="center">59.8</td>
-</tr>
-<tr class="even">
-<td align="center">Puerto Rico</td>
-<td align="center">50-64 years</td>
-<td align="center">Overall</td>
-<td align="center">8</td>
-<td align="center">58.2</td>
-</tr>
-<tr class="odd">
-<td align="center">Puerto Rico</td>
-<td align="center">Overall</td>
-<td align="center">Male</td>
-<td align="center">4</td>
-<td align="center">54.5</td>
-</tr>
-<tr class="even">
-<td align="center">Puerto Rico</td>
-<td align="center">Overall</td>
-<td align="center">Overall</td>
-<td align="center">8</td>
-<td align="center">53.6</td>
-</tr>
-<tr class="odd">
-<td align="center">Puerto Rico</td>
-<td align="center">Overall</td>
-<td align="center">Female</td>
-<td align="center">4</td>
-<td align="center">52.8</td>
-</tr>
-<tr class="even">
-<td align="center">Puerto Rico</td>
-<td align="center">65 years or older</td>
-<td align="center">Overall</td>
-<td align="center">8</td>
-<td align="center">47.9</td>
-</tr>
-<tr class="odd">
-<td align="center">Rhode Island</td>
-<td align="center">50-64 years</td>
-<td align="center">Female</td>
-<td align="center">4</td>
-<td align="center">47.2</td>
-</tr>
-<tr class="even">
-<td align="center">Oklahoma</td>
-<td align="center">50-64 years</td>
-<td align="center">Female</td>
-<td align="center">4</td>
-<td align="center">46.6</td>
-</tr>
-<tr class="odd">
-<td align="center">Delaware</td>
-<td align="center">50-64 years</td>
-<td align="center">Female</td>
-<td align="center">4</td>
-<td align="center">46.1</td>
-</tr>
-<tr class="even">
-<td align="center">Puerto Rico</td>
-<td align="center">65 years or older</td>
-<td align="center">Female</td>
-<td align="center">4</td>
-<td align="center">44.7</td>
-</tr>
-</tbody>
-</table>
+  arrange(desc(mean_value))</code></pre>
 <pre class="r"><code># top 10 states (2015-2016)
 az_cog_65_overall &lt;- az_cog_summary_base |&gt;
   filter(
@@ -675,103 +598,11 @@ top10_state_15_16 &lt;- az_cog_65_overall_15_16 |&gt;
     .groups = &quot;drop&quot;
   ) |&gt;
   arrange(desc(mean_15_16)) |&gt;
-  slice_head(n = 10)
-
-top10_state_15_16 |&gt;
-  kable(
-    col.names = c(&quot;State/Territory&quot;, &quot;Obs Count&quot;, &quot;Mean Prevalence (%)&quot;),
-    caption = &quot;Table 3: Top 10 State/Territory with Highest Cognitive Decline Prevalence (Age 65+, 2015–2016)&quot;,
-    digits = 1,
-    align = &quot;c&quot;
-  )</code></pre>
-<table>
-<caption>Table 3: Top 10 State/Territory with Highest Cognitive Decline
-Prevalence (Age 65+, 2015–2016)</caption>
-<thead>
-<tr class="header">
-<th align="center">State/Territory</th>
-<th align="center">Obs Count</th>
-<th align="center">Mean Prevalence (%)</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="center">Puerto Rico</td>
-<td align="center">8</td>
-<td align="center">47.9</td>
-</tr>
-<tr class="even">
-<td align="center">Northeast</td>
-<td align="center">30</td>
-<td align="center">33.6</td>
-</tr>
-<tr class="odd">
-<td align="center">Oklahoma</td>
-<td align="center">8</td>
-<td align="center">31.5</td>
-</tr>
-<tr class="even">
-<td align="center">Mississippi</td>
-<td align="center">14</td>
-<td align="center">31.4</td>
-</tr>
-<tr class="odd">
-<td align="center">South</td>
-<td align="center">30</td>
-<td align="center">31.0</td>
-</tr>
-<tr class="even">
-<td align="center">South Dakota</td>
-<td align="center">8</td>
-<td align="center">30.9</td>
-</tr>
-<tr class="odd">
-<td align="center">Massachusetts</td>
-<td align="center">5</td>
-<td align="center">30.8</td>
-</tr>
-<tr class="even">
-<td align="center">Alabama</td>
-<td align="center">14</td>
-<td align="center">30.2</td>
-</tr>
-<tr class="odd">
-<td align="center">Alaska</td>
-<td align="center">7</td>
-<td align="center">29.8</td>
-</tr>
-<tr class="even">
-<td align="center">South Carolina</td>
-<td align="center">14</td>
-<td align="center">29.5</td>
-</tr>
-</tbody>
-</table>
-<p>Using data from 2015–2016, we ranked states and regions by the mean
-prevalence of Alzheimer’s-related cognitive indicators among adults aged
-65 years and older (all sexes combined).</p>
-<p>The highest burden was observed in Puerto Rico (mean prevalence
-47.9%), which was notably higher than any U.S. state or region. The
-Northeast region ranked second (33.6%), followed by Oklahoma (31.5%),
-Mississippi (31.4%), and the South region as a whole (31.0%).</p>
-<p>The remaining states in the top ten—South Dakota, Massachusetts,
-Alabama, Alaska, and South Carolina—all had mean prevalences around 30%.
-Overall, these results suggest substantial geographic variation in
-self-reported cognitive problems among older adults, with several
-Southern states and Puerto Rico showing particularly high levels.</p>
-<p>The Top 10 list for 2015–2016 is different from the earlier
-state–age–sex table because they summarize different things. The
-state–age–sex table ranks specific subgroups (for example, women aged
-50–64 in Puerto Rico), so it shows where the highest subgroup
-prevalences occur.</p>
-<p>In contrast, the 2015–2016 Top 10 is based only on adults aged 65+
-with sexes combined, giving one value per state. This ranking reflects
-overall burden in older adults, not the maximum value in any age–sex
-subgroup, and provides useful context for later stratified analyses or
-adjustment for potential confounders such as age, sex, or region.</p>
+  slice_head(n = 10)</code></pre>
 </div>
-<div id="socioeconomic-factor-income" class="section level2">
-<h2>Socioeconomic Factor: Income</h2>
+<div id="socioeconomic-factor-income-u.s.-census-acs"
+class="section level2">
+<h2>Socioeconomic Factor: Income (U.S. Census ACS)</h2>
 <p>As the Healthy Aging dataset is designed to monitor cognitive health
 in older adults and Alzheimer’s disease primarily affects seniors, we
 restricted our analytic sample to respondents aged 65+ years. For the

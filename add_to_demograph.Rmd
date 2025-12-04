@@ -1,0 +1,135 @@
+---
+title: "Add this page to demographic analysis"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+---
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(patchwork)
+library(scales)
+library(dplyr)
+library(knitr)
+library(stringr)
+library(ggplot2)
+
+
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.asp = .6,
+  out.width = "90%"
+)
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+
+raw_az_data <- read.csv("data/2015-2022 Alzheimer Data.csv") |>
+  janitor::clean_names()
+
+raw_az_data <- raw_az_data[-nrow(raw_az_data), ]
+
+az_clean <- raw_az_data |>
+  filter(
+    !is.na(data_value),
+    !is.na(year_start),
+    !is.na(location_abbr)
+  )
+
+az_cog <- az_clean |>
+  filter(
+    str_detect(topic, regex("cognitive decline|cognitive impairment",
+                            ignore_case = TRUE))
+  )
+
+# sex and age summary
+az_cog_summary_base <- az_cog |>
+  mutate(
+    age_group = case_when(
+      stratification_category1 == "Age Group" ~ stratification1,
+      TRUE ~ "Overall"
+    ),
+    sex_group = case_when(
+      stratification_category2 == "Sex" ~ stratification2,
+      TRUE ~ "Overall"
+    )
+  )
+
+### state × age × sex table
+az_cog_state_age_sex <- az_cog_summary_base |>
+  group_by(
+    location_desc,
+    age_group,
+    sex_group
+  ) |>
+  summarise(
+    n_obs = n(),
+    mean_value = mean(data_value, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(desc(mean_value))
+
+# make it into table
+az_cog_state_age_sex |>
+  head(10) |>
+  kable(
+    col.names = c("State/Territory", "Age Group", "Sex", "Obs Count", "Mean Prevalence (%)"),
+    caption = "Table 2: Top 10 Mean Prevalence of Cognitive Decline by State/Territory, Age, and Sex",
+    digits = 1,
+    align = "c"
+  )
+```
+
+* For Table 2 (State × Age × Sex):
+
+Table 2 presents the top 10 subgroups with the highest mean prevalence of cognitive decline, stratified by state/territory, age group, and sex. Puerto Rico dominates this ranking, occupying six of the top ten positions. The highest prevalence was observed among women aged 50–64 years in Puerto Rico (59.8%), followed by the overall 50–64 age group in Puerto Rico (58.2%). Notably, Rhode Island, Oklahoma, and Delaware also appear in the top 10, each with women aged 50–64 showing prevalences above 46%.
+
+```{r message=FALSE, warning=FALSE}
+az_cog_65_overall <- az_cog_summary_base |>
+  filter(
+    age_group == "65 years or older",
+    sex_group == "Overall"
+  )
+
+years_use <- c(2015, 2016)
+
+az_cog_65_overall_15_16 <- az_cog_65_overall |>
+  filter(year_start %in% years_use)
+
+top10_state_15_16 <- az_cog_65_overall_15_16 |>
+  group_by(location_desc) |>
+  summarise(
+    n_obs = n(),
+    mean_15_16 = mean(data_value, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(desc(mean_15_16)) |>
+  slice_head(n = 10)
+
+top10_state_15_16 |>
+  kable(
+    col.names = c("State/Territory", "Obs Count", "Mean Prevalence (%)"),
+    caption = "Table 3: Top 10 State/Territory with Highest Cognitive Decline Prevalence (Age 65+, 2015–2016)",
+    digits = 1,
+    align = "c"
+  )
+```
+
+* For Table 3 (Top 10 States, Age 65+, 2015–2016):
+
+Using data from 2015–2016, Table 3 ranks states and regions by the mean prevalence of Alzheimer's-related cognitive indicators among adults aged 65 years and older (all sexes combined).
+The highest burden was observed in Puerto Rico (mean prevalence 47.9%), which was notably higher than any U.S. state or region. The Northeast region ranked second (33.6%), followed by Oklahoma (31.5%), Mississippi (31.4%), and the South region as a whole (31.0%).
+The remaining states in the top ten—South Dakota, Massachusetts, Alabama, Alaska, and South Carolina—all had mean prevalences around 30%. Overall, these results suggest substantial geographic variation in self-reported cognitive problems among older adults, with several Southern states and Puerto Rico showing particularly high levels.
+
+* Comparison of Table 2 and Table 3:
+
+Table 2 and Table 3 summarize different aspects of the data. Table 2 ranks specific demographic subgroups (e.g., women aged 50–64 in Puerto Rico), showing where the highest subgroup-level prevalences occur. In contrast, Table 3 focuses only on adults aged 65+ with sexes combined, providing one aggregated value per state. This ranking in Table 3 reflects the overall burden among older adults rather than the maximum value in any age–sex subgroup, offering useful context for subsequent stratified analyses or adjustment for potential confounders such as age, sex, or region.

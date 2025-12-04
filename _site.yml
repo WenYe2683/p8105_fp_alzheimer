@@ -7,10 +7,10 @@ navbar:
       href: index.html
     - text: "Data Analysis"
       href: data_source.html
-        - text: "Demographic Analysis"
-          href: demographic_analysis.html
-        - text: "Geographic Analysis"
-          href: geographic_analysis.html
+    - text: "Demographic Analysis"
+      href: demographic_analysis.html
+    - text: "Geographic Analysis"
+      href: geographic_analysis.html
     - text: "Interactive Map"
       href: interactive_maps.html
     - text: "Report"
