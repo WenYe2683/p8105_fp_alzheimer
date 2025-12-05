@@ -228,6 +228,7 @@ tibble(
 
 # Data Cleaning
 
+## Demographic Factors: Age & Sex
 ```{r warning=FALSE, message=FALSE}
 raw_az_data <- read.csv("data/2015-2022 Alzheimer Data.csv") |>
   janitor::clean_names()
@@ -387,11 +388,6 @@ The Top 10 list for 2015–2016 is different from the earlier state–age–sex 
 
 In contrast, the 2015–2016 Top 10 is based only on adults aged 65+ with sexes combined, giving one value per state. This ranking reflects overall burden in older adults, not the maximum value in any age–sex subgroup, and provides useful context for later stratified analyses or adjustment for potential confounders such as age, sex, or region.
 
-</div>
-
-<div class="content-section">
-
-# Initial Analysis
 ## Socioeconomic Factor: Income
 
 We obtained both income and education data from the U.S. Census Bureau's American Community Survey (ACS), which provides reliable state-level socioeconomic indicators.
