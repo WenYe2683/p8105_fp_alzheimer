@@ -1005,7 +1005,7 @@ Based on our interactive exploration:
 
 1. **Geographic Patterns**: Southern and Southeastern states consistently show higher Alzheimer's-related cognitive prevalence rates compared to Western and Northeastern states.
 
-2. **Temporal Stability**: National average prevalence has remained relatively stable between 25-27% among adults aged 65+ from 2015-2022, with considerable between-state variation.
+2. **Temporal Stability**: National average prevalence has remained relatively stable between 25-27% among adults aged 65+ from 2015-2016, with considerable between-state variation.
 
 3. **Demographic Differences**: 
    - Women report higher cognitive burden than men (~31% vs ~27%)
