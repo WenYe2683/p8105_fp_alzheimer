@@ -5,7 +5,7 @@ account: wenye404
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 16248391
-bundleId: 11280311
+bundleId: 11281446
 url: https://wenye404.shinyapps.io/shiny_app/
 version: 1
 asMultiple: FALSE

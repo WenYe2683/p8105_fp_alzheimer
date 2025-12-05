@@ -8,11 +8,17 @@ library(tidyverse)
 library(plotly)
 library(DT)
 library(viridis)
-library(sf)
+library(janitor)
 
 # ============================================================================
 # Data Loading and Preparation
 # ============================================================================
+
+# Check if data directory exists
+if (!dir.exists("data")) {
+  stop("ERROR: Data directory 'data' not found in shiny_app directory.\n",
+       "Please run: source('copy_data.R') from project root to copy data files.")
+}
 
 # Load Alzheimer's data
 raw_az_data <- read.csv("data/2015-2022 Alzheimer Data.csv") |>
@@ -122,7 +128,9 @@ air_state <- bind_rows(air15, air16) |>
 az_combined <- az_state_year |>
   left_join(income_state, by = c("year", "state_name" = "state")) |>
   left_join(edu_state, by = c("year", "state_name" = "state")) |>
-  left_join(air_state, by = c("year", "state_name" = "state_desc"))
+  left_join(air_state, by = c("year", "state_name" = "state_desc")) |>
+  # Ensure state_name is always present
+  mutate(state_name = coalesce(state_name, state_abbr, "Unknown"))
 
 # Get unique values for filters
 all_states <- sort(unique(az_state_year$state_name))
@@ -421,8 +429,6 @@ ui <- dashboardPage(
               direction = "vertical",
               justified = TRUE
             ),
-            
-            checkboxInput("show_regression", "Show Trend Line", TRUE),
             
             hr(),
             
@@ -809,6 +815,15 @@ server <- function(input, output, session) {
   factor_data <- reactive({
     df <- filtered_combined() |> filter(year == as.numeric(input$factor_year))
     
+    # Ensure state_name exists - if not, use state_abbr or create from state_name
+    if (!"state_name" %in% names(df)) {
+      if ("state_abbr" %in% names(df)) {
+        df <- df |> mutate(state_name = state_abbr)
+      } else {
+        df <- df |> mutate(state_name = as.character(row_number()))
+      }
+    }
+    
     if (input$factor_type == "income") {
       df <- df |> filter(!is.na(median_state)) |>
         mutate(factor_value = median_state, factor_label = "Median Income ($)")
@@ -826,26 +841,22 @@ server <- function(input, output, session) {
     df <- factor_data()
     if (nrow(df) == 0) return(NULL)
     
-    p <- plot_ly(df, x = ~factor_value, y = ~mean_prev,
-                 text = ~state_name, type = "scatter", mode = "markers",
-                 marker = list(size = 12, color = "#d97706", opacity = 0.7,
-                               line = list(color = "white", width = 1)),
-                 hovertemplate = paste0("<b>%{text}</b><br>",
-                                        df$factor_label[1], ": %{x}<br>",
-                                        "Prevalence: %{y:.1f}%<extra></extra>"))
-    
-    if (input$show_regression && nrow(df) > 2) {
-      model <- lm(mean_prev ~ factor_value, data = df)
-      pred <- predict(model, se.fit = TRUE)
-      df$fitted <- pred$fit
-      
-      p <- p |>
-        add_trace(x = ~factor_value, y = ~fitted, type = "scatter", mode = "lines",
-                  line = list(color = "#2563eb", width = 2, dash = "dash"),
-                  name = "Trend Line", showlegend = TRUE)
+    # Ensure state_name exists for hover text
+    if (!"state_name" %in% names(df)) {
+      if ("state_abbr" %in% names(df)) {
+        df$state_name <- df$state_abbr
+      } else {
+        df$state_name <- paste("State", 1:nrow(df))
+      }
     }
     
-    p |>
+    plot_ly(df, x = ~factor_value, y = ~mean_prev,
+            text = ~state_name, type = "scatter", mode = "markers",
+            marker = list(size = 12, color = "#d97706", opacity = 0.7,
+                          line = list(color = "white", width = 1)),
+            hovertemplate = paste0("<b>%{text}</b><br>",
+                                   df$factor_label[1], ": %{x}<br>",
+                                   "Prevalence: %{y:.1f}%<extra></extra>")) |>
       layout(
         title = list(text = paste0("<b>", df$factor_label[1], " vs Cognitive Prevalence (", 
                                    input$factor_year, ")</b>"),
@@ -853,7 +864,7 @@ server <- function(input, output, session) {
         xaxis = list(title = df$factor_label[1], titlefont = list(family = "Georgia")),
         yaxis = list(title = "Prevalence (%)", titlefont = list(family = "Georgia")),
         font = list(family = "Georgia"),
-        showlegend = input$show_regression
+        hovermode = "closest"
       )
   })
   
