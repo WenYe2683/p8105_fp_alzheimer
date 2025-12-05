@@ -3,7 +3,7 @@ output_dir: "."
 navbar:
   title: "Cognitive Decline in the U.S."
   right:
-    - text: "Home"
+    - icon: fa-whiteboard fa-semibold fa-house
       href: index.html
     - text: "Plan"
       href: plan.html

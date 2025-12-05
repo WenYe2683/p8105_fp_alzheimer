@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Add this page to demographic analysis</title>
+
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-6.5.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet" />
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Cognitive Decline in the U.S.</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="index.html">
+    <span class="fa fa-whiteboard fa-semibold fa-house"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="data_source.html">Data Source</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Demographic Analysis
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="demographic_analysis.html">Demographic Models</a>
+    </li>
+    <li>
+      <a href="add_to_demograph.html">Summary Statistics</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="geographic_analysis.html">Geographic Analysis</a>
+</li>
+<li>
+  <a href="interactive_maps.html">Interactive Map</a>
+</li>
+<li>
+  <a href="report.html">Report</a>
+</li>
+<li>
+  <a href="about_us.html">About Us</a>
+</li>
+<li>
+  <a href="https://github.com/WenYe2683/p8105_fp_alzheimer">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <span class="fa fa-envelope fa-lg"></span>
+     
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="mailto:bl3175@cumc.columbia.edu">Bing Li</a>
+    </li>
+    <li>
+      <a href="mailto:cw3747@cumc.columbia.edu">Chuhan Wang</a>
+    </li>
+    <li>
+      <a href="mailto:lg3450@cumc.columbia.edu">Luyun Ge</a>
+    </li>
+    <li>
+      <a href="mailto:yw4662@cumc.columbia.edu">Ye Wen</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+<div class="btn-group pull-right float-right">
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Add this page to demographic analysis</h1>
+
+</div>
+
+
+<div id="prevalence-of-cognitive-decline-by-stateterritory-age-and-sex"
+class="section level1">
+<h1>Prevalence of Cognitive Decline by State/Territory, Age, and
+Sex</h1>
+<pre class="r"><code>library(tidyverse)
+library(patchwork)
+library(scales)
+library(dplyr)
+library(knitr)
+library(stringr)
+library(ggplot2)
+
+
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.asp = .6,
+  out.width = &quot;90%&quot;
+)
+
+theme_set(theme_minimal() + theme(legend.position = &quot;bottom&quot;))
+
+options(
+  ggplot2.continuous.colour = &quot;viridis&quot;,
+  ggplot2.continuous.fill = &quot;viridis&quot;
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+
+raw_az_data &lt;- read.csv(&quot;data/2015-2022 Alzheimer Data.csv&quot;) |&gt;
+  janitor::clean_names()
+
+raw_az_data &lt;- raw_az_data[-nrow(raw_az_data), ]
+
+az_clean &lt;- raw_az_data |&gt;
+  filter(
+    !is.na(data_value),
+    !is.na(year_start),
+    !is.na(location_abbr)
+  )
+
+az_cog &lt;- az_clean |&gt;
+  filter(
+    str_detect(topic, regex(&quot;cognitive decline|cognitive impairment&quot;,
+                            ignore_case = TRUE))
+  )
+
+# sex and age summary
+az_cog_summary_base &lt;- az_cog |&gt;
+  mutate(
+    age_group = case_when(
+      stratification_category1 == &quot;Age Group&quot; ~ stratification1,
+      TRUE ~ &quot;Overall&quot;
+    ),
+    sex_group = case_when(
+      stratification_category2 == &quot;Sex&quot; ~ stratification2,
+      TRUE ~ &quot;Overall&quot;
+    )
+  )
+
+### state × age × sex table
+az_cog_state_age_sex &lt;- az_cog_summary_base |&gt;
+  group_by(
+    location_desc,
+    age_group,
+    sex_group
+  ) |&gt;
+  summarise(
+    n_obs = n(),
+    mean_value = mean(data_value, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  ) |&gt;
+  arrange(desc(mean_value))
+
+# make it into table
+az_cog_state_age_sex |&gt;
+  head(10) |&gt;
+  kable(
+    col.names = c(&quot;State/Territory&quot;, &quot;Age Group&quot;, &quot;Sex&quot;, &quot;Obs Count&quot;, &quot;Mean Prevalence (%)&quot;),
+    caption = &quot;Table 2: Top 10 Mean Prevalence of Cognitive Decline by State/Territory, Age, and Sex&quot;,
+    digits = 1,
+    align = &quot;c&quot;
+  )</code></pre>
+<table>
+<caption>Table 2: Top 10 Mean Prevalence of Cognitive Decline by
+State/Territory, Age, and Sex</caption>
+<colgroup>
+<col width="22%" />
+<col width="24%" />
+<col width="11%" />
+<col width="14%" />
+<col width="27%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center">State/Territory</th>
+<th align="center">Age Group</th>
+<th align="center">Sex</th>
+<th align="center">Obs Count</th>
+<th align="center">Mean Prevalence (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">Puerto Rico</td>
+<td align="center">50-64 years</td>
+<td align="center">Female</td>
+<td align="center">4</td>
+<td align="center">59.8</td>
+</tr>
+<tr class="even">
+<td align="center">Puerto Rico</td>
+<td align="center">50-64 years</td>
+<td align="center">Overall</td>
+<td align="center">8</td>
+<td align="center">58.2</td>
+</tr>
+<tr class="odd">
+<td align="center">Puerto Rico</td>
+<td align="center">Overall</td>
+<td align="center">Male</td>
+<td align="center">4</td>
+<td align="center">54.5</td>
+</tr>
+<tr class="even">
+<td align="center">Puerto Rico</td>
+<td align="center">Overall</td>
+<td align="center">Overall</td>
+<td align="center">8</td>
+<td align="center">53.6</td>
+</tr>
+<tr class="odd">
+<td align="center">Puerto Rico</td>
+<td align="center">Overall</td>
+<td align="center">Female</td>
+<td align="center">4</td>
+<td align="center">52.8</td>
+</tr>
+<tr class="even">
+<td align="center">Puerto Rico</td>
+<td align="center">65 years or older</td>
+<td align="center">Overall</td>
+<td align="center">8</td>
+<td align="center">47.9</td>
+</tr>
+<tr class="odd">
+<td align="center">Rhode Island</td>
+<td align="center">50-64 years</td>
+<td align="center">Female</td>
+<td align="center">4</td>
+<td align="center">47.2</td>
+</tr>
+<tr class="even">
+<td align="center">Oklahoma</td>
+<td align="center">50-64 years</td>
+<td align="center">Female</td>
+<td align="center">4</td>
+<td align="center">46.6</td>
+</tr>
+<tr class="odd">
+<td align="center">Delaware</td>
+<td align="center">50-64 years</td>
+<td align="center">Female</td>
+<td align="center">4</td>
+<td align="center">46.1</td>
+</tr>
+<tr class="even">
+<td align="center">Puerto Rico</td>
+<td align="center">65 years or older</td>
+<td align="center">Female</td>
+<td align="center">4</td>
+<td align="center">44.7</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>For Table 2 (State × Age × Sex):</li>
+</ul>
+<p>Table 2 presents the top 10 subgroups with the highest mean
+prevalence of cognitive decline, stratified by state/territory, age
+group, and sex. Puerto Rico dominates this ranking, occupying six of the
+top ten positions. The highest prevalence was observed among women aged
+50–64 years in Puerto Rico (59.8%), followed by the overall 50–64 age
+group in Puerto Rico (58.2%). Notably, Rhode Island, Oklahoma, and
+Delaware also appear in the top 10, each with women aged 50–64 showing
+prevalences above 46%.</p>
+<pre class="r"><code>az_cog_65_overall &lt;- az_cog_summary_base |&gt;
+  filter(
+    age_group == &quot;65 years or older&quot;,
+    sex_group == &quot;Overall&quot;
+  )
+
+years_use &lt;- c(2015, 2016)
+
+az_cog_65_overall_15_16 &lt;- az_cog_65_overall |&gt;
+  filter(year_start %in% years_use)
+
+top10_state_15_16 &lt;- az_cog_65_overall_15_16 |&gt;
+  group_by(location_desc) |&gt;
+  summarise(
+    n_obs = n(),
+    mean_15_16 = mean(data_value, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  ) |&gt;
+  arrange(desc(mean_15_16)) |&gt;
+  slice_head(n = 10)
+
+top10_state_15_16 |&gt;
+  kable(
+    col.names = c(&quot;State/Territory&quot;, &quot;Obs Count&quot;, &quot;Mean Prevalence (%)&quot;),
+    caption = &quot;Table 3: Top 10 State/Territory with Highest Cognitive Decline Prevalence (Age 65+, 2015–2016)&quot;,
+    digits = 1,
+    align = &quot;c&quot;
+  )</code></pre>
+<table>
+<caption>Table 3: Top 10 State/Territory with Highest Cognitive Decline
+Prevalence (Age 65+, 2015–2016)</caption>
+<thead>
+<tr class="header">
+<th align="center">State/Territory</th>
+<th align="center">Obs Count</th>
+<th align="center">Mean Prevalence (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">Puerto Rico</td>
+<td align="center">8</td>
+<td align="center">47.9</td>
+</tr>
+<tr class="even">
+<td align="center">Northeast</td>
+<td align="center">30</td>
+<td align="center">33.6</td>
+</tr>
+<tr class="odd">
+<td align="center">Oklahoma</td>
+<td align="center">8</td>
+<td align="center">31.5</td>
+</tr>
+<tr class="even">
+<td align="center">Mississippi</td>
+<td align="center">14</td>
+<td align="center">31.4</td>
+</tr>
+<tr class="odd">
+<td align="center">South</td>
+<td align="center">30</td>
+<td align="center">31.0</td>
+</tr>
+<tr class="even">
+<td align="center">South Dakota</td>
+<td align="center">8</td>
+<td align="center">30.9</td>
+</tr>
+<tr class="odd">
+<td align="center">Massachusetts</td>
+<td align="center">5</td>
+<td align="center">30.8</td>
+</tr>
+<tr class="even">
+<td align="center">Alabama</td>
+<td align="center">14</td>
+<td align="center">30.2</td>
+</tr>
+<tr class="odd">
+<td align="center">Alaska</td>
+<td align="center">7</td>
+<td align="center">29.8</td>
+</tr>
+<tr class="even">
+<td align="center">South Carolina</td>
+<td align="center">14</td>
+<td align="center">29.5</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>For Table 3 (Top 10 States, Age 65+, 2015–2016):</li>
+</ul>
+<p>Using data from 2015–2016, Table 3 ranks states and regions by the
+mean prevalence of Alzheimer’s-related cognitive indicators among adults
+aged 65 years and older (all sexes combined). The highest burden was
+observed in Puerto Rico (mean prevalence 47.9%), which was notably
+higher than any U.S. state or region. The Northeast region ranked second
+(33.6%), followed by Oklahoma (31.5%), Mississippi (31.4%), and the
+South region as a whole (31.0%). The remaining states in the top
+ten—South Dakota, Massachusetts, Alabama, Alaska, and South Carolina—all
+had mean prevalences around 30%. Overall, these results suggest
+substantial geographic variation in self-reported cognitive problems
+among older adults, with several Southern states and Puerto Rico showing
+particularly high levels.</p>
+<ul>
+<li>Comparison of Table 2 and Table 3:</li>
+</ul>
+<p>Table 2 and Table 3 summarize different aspects of the data. Table 2
+ranks specific demographic subgroups (e.g., women aged 50–64 in Puerto
+Rico), showing where the highest subgroup-level prevalences occur. In
+contrast, Table 3 focuses only on adults aged 65+ with sexes combined,
+providing one aggregated value per state. This ranking in Table 3
+reflects the overall burden among older adults rather than the maximum
+value in any age–sex subgroup, offering useful context for subsequent
+stratified analyses or adjustment for potential confounders such as age,
+sex, or region.</p>
+<hr />
+</div>
+<div id="aggreted-stateterritory-level-household-income-statistics"
+class="section level1">
+<h1>Aggreted State/Territory-Level Household Income Statistics</h1>
+<p>Below is the aggregrated state/territory-level household income
+statistics from 2015 to 2016:</p>
+<pre class="r"><code>#data import
+inc15 &lt;- read_csv(&quot;data/median income-2015.csv&quot;, skip = 1) |&gt;
+  janitor::clean_names() |&gt;
+  transmute(
+    year = 2015,
+    state_name = geographic_area_name,
+    median_income = as.numeric(median_income_dollars_estimate_households)
+  )
+
+inc16 &lt;- read_csv(&quot;data/median income-2016.csv&quot;, skip = 1) |&gt;
+  janitor::clean_names() |&gt;
+  transmute(
+    year = 2016,
+    state_name = geographic_area_name,
+    median_income = as.numeric(median_income_dollars_estimate_households)
+  )
+
+income_state &lt;- bind_rows(inc15, inc16)
+
+income_state_with_state &lt;- income_state |&gt;
+  mutate(
+    state = str_squish(str_extract(state_name, &quot;[^,]+$&quot;)))
+
+income_state_level &lt;- income_state_with_state |&gt;
+  group_by(year, state) |&gt;
+  summarise(
+    n_counties = n(),
+    median_income_state = median(median_income, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  )
+
+income_state_level &lt;- income_state_with_state |&gt;
+  group_by(year, state) |&gt;
+  summarise(
+    n_counties = n(),
+    median_state = median(median_income, na.rm = TRUE),
+    mean_state   = mean(median_income, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  )
+
+income_state_level |&gt;
+  head(10) |&gt;
+  kable(
+    col.names = c(&quot;Year&quot;, &quot;State/Territory&quot;, &quot;No. of Counties&quot;, &quot;Median Income (usd)&quot;, &quot;Average Income (usd)&quot;),
+    caption = &quot;Table 4: Aggregated State/Territory-Level Household Income Statistics (2015-2016)&quot;,
+    digits = 0,           
+    format.args = list(big.mark = &quot;,&quot;),
+    align = &quot;c&quot;
+  )</code></pre>
+<table>
+<caption>Table 4: Aggregated State/Territory-Level Household Income
+Statistics (2015-2016)</caption>
+<colgroup>
+<col width="7%" />
+<col width="24%" />
+<col width="19%" />
+<col width="23%" />
+<col width="24%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center">Year</th>
+<th align="center">State/Territory</th>
+<th align="center">No. of Counties</th>
+<th align="center">Median Income (usd)</th>
+<th align="center">Average Income (usd)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">2,015</td>
+<td align="center">Alabama</td>
+<td align="center">21</td>
+<td align="center">43,553</td>
+<td align="center">46,460</td>
+</tr>
+<tr class="even">
+<td align="center">2,015</td>
+<td align="center">Alaska</td>
+<td align="center">3</td>
+<td align="center">76,427</td>
+<td align="center">76,021</td>
+</tr>
+<tr class="odd">
+<td align="center">2,015</td>
+<td align="center">Arizona</td>
+<td align="center">10</td>
+<td align="center">45,195</td>
+<td align="center">44,712</td>
+</tr>
+<tr class="even">
+<td align="center">2,015</td>
+<td align="center">Arkansas</td>
+<td align="center">11</td>
+<td align="center">46,070</td>
+<td align="center">45,950</td>
+</tr>
+<tr class="odd">
+<td align="center">2,015</td>
+<td align="center">California</td>
+<td align="center">40</td>
+<td align="center">58,954</td>
+<td align="center">62,095</td>
+</tr>
+<tr class="even">
+<td align="center">2,015</td>
+<td align="center">Colorado</td>
+<td align="center">12</td>
+<td align="center">65,960</td>
+<td align="center">67,584</td>
+</tr>
+<tr class="odd">
+<td align="center">2,015</td>
+<td align="center">Connecticut</td>
+<td align="center">8</td>
+<td align="center">70,144</td>
+<td align="center">72,854</td>
+</tr>
+<tr class="even">
+<td align="center">2,015</td>
+<td align="center">Delaware</td>
+<td align="center">3</td>
+<td align="center">56,778</td>
+<td align="center">59,366</td>
+</tr>
+<tr class="odd">
+<td align="center">2,015</td>
+<td align="center">District of Columbia</td>
+<td align="center">1</td>
+<td align="center">75,628</td>
+<td align="center">75,628</td>
+</tr>
+<tr class="even">
+<td align="center">2,015</td>
+<td align="center">Florida</td>
+<td align="center">40</td>
+<td align="center">49,466</td>
+<td align="center">49,624</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

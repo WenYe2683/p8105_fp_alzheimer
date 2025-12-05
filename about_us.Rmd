@@ -5,6 +5,7 @@ output:
     toc_float: false
     code_folding: hide
     theme: flatly
+
 ---
 
 <style>
@@ -30,6 +31,7 @@ html, body {
   -webkit-backdrop-filter: blur(10px);
 }
 
+<<<<<<< HEAD
 .navbar-default .navbar-brand,
 .navbar-default .navbar-nav > li > a {
   color: white !important;
@@ -211,12 +213,13 @@ body {
 <div class="team-grid">
 
 <div class="team-member">
-<h3>Bing Li</h3>
+<h3><a href="https://bonnielee3175.github.io/" target="_blank">Bing Li</a></h3>
 <p><strong>bl3175</strong></p>
+<img src="about_us_image/bing_li.jpg" alt="Bing Li">
 </div>
 
 <div class="team-member">
-<h3><a href="https://akacloud0429.github.io/" target="_blank">Chuhan Wang</a></h3>
+<h3><a href="https://chuhan-wch.github.io/" target="_blank">Chuhan Wang</a></h3>
 <p><strong>cw3747</strong></p>
 <img src="about_us_image/chuhan.jpg" alt="Chuhan Wang">
 </div>
@@ -224,7 +227,7 @@ body {
 <div class="team-member">
 <h3><a href="https://akacloud0429.github.io/" target="_blank">Luyun Ge</a></h3>
 <p><strong>lg3450</strong></p>
-<img src="about_us_image/childhood_pic_luyun_ge.jpg" alt="Luyun Ge">
+<img src="about_us_image/luyun_ge.jpg" alt="Luyun Ge">
 </div>
 
 <div class="team-member">

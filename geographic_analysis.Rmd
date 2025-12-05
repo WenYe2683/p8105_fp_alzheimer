@@ -1,5 +1,5 @@
 ---
-title: "Interactive Maps"
+title: "Geographic Analysis"
 output: 
   html_document:
     toc: true
