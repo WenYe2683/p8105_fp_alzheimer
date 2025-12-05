@@ -397,7 +397,119 @@ div.tocify {
 </div>
 
 
+<style>
+/* Global Styles */
+html, body {
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  line-height: 1.8;
+  color: #333;
+  margin: 10px;
+  padding: 10px;
+  background-color: white;
+}
 
+/* Floating Navigation Bar */
+.navbar {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  border: none !important;
+  position: fixed !important;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.navbar-default .navbar-brand,
+.navbar-default .navbar-nav > li > a {
+  color: white !important;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.navbar-default .navbar-brand:hover,
+.navbar-default .navbar-nav > li > a:hover {
+  color: #f0f0f0 !important;
+}
+
+.navbar-default .navbar-toggle {
+  border-color: rgba(255,255,255,0.5);
+}
+
+.navbar-default .navbar-toggle .icon-bar {
+  background-color: white;
+}
+
+.navbar-default .navbar-toggle:hover,
+.navbar-default .navbar-toggle:focus {
+  background-color: rgba(255,255,255,0.1);
+}
+
+body {
+  padding-top: 70px;
+}
+
+/* Content Sections */
+.content-section {
+  padding: 5px 10px;
+  max-width: 1200px;
+  margin: 0 auto 10px auto;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.content-section h1 {
+  font-size: 1.8em;
+  color: #d97706;
+  margin-top: 5px !important;
+  margin-bottom: 5px;
+  padding-top: 5px !important;
+  font-weight: 900;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.content-section h2 {
+  font-size: 1.5em;
+  color: #ea580c;
+  margin-top: 5px !important;
+  margin-bottom: 5px;
+  padding-top: 5px !important;
+  font-weight: 800;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.content-section h3 {
+  font-size: 1.2em;
+  color: #d97706;
+  margin-top: 5px !important;
+  margin-bottom: 5px;
+  padding-top: 5px !important;
+  font-weight: 600;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.content-section p {
+  font-size: 1em;
+  color: #555;
+  margin-bottom: 15px;
+  line-height: 1.8;
+}
+
+.content-section strong {
+  color: #d97706;
+  font-weight: 700;
+}
+
+.content-section ul, .content-section ol {
+  color: #555;
+  line-height: 1.8;
+  margin-bottom: 15px;
+}
+
+.content-section li {
+  margin-bottom: 8px;
+}
+</style>
 
 
 
