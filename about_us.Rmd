@@ -31,7 +31,6 @@ html, body {
   -webkit-backdrop-filter: blur(10px);
 }
 
-<<<<<<< HEAD
 .navbar-default .navbar-brand,
 .navbar-default .navbar-nav > li > a {
   color: white !important;
