@@ -555,7 +555,7 @@ Exploratory analysis by demographics and geographics
 </div>
 
 <div class="card">
-<h4>[Visualization](visualization.html)</h4>
+<h4>[Visualization](visualisation.html)</h4>
 Choropleth maps and plotly visualizations
 </div>
 

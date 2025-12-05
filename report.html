@@ -36,6 +36,8 @@
 <script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
 <link href="site_libs/font-awesome-6.5.2/css/all.min.css" rel="stylesheet" />
 <link href="site_libs/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet" />
 
@@ -512,7 +514,671 @@ body {
 .content-section li {
   margin-bottom: 8px;
 }
+
+/* Title styling */
+h1.title {
+  font-family: Georgia, 'Times New Roman', Times, serif !important;
+}
+
+/* Code blocks */
+pre {
+  background: #f5f5f5;
+  border-left: 4px solid #d97706;
+  padding: 15px;
+  border-radius: 5px;
+  overflow-x: auto;
+}
+
+code {
+  color: #d97706;
+  background: rgba(217, 119, 6, 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+/* Tables */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 20px 0;
+}
+
+table th {
+  background: #d97706;
+  color: white;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+}
+
+table td {
+  padding: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+table tr:hover {
+  background: rgba(217, 119, 6, 0.05);
+}
+
+/* Center all figures */
+.figure {
+  text-align: center !important;
+  margin: 20px auto !important;
+}
+
+img {
+  display: block !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
 </style>
+<div id="introduction" class="section level1 content-section">
+<h1>Introduction</h1>
+<div id="motivation" class="section level2">
+<h2>Motivation</h2>
+<p>Alzheimer’s disease (AD) is one of the leading causes of death among
+older adults in the United States and a growing public health challenge
+as the population ages. According to the Alzheimer’s Association,
+approximately <strong>7.2 million Americans aged 65 or above are
+projected to be living with Alzheimer’s in 2025</strong>, a number
+expected to rise significantly in coming decades. Understanding how
+Alzheimer’s mortality and self-reported cognitive decline vary across
+states—and how these patterns relate to social, environmental, and
+health factors—can inform prevention and policy efforts.</p>
+<p>This report explores <strong>temporal and geographic trends in
+Alzheimer’s disease-related cognitive decline prevalence</strong> from
+2015 to 2022 and examines how these are associated with contextual
+factors such as income, education level, and air quality.</p>
+</div>
+<div id="research-questions" class="section level2">
+<h2>Research Questions</h2>
+<ol style="list-style-type: decimal">
+<li>How does Alzheimer’s-related cognitive prevalence vary across U.S.
+states and over time?</li>
+<li>Are there demographic differences (age, sex) in cognitive decline
+prevalence?</li>
+<li>What is the association between state-level socioeconomic factors
+(income, education) and cognitive burden?</li>
+<li>Is air pollution (PM2.5) associated with cognitive decline at the
+ecological level?</li>
+</ol>
+</div>
+</div>
+<div id="data-and-methods" class="section level1 content-section">
+<h1>Data and Methods</h1>
+<div id="data-sources" class="section level2">
+<h2>Data Sources</h2>
+<pre class="r"><code># Load Alzheimer&#39;s data
+raw_az_data &lt;- read.csv(&quot;data/2015-2022 Alzheimer Data.csv&quot;) |&gt;
+  janitor::clean_names()
+
+raw_az_data &lt;- raw_az_data[-nrow(raw_az_data), ]
+
+az_clean &lt;- raw_az_data |&gt;
+  filter(
+    !is.na(data_value),
+    !is.na(year_start),
+    !is.na(location_abbr)
+  )
+
+# Filter for cognitive decline/impairment
+az_cog &lt;- az_clean |&gt;
+  filter(
+    str_detect(topic, regex(&quot;cognitive decline|cognitive impairment&quot;,
+                            ignore_case = TRUE))
+  )
+
+# Create base summary with age and sex groups
+az_cog_summary_base &lt;- az_cog |&gt;
+  mutate(
+    age_group = case_when(
+      stratification_category1 == &quot;Age Group&quot; ~ stratification1,
+      TRUE ~ &quot;Overall&quot;
+    ),
+    sex_group = case_when(
+      stratification_category2 == &quot;Sex&quot; ~ stratification2,
+      TRUE ~ &quot;Overall&quot;
+    )
+  )
+
+# Filter for 65+ overall
+az_cog_65_overall &lt;- az_cog_summary_base |&gt;
+  filter(
+    age_group == &quot;65 years or older&quot;,
+    sex_group == &quot;Overall&quot;
+  )
+
+# State-year level data
+az_state_year &lt;- az_cog_65_overall |&gt;
+  group_by(
+    year = year_start,
+    state_abbr = location_abbr,
+    state_name = location_desc
+  ) |&gt;
+  summarise(
+    mean_prev = mean(data_value, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  ) |&gt;
+  filter(!state_abbr %in% c(&quot;US&quot;, &quot;GU&quot;, &quot;PR&quot;, &quot;VI&quot;, &quot;DC&quot;, &quot;NRE&quot;, &quot;SOU&quot;, &quot;MDW&quot;, &quot;WST&quot;))
+
+# Load socioeconomic data
+inc15 &lt;- read_csv(&quot;data/median income-2015.csv&quot;, skip = 1) |&gt;
+  janitor::clean_names() |&gt;
+  transmute(
+    year = 2015,
+    state_name = geographic_area_name,
+    median_income = as.numeric(median_income_dollars_estimate_households)
+  )
+
+inc16 &lt;- read_csv(&quot;data/median income-2016.csv&quot;, skip = 1) |&gt;
+  janitor::clean_names() |&gt;
+  transmute(
+    year = 2016,
+    state_name = geographic_area_name,
+    median_income = as.numeric(median_income_dollars_estimate_households)
+  )
+
+income_state &lt;- bind_rows(inc15, inc16) |&gt;
+  mutate(state = str_squish(str_extract(state_name, &quot;[^,]+$&quot;))) |&gt;
+  group_by(year, state) |&gt;
+  summarise(median_state = median(median_income, na.rm = TRUE), .groups = &quot;drop&quot;)
+
+# Education data
+edu15_raw &lt;- read_csv(&quot;data/education2015.csv&quot;, skip = 1) |&gt; janitor::clean_names()
+edu16_raw &lt;- read_csv(&quot;data/education2016.csv&quot;, skip = 1) |&gt; janitor::clean_names()
+
+edu_state &lt;- bind_rows(
+  edu15_raw |&gt; filter(!str_detect(geographic_area_name, &quot;,&quot;)) |&gt;
+    transmute(year = 2015, state = geographic_area_name,
+              educ_bach = as.numeric(percent_estimate_percent_bachelors_degree_or_higher)),
+  edu16_raw |&gt; filter(!str_detect(geographic_area_name, &quot;,&quot;)) |&gt;
+    transmute(year = 2016, state = geographic_area_name,
+              educ_bach = as.numeric(percent_estimate_percent_bachelors_degree_or_higher))
+)
+
+# Air quality data
+air15 &lt;- read_csv(&quot;data/clean_air_state_2015.csv&quot;)
+air16 &lt;- read_csv(&quot;data/clean_air_state_2016.csv&quot;)
+
+air_state &lt;- bind_rows(air15, air16) |&gt;
+  group_by(year, state_desc) |&gt;
+  summarise(pm25_state = mean(pm25_wtd_mean, na.rm = TRUE), .groups = &quot;drop&quot;)
+
+# Merge datasets for 2015-2016 analysis
+az_cog_65_state &lt;- az_cog_65_overall |&gt;
+  filter(year_start %in% c(2015, 2016)) |&gt;
+  group_by(year = year_start, state_name = location_desc) |&gt;
+  summarise(mean_prev = mean(data_value, na.rm = TRUE), .groups = &quot;drop&quot;)
+
+az_income &lt;- az_cog_65_state |&gt;
+  left_join(income_state, by = c(&quot;year&quot;, &quot;state_name&quot; = &quot;state&quot;))
+
+az_edu &lt;- az_cog_65_state |&gt;
+  left_join(edu_state, by = c(&quot;year&quot;, &quot;state_name&quot; = &quot;state&quot;))
+
+az_air &lt;- az_cog_65_state |&gt;
+  left_join(air_state, by = c(&quot;year&quot;, &quot;state_name&quot; = &quot;state_desc&quot;))</code></pre>
+<p>We utilized data from multiple sources:</p>
+<table>
+<colgroup>
+<col width="30%" />
+<col width="42%" />
+<col width="26%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Source</th>
+<th>Variables</th>
+<th>Years</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>CDC Alzheimer’s Disease and Healthy Aging Data
+Portal</strong></td>
+<td>Cognitive decline prevalence by state, age, and sex</td>
+<td>2015–2022</td>
+</tr>
+<tr class="even">
+<td><strong>U.S. Census American Community Survey (ACS)</strong></td>
+<td>Median household income, % with bachelor’s degree</td>
+<td>2015–2016</td>
+</tr>
+<tr class="odd">
+<td><strong>EPA Air Quality System (AQS)</strong></td>
+<td>Annual PM2.5 weighted mean concentration</td>
+<td>2015–2016</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="study-population" class="section level2">
+<h2>Study Population</h2>
+<p>The primary outcome was the <strong>percentage of adults reporting
+cognitive decline or impairment</strong>, stratified by:</p>
+<ul>
+<li><strong>Age groups</strong>: 50–64 years and 65+ years</li>
+<li><strong>Sex</strong>: Male and Female</li>
+<li><strong>Geography</strong>: 50 U.S. states (excluding territories
+and DC)</li>
+</ul>
+</div>
+<div id="statistical-methods" class="section level2">
+<h2>Statistical Methods</h2>
+<ol style="list-style-type: decimal">
+<li><p><strong>Descriptive Analysis</strong>: Calculated means, standard
+deviations, and ranges for prevalence by year, state, age, and
+sex.</p></li>
+<li><p><strong>Geographic Visualization</strong>: Created choropleth
+maps to visualize state-level prevalence patterns.</p></li>
+<li><p><strong>Regression Analysis</strong>: Used ordinary least squares
+(OLS) linear regression to examine associations between state-level
+cognitive prevalence and socioeconomic/environmental factors:</p></li>
+</ol>
+<p><span class="math display">\[\text{Prevalence}_i = \beta_0 + \beta_1
+\times \text{Factor}_i + \beta_2 \times \text{Year}_i +
+\varepsilon_i\]</span></p>
+<p>where Factor represents median income, education (% with bachelor’s
+degree), or PM2.5 concentration.</p>
+</div>
+</div>
+<div id="results" class="section level1 content-section">
+<h1>Results</h1>
+<div id="temporal-trends" class="section level2">
+<h2>Temporal Trends</h2>
+<pre class="r"><code>az_nat_65_overall &lt;- az_cog_65_overall |&gt;
+  group_by(year = year_start) |&gt;
+  summarise(
+    mean_prev = mean(data_value, na.rm = TRUE),
+    sd_prev = sd(data_value, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  )
+
+ggplot(az_nat_65_overall, aes(x = year, y = mean_prev)) +
+  geom_ribbon(aes(ymin = mean_prev - sd_prev, ymax = mean_prev + sd_prev),
+              fill = &quot;#d97706&quot;, alpha = 0.2) +
+  geom_line(color = &quot;#d97706&quot;, linewidth = 1.5) +
+  geom_point(color = &quot;#d97706&quot;, size = 4) +
+  geom_text(aes(label = paste0(round(mean_prev, 1), &quot;%&quot;)),
+            vjust = -1.5, family = &quot;serif&quot;, fontface = &quot;bold&quot;, color = &quot;#d97706&quot;) +
+  scale_x_continuous(breaks = seq(2015, 2022, 1)) +
+  scale_y_continuous(limits = c(20, 35)) +
+  labs(
+    title = &quot;National Cognitive Prevalence Among Adults 65+ (2015–2022)&quot;,
+    x = &quot;Year&quot;,
+    y = &quot;Mean Prevalence (%)&quot;,
+    caption = &quot;Shaded area represents ±1 standard deviation across states&quot;
+  )</code></pre>
+<p><img src="report_files/figure-html/prevalence-year-1.png" width="90%" style="display: block; margin: auto;" /></p>
+<p>The national average prevalence of Alzheimer’s-related cognitive
+indicators among adults aged 65+ remained relatively <strong>stable
+between 25–27%</strong> from 2015 to 2022. Year-to-year fluctuations
+were minimal, and no clear upward or downward trend was observed during
+this period.</p>
+</div>
+<div id="demographic-differences" class="section level2">
+<h2>Demographic Differences</h2>
+<div id="by-age-group" class="section level3">
+<h3>By Age Group</h3>
+<pre class="r"><code>az_age_desc &lt;- az_cog_summary_base |&gt;
+  filter(age_group != &quot;Overall&quot;) |&gt;
+  group_by(age_group) |&gt;
+  summarise(
+    mean_value = mean(data_value, na.rm = TRUE),
+    sd_value = sd(data_value, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  ) |&gt;
+  mutate(age_group = factor(age_group, levels = c(&quot;50-64 years&quot;, &quot;65 years or older&quot;)))
+
+ggplot(az_age_desc, aes(x = age_group, y = mean_value, fill = age_group)) +
+  geom_col(width = 0.6, alpha = 0.85, color = &quot;black&quot;, linewidth = 0.5) +
+  geom_errorbar(aes(ymin = mean_value - sd_value, ymax = mean_value + sd_value),
+                width = 0.2, color = &quot;#333&quot;, linewidth = 0.8) +
+  geom_text(aes(label = paste0(round(mean_value, 1), &quot;%&quot;)),
+            vjust = -0.5, family = &quot;serif&quot;, fontface = &quot;bold&quot;, size = 5) +
+  scale_fill_manual(values = c(&quot;50-64 years&quot; = &quot;#d97706&quot;, &quot;65 years or older&quot; = &quot;#ea580c&quot;)) +
+  scale_y_continuous(limits = c(0, 45), expand = c(0, 0)) +
+  labs(
+    title = &quot;Cognitive Prevalence by Age Group&quot;,
+    x = &quot;Age Group&quot;,
+    y = &quot;Mean Prevalence (%)&quot;
+  ) +
+  theme(legend.position = &quot;none&quot;)</code></pre>
+<p><img src="report_files/figure-html/prevalence-age-1.png" width="90%" style="display: block; margin: auto;" /></p>
+<p>Adults aged <strong>50–64 years showed higher mean prevalence
+(~32%)</strong> compared to those 65+ (~26%). This may reflect
+differences in survey response patterns or the composition of cognitive
+indicators across age groups.</p>
+</div>
+<div id="by-sex" class="section level3">
+<h3>By Sex</h3>
+<pre class="r"><code>az_sex_desc &lt;- az_cog_summary_base |&gt;
+  filter(sex_group != &quot;Overall&quot;) |&gt;
+  group_by(sex_group) |&gt;
+  summarise(
+    mean_value = mean(data_value, na.rm = TRUE),
+    sd_value = sd(data_value, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  ) |&gt;
+  mutate(sex_group = factor(sex_group, levels = c(&quot;Female&quot;, &quot;Male&quot;)))
+
+ggplot(az_sex_desc, aes(x = sex_group, y = mean_value, fill = sex_group)) +
+  geom_col(width = 0.6, alpha = 0.85, color = &quot;black&quot;, linewidth = 0.5) +
+  geom_errorbar(aes(ymin = mean_value - sd_value, ymax = mean_value + sd_value),
+                width = 0.2, color = &quot;#333&quot;, linewidth = 0.8) +
+  geom_text(aes(label = paste0(round(mean_value, 1), &quot;%&quot;)),
+            vjust = -0.5, family = &quot;serif&quot;, fontface = &quot;bold&quot;, size = 5) +
+  scale_fill_manual(values = c(&quot;Female&quot; = &quot;#d97706&quot;, &quot;Male&quot; = &quot;#2563eb&quot;)) +
+  scale_y_continuous(limits = c(0, 45), expand = c(0, 0)) +
+  labs(
+    title = &quot;Cognitive Prevalence by Sex&quot;,
+    x = &quot;Sex&quot;,
+    y = &quot;Mean Prevalence (%)&quot;
+  ) +
+  theme(legend.position = &quot;none&quot;)</code></pre>
+<p><img src="report_files/figure-html/prevalence-sex-1.png" width="90%" style="display: block; margin: auto;" /></p>
+<p>Women reported <strong>higher cognitive burden than men</strong>
+(approximately 31% vs 27%), consistent with epidemiological literature
+showing higher Alzheimer’s prevalence among females.</p>
+</div>
+</div>
+<div id="geographic-patterns" class="section level2">
+<h2>Geographic Patterns</h2>
+<pre class="r"><code>us_map &lt;- map_data(&quot;state&quot;) |&gt; as_tibble()
+
+az_2015 &lt;- az_state_year |&gt; 
+  filter(year == 2015) |&gt;
+  mutate(region = str_to_lower(state_name)) |&gt;
+  inner_join(us_map, by = &quot;region&quot;)
+
+az_2016 &lt;- az_state_year |&gt; 
+  filter(year == 2016) |&gt;
+  mutate(region = str_to_lower(state_name)) |&gt;
+  inner_join(us_map, by = &quot;region&quot;)
+
+p1 &lt;- ggplot(az_2015, aes(long, lat, group = group, fill = mean_prev)) +
+  geom_polygon(color = &quot;black&quot;, linewidth = 0.5) +
+  geom_path(data = us_map, aes(long, lat, group = group), 
+            color = &quot;black&quot;, linewidth = 0.8, inherit.aes = FALSE) +
+  coord_fixed(1.3) +
+  scale_fill_viridis_c(option = &quot;C&quot;, limits = c(18, 35)) +
+  labs(title = &quot;2015&quot;, fill = &quot;Prevalence (%)&quot;) +
+  theme_void(base_family = &quot;serif&quot;) +
+  theme(
+    plot.title = element_text(size = 16, face = &quot;bold&quot;, color = &quot;#d97706&quot;, hjust = 0.5),
+    legend.position = &quot;right&quot;
+  )
+
+p2 &lt;- ggplot(az_2016, aes(long, lat, group = group, fill = mean_prev)) +
+  geom_polygon(color = &quot;black&quot;, linewidth = 0.5) +
+  geom_path(data = us_map, aes(long, lat, group = group), 
+            color = &quot;black&quot;, linewidth = 0.8, inherit.aes = FALSE) +
+  coord_fixed(1.3) +
+  scale_fill_viridis_c(option = &quot;C&quot;, limits = c(18, 35)) +
+  labs(title = &quot;2016&quot;, fill = &quot;Prevalence (%)&quot;) +
+  theme_void(base_family = &quot;serif&quot;) +
+  theme(
+    plot.title = element_text(size = 16, face = &quot;bold&quot;, color = &quot;#d97706&quot;, hjust = 0.5),
+    legend.position = &quot;right&quot;
+  )
+
+p1 + p2 + plot_annotation(
+  title = &quot;State-Level Cognitive Prevalence Among Adults 65+&quot;,
+  theme = theme(
+    plot.title = element_text(family = &quot;serif&quot;, size = 18, face = &quot;bold&quot;, 
+                              color = &quot;#d97706&quot;, hjust = 0.5)
+  )
+)</code></pre>
+<p><img src="report_files/figure-html/maps-1.png" width="90%" style="display: block; margin: auto;" /></p>
+<p>Geographic patterns revealed <strong>regional disparities</strong> in
+cognitive prevalence:</p>
+<ul>
+<li><strong>Higher prevalence</strong>: Southern and Southeastern states
+(e.g., Mississippi, Louisiana, Alabama, Georgia)</li>
+<li><strong>Lower prevalence</strong>: Western states (e.g., Utah,
+Colorado) and Northeastern states (e.g., Massachusetts,
+Connecticut)</li>
+</ul>
+<p>These patterns remained consistent between 2015 and 2016.</p>
+</div>
+<div id="socioeconomic-factor-analysis" class="section level2">
+<h2>Socioeconomic Factor Analysis</h2>
+<div id="income" class="section level3">
+<h3>Income</h3>
+<pre class="r"><code>ggplot(az_income |&gt; filter(!is.na(median_state)),
+       aes(x = median_state, y = mean_prev, color = factor(year))) +
+  geom_point(alpha = 0.7, size = 3) +
+  geom_smooth(method = &quot;lm&quot;, se = TRUE, alpha = 0.2) +
+  scale_color_manual(values = c(&quot;#d97706&quot;, &quot;#2563eb&quot;)) +
+  scale_x_continuous(labels = scales::dollar_format()) +
+  labs(
+    title = &quot;State-Level Cognitive Burden vs Median Income (2015–2016)&quot;,
+    x = &quot;State Median Household Income&quot;,
+    y = &quot;Cognitive Prevalence (%)&quot;,
+    color = &quot;Year&quot;
+  )</code></pre>
+<p><img src="report_files/figure-html/income-plot-1.png" width="90%" style="display: block; margin: auto;" /></p>
+<p>Higher state-level median income was associated with <strong>lower
+cognitive prevalence</strong>. The regression coefficient was
+<strong>-1.677 percentage points per $10,000</strong> increase in
+income. However, the model R² was only <strong>0.106</strong>,
+indicating income explains only a small fraction of between-state
+variation.</p>
+</div>
+<div id="education" class="section level3">
+<h3>Education</h3>
+<pre class="r"><code>ggplot(az_edu |&gt; filter(!is.na(educ_bach)),
+       aes(x = educ_bach, y = mean_prev, color = factor(year))) +
+  geom_point(alpha = 0.7, size = 3) +
+  geom_smooth(method = &quot;lm&quot;, se = TRUE, alpha = 0.2) +
+  scale_color_manual(values = c(&quot;#d97706&quot;, &quot;#2563eb&quot;)) +
+  labs(
+    title = &quot;State-Level Cognitive Burden vs Education (2015–2016)&quot;,
+    x = &quot;% Adults with Bachelor&#39;s Degree or Higher&quot;,
+    y = &quot;Cognitive Prevalence (%)&quot;,
+    color = &quot;Year&quot;
+  )</code></pre>
+<p><img src="report_files/figure-html/education-plot-1.png" width="90%" style="display: block; margin: auto;" /></p>
+<p>States with higher educational attainment showed <strong>modestly
+lower cognitive prevalence</strong>. A 1-percentage-point increase in
+the share of adults with a bachelor’s degree was associated with
+approximately <strong>-0.131 percentage points lower</strong>
+prevalence. The model R² was <strong>0.068</strong>.</p>
+</div>
+<div id="air-quality-pm2.5" class="section level3">
+<h3>Air Quality (PM2.5)</h3>
+<pre class="r"><code>ggplot(az_air |&gt; filter(!is.na(pm25_state)),
+       aes(x = pm25_state, y = mean_prev, color = factor(year))) +
+  geom_point(alpha = 0.7, size = 3) +
+  geom_smooth(method = &quot;lm&quot;, se = TRUE, alpha = 0.2) +
+  scale_color_manual(values = c(&quot;#d97706&quot;, &quot;#2563eb&quot;)) +
+  labs(
+    title = &quot;State-Level Cognitive Burden vs PM2.5 (2015–2016)&quot;,
+    x = &quot;PM2.5 Weighted Mean (µg/m³)&quot;,
+    y = &quot;Cognitive Prevalence (%)&quot;,
+    color = &quot;Year&quot;
+  )</code></pre>
+<p><img src="report_files/figure-html/air-plot-1.png" width="90%" style="display: block; margin: auto;" /></p>
+<p>PM2.5 concentration showed <strong>no statistically significant
+association</strong> with cognitive prevalence at the state level (β =
+-1.254, p = 0.133). The model R² was only <strong>0.076</strong>.</p>
+</div>
+</div>
+<div id="summary-of-regression-results" class="section level2">
+<h2>Summary of Regression Results</h2>
+<table class="table table-striped table-hover" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<caption>
+Summary of State-Level Regression Models (2015–2016)
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+Factor
+</th>
+<th style="text-align:right;">
+β Coefficient
+</th>
+<th style="text-align:right;">
+R²
+</th>
+<th style="text-align:left;">
+Interpretation
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+median_state
+</td>
+<td style="text-align:left;">
+Median Income (per $10,000)
+</td>
+<td style="text-align:right;">
+-1.677
+</td>
+<td style="text-align:right;">
+0.106
+</td>
+<td style="text-align:left;">
+Higher income → lower prevalence
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+educ_bach
+</td>
+<td style="text-align:left;">
+Education (% BA+)
+</td>
+<td style="text-align:right;">
+-0.131
+</td>
+<td style="text-align:right;">
+0.068
+</td>
+<td style="text-align:left;">
+Higher education → lower prevalence
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+pm25_state
+</td>
+<td style="text-align:left;">
+PM2.5 (µg/m³)
+</td>
+<td style="text-align:right;">
+-1.254
+</td>
+<td style="text-align:right;">
+0.076
+</td>
+<td style="text-align:left;">
+No significant association
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="discussion" class="section level1 content-section">
+<h1>Discussion</h1>
+<div id="key-findings" class="section level2">
+<h2>Key Findings</h2>
+<ol style="list-style-type: decimal">
+<li><p><strong>Temporal Stability</strong>: National cognitive
+prevalence among adults 65+ remained stable at approximately 25–27% from
+2015–2022, with no clear trend.</p></li>
+<li><p><strong>Demographic Disparities</strong>: Women consistently
+reported higher cognitive burden than men. The 50–64 age group showed
+higher prevalence than those 65+.</p></li>
+<li><p><strong>Geographic Variation</strong>: Substantial state-level
+variation exists, with Southern/Southeastern states showing higher
+prevalence and Western/Northeastern states showing lower
+prevalence.</p></li>
+<li><p><strong>Weak Socioeconomic Associations</strong>: While higher
+income and education were associated with lower cognitive prevalence,
+these factors explained only a small fraction (&lt;5%) of between-state
+variation.</p></li>
+<li><p><strong>No Air Quality Association</strong>: PM2.5 was not
+significantly associated with cognitive prevalence at the ecological
+level.</p></li>
+</ol>
+</div>
+<div id="limitations" class="section level2">
+<h2>Limitations</h2>
+<ol style="list-style-type: decimal">
+<li><p><strong>Ecological Fallacy</strong>: This analysis uses
+state-level aggregates, so associations observed at the state level may
+not hold at the individual level.</p></li>
+<li><p><strong>Self-Reported Data</strong>: Cognitive decline prevalence
+is based on self-report (BRFSS), which may be subject to reporting
+bias.</p></li>
+<li><p><strong>Limited Covariates</strong>: We examined only a few
+socioeconomic and environmental factors; other determinants (healthcare
+access, genetics, comorbidities) were not included.</p></li>
+<li><p><strong>Short Time Period for Factor Analysis</strong>:
+Socioeconomic and air quality data were only available for 2015–2016,
+limiting temporal analysis.</p></li>
+<li><p><strong>Measurement Error</strong>: Both predictor and outcome
+variables are measured with error, potentially attenuating
+associations.</p></li>
+</ol>
+</div>
+<div id="public-health-implications" class="section level2">
+<h2>Public Health Implications</h2>
+<ul>
+<li>Geographic disparities suggest targeted interventions may be needed
+in high-prevalence regions</li>
+<li>The weak associations with socioeconomic factors highlight that
+multiple determinants beyond income and education influence cognitive
+health</li>
+<li>Continued surveillance is essential to detect emerging trends</li>
+</ul>
+</div>
+</div>
+<div id="conclusions" class="section level1 content-section">
+<h1>Conclusions</h1>
+<p>This analysis reveals significant <strong>geographic
+disparities</strong> in Alzheimer’s-related cognitive prevalence across
+U.S. states, with Southern regions consistently showing higher burden.
+While state-level income and education showed expected negative
+associations with cognitive prevalence, these factors explained only a
+small portion of the variation, suggesting that other unmeasured factors
+play important roles.</p>
+<p>Future research should:</p>
+<ul>
+<li>Incorporate individual-level data to avoid ecological bias</li>
+<li>Examine additional risk factors (cardiovascular disease, diabetes,
+social isolation)</li>
+<li>Explore longitudinal changes with more years of socioeconomic
+data</li>
+<li>Investigate why certain geographic regions show persistently higher
+prevalence</li>
+</ul>
+</div>
+<div id="references" class="section level1 content-section">
+<h1>References</h1>
+<ol style="list-style-type: decimal">
+<li><p>Alzheimer’s Association. (2024). 2024 Alzheimer’s Disease Facts
+and Figures. <em>Alzheimer’s &amp; Dementia</em>, 20(5).</p></li>
+<li><p>CDC. Alzheimer’s Disease and Healthy Aging Data Portal. <a
+href="https://data.cdc.gov/Healthy-Aging/Alzheimer-s-Disease-and-Healthy-Aging-Data/hfr9-rurv"
+class="uri">https://data.cdc.gov/Healthy-Aging/Alzheimer-s-Disease-and-Healthy-Aging-Data/hfr9-rurv</a></p></li>
+<li><p>U.S. Census Bureau. American Community Survey. <a
+href="https://data.census.gov"
+class="uri">https://data.census.gov</a></p></li>
+<li><p>U.S. Environmental Protection Agency. Air Quality System Data. <a
+href="https://www.epa.gov/outdoor-air-quality-data"
+class="uri">https://www.epa.gov/outdoor-air-quality-data</a></p></li>
+<li><p>Livingston, G., et al. (2020). Dementia prevention, intervention,
+and care: 2020 report of the Lancet Commission. <em>The Lancet</em>,
+396(10248), 413-446.</p></li>
+</ol>
+</div>
 
 
 
