@@ -1,22 +1,241 @@
 ---
-title: "About Us"
 output: 
   html_document:
-    toc: true
-    toc_float: true
+    toc: false
+    toc_float: false
     code_folding: hide
+    theme: flatly
 ---
 
-# Meet our amazing team 
-(Ver.childhood)!
+<style>
+/* Global Styles */
+html, body {
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  line-height: 1.8;
+  color: #333;
+  margin: 10px;
+  padding: 10px;
+  background-color: white;
+}
 
----
+/* Floating Navigation Bar */
+.navbar {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  border: none !important;
+  position: fixed !important;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
 
-## Bing Li
+.navbar-default .navbar-brand,
+.navbar-default .navbar-nav > li > a {
+  color: white !important;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
 
-## Chuhan Wang
+.navbar-default .navbar-brand:hover,
+.navbar-default .navbar-nav > li > a:hover {
+  color: #f0f0f0 !important;
+}
 
-## [Luyun Ge](https://akacloud0429.github.io/)
-![](about_us_image/childhood_pic_luyun_ge.jpg)
+.navbar-default .navbar-toggle {
+  border-color: rgba(255,255,255,0.5);
+}
 
-## Ye Wen
+.navbar-default .navbar-toggle .icon-bar {
+  background-color: white;
+}
+
+.navbar-default .navbar-toggle:hover,
+.navbar-default .navbar-toggle:focus {
+  background-color: rgba(255,255,255,0.1);
+}
+
+body {
+  padding-top: 70px;
+}
+
+/* Content Sections */
+.content-section {
+  padding: 5px 10px;
+  max-width: 1200px;
+  margin: 0 auto 10px auto;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.content-section h1 {
+  font-size: 1.8em;
+  color: #d97706;
+  margin-top: 5px !important;
+  margin-bottom: 5px;
+  padding-top: 5px !important;
+  font-weight: 900;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.content-section h2 {
+  font-size: 1.5em;
+  color: #ea580c;
+  margin-top: 5px !important;
+  margin-bottom: 5px;
+  padding-top: 5px !important;
+  font-weight: 800;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.content-section h3 {
+  font-size: 1.2em;
+  color: #d97706;
+  margin-top: 5px !important;
+  margin-bottom: 5px;
+  padding-top: 5px !important;
+  font-weight: 600;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.content-section p {
+  font-size: 1em;
+  color: #555;
+  margin-bottom: 15px;
+  line-height: 1.8;
+}
+
+.content-section strong {
+  color: #d97706;
+  font-weight: 700;
+}
+
+.content-section ul, .content-section ol {
+  color: #555;
+  line-height: 1.8;
+  margin-bottom: 15px;
+}
+
+.content-section li {
+  margin-bottom: 8px;
+}
+
+/* Team Section */
+.team-section {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+  margin-top: 40px;
+  margin-bottom: 40px;
+}
+
+.team-member {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  border: 2px solid rgba(217, 119, 6, 0.2);
+}
+
+.team-member:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(217, 119, 6, 0.3);
+  border-color: rgba(217, 119, 6, 0.5);
+}
+
+.team-member img {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-bottom: 20px;
+  border: 4px solid #d97706;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.team-member h3 {
+  color: #d97706;
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 1.5em;
+  font-weight: 800;
+}
+
+.team-member p {
+  color: #666;
+  margin: 5px 0;
+  font-size: 1em;
+}
+
+.team-member a {
+  color: #d97706;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.team-member a:hover {
+  color: #ea580c;
+  text-decoration: underline;
+}
+
+/* Subtitle */
+.subtitle {
+  color: #666;
+  font-size: 1.2em;
+  font-style: italic;
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .team-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+<div class="content-section">
+
+# Meet Our Amazing Team
+
+<div class="team-section">
+
+<div class="team-grid">
+
+<div class="team-member">
+<h3>Bing Li</h3>
+<p><strong>bl3175</strong></p>
+</div>
+
+<div class="team-member">
+<h3>Chuhan Wang</h3>
+<p><strong>cw3747</strong></p>
+</div>
+
+<div class="team-member">
+<h3><a href="https://akacloud0429.github.io/" target="_blank">Luyun Ge</a></h3>
+<p><strong>lg3450</strong></p>
+<img src="about_us_image/childhood_pic_luyun_ge.jpg" alt="Luyun Ge">
+</div>
+
+<div class="team-member">
+<h3><a href="https://www.instagram.com/wenye404?igsh=MWxkcDBjZnZ1czQ0NA%3D%3D&utm_source=qr" target="_blank">Ye Wen</a></h3>
+<p><strong>yw4662</strong></p>
+<img src="about_us_image/ye.jpg" alt="Ye Wen">
+</div>
+
+</div>
+
+<p style="margin-top: 40px; color: #666; font-size: 1.1em;"><strong>Columbia University Irving Medical Center</strong></p>
+
+</div>
+
+</div>

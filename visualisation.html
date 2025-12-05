@@ -11,7 +11,7 @@
 
 
 
-<title>about_us.knit</title>
+<title>visualisation.knit</title>
 
 <script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -322,17 +322,17 @@ $(document).ready(function () {
 
 
 <style>
-/* Global Styles */
+/* Global Styles - White Background */
 html, body {
   font-family: Georgia, 'Times New Roman', Times, serif;
   line-height: 1.8;
   color: #333;
-  margin: 10px;
-  padding: 10px;
+  margin: 0;
+  padding: 0;
   background-color: white;
 }
 
-/* Floating Navigation Bar */
+/* Transparent Floating Navigation Bar */
 .navbar {
   background-color: rgba(0, 0, 0, 0.3) !important;
   border: none !important;
@@ -368,81 +368,114 @@ html, body {
   background-color: rgba(255,255,255,0.1);
 }
 
+/* Add padding to body to account for fixed navbar */
 body {
-  padding-top: 70px;
+  padding-top: 50px;
 }
 
-/* Content Sections */
-.content-section {
-  padding: 5px 10px;
+/* Content wrapper */
+.content-wrapper {
   max-width: 1200px;
-  margin: 0 auto 10px auto;
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  margin: 0 auto;
+  padding: 40px 30px;
 }
 
-.content-section h1 {
-  font-size: 1.8em;
+/* Remove any box styling from main content */
+.main-content {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* Override any R Markdown default box styling */
+.main-container,
+.container-fluid,
+.container,
+body > .container,
+body > .container-fluid {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* Remove background from any content sections */
+section,
+div[class*="section"],
+div[class*="content"],
+.fluid-row,
+.row {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Remove any card/panel styling */
+.panel,
+.card,
+.well,
+.alert {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Headings */
+h1 {
   color: #d97706;
-  margin-top: 5px !important;
-  margin-bottom: 5px;
-  padding-top: 5px !important;
+  font-family: Georgia, 'Times New Roman', Times, serif;
   font-weight: 900;
-  font-family: Georgia, 'Times New Roman', Times, serif;
+  margin-top: 0;
+  margin-bottom: 30px;
+  font-size: 3em;
+  text-align: center;
 }
 
-.content-section h2 {
-  font-size: 1.5em;
-  color: #ea580c;
-  margin-top: 5px !important;
-  margin-bottom: 5px;
-  padding-top: 5px !important;
-  font-weight: 800;
-  font-family: Georgia, 'Times New Roman', Times, serif;
-}
-
-.content-section h3 {
-  font-size: 1.2em;
+h2 {
   color: #d97706;
-  margin-top: 5px !important;
-  margin-bottom: 5px;
-  padding-top: 5px !important;
-  font-weight: 600;
   font-family: Georgia, 'Times New Roman', Times, serif;
+  font-weight: 900;
+  margin-top: 40px;
+  margin-bottom: 20px;
+  font-size: 2em;
 }
 
-.content-section p {
-  font-size: 1em;
-  color: #555;
+h3 {
+  color: #ea580c;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-weight: 800;
+  margin-top: 30px;
   margin-bottom: 15px;
-  line-height: 1.8;
+  font-size: 1.5em;
 }
 
-.content-section strong {
+/* Text styling */
+p, li {
+  color: #555;
+  line-height: 1.8;
+  margin-bottom: 15px;
+  font-size: 1.1em;
+}
+
+strong {
   color: #d97706;
   font-weight: 700;
 }
 
-.content-section ul, .content-section ol {
-  color: #555;
-  line-height: 1.8;
-  margin-bottom: 15px;
-}
-
-.content-section li {
-  margin-bottom: 8px;
-}
-
 /* Team Section */
 .team-section {
-  margin: 20px 0;
+  margin: 40px 0;
   text-align: center;
 }
 
 .team-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 30px;
   margin-top: 40px;
   margin-bottom: 40px;
@@ -513,10 +546,21 @@ body {
   .team-grid {
     grid-template-columns: 1fr;
   }
+  
+  h1 {
+    font-size: 2em;
+  }
+  
+  .content-wrapper {
+    padding: 20px 15px;
+  }
 }
 </style>
-<div id="meet-our-amazing-team" class="section level1 content-section">
+<div id="meet-our-amazing-team" class="section level1 content-wrapper">
 <h1>Meet Our Amazing Team</h1>
+<p class="subtitle">
+(Ver.childhood)!
+</p>
 <div class="team-section">
 <div class="team-grid">
 <div class="team-member">
@@ -546,13 +590,11 @@ Chuhan Wang
 </div>
 <div class="team-member">
 <h3>
-<a href="https://www.instagram.com/wenye404?igsh=MWxkcDBjZnZ1czQ0NA%3D%3D&utm_source=qr" target="_blank">Ye
-Wen</a>
+Ye Wen
 </h3>
 <p>
 <strong>yw4662</strong>
 </p>
-<p><img src="about_us_image/ye.jpg" alt="Ye Wen"></p>
 </div>
 </div>
 <p style="margin-top: 40px; color: #666; font-size: 1.1em;">

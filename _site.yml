@@ -14,7 +14,7 @@ navbar:
     - text: "Analysis"
       href: analysis.html
     - text: "Visualization"
-      href: visualization.html
+      href: visualisation.html
     - text: "About Us"
       href: about_us.html
     - icon: fa-github fa-lg
