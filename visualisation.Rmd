@@ -119,4 +119,903 @@ body {
 .content-section li {
   margin-bottom: 8px;
 }
+
+/* Shiny app iframe styling */
+.shiny-frame {
+  border: 2px solid #d97706;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(217, 119, 6, 0.2);
+  margin: 20px auto;
+  display: block;
+}
+
+/* Interactive visualization containers */
+.viz-container {
+  background: linear-gradient(135deg, #fff9f0 0%, #ffffff 100%);
+  border-radius: 10px;
+  padding: 15px;
+  margin: 15px 0;
+  border-left: 4px solid #d97706;
+}
+
+/* Filter controls styling */
+.filter-controls {
+  background: #f8f4f0;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.filter-controls label {
+  color: #d97706;
+  font-weight: 600;
+}
+
+/* Code blocks */
+pre {
+  background: #f5f5f5;
+  border-left: 4px solid #d97706;
+  padding: 15px;
+  border-radius: 5px;
+  overflow-x: auto;
+}
+
+code {
+  color: #d97706;
+  background: rgba(217, 119, 6, 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+/* Tables */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 20px 0;
+}
+
+table th {
+  background: #d97706;
+  color: white;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+}
+
+table td {
+  padding: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+table tr:hover {
+  background: rgba(217, 119, 6, 0.05);
+}
+
+/* Center all figures */
+.figure {
+  text-align: center !important;
+  margin: 20px auto !important;
+}
+
+img {
+  display: block !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
 </style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 10,
+  fig.asp = 0.6,
+  out.width = "100%"
+)
+
+library(tidyverse)
+library(plotly)
+library(crosstalk)
+library(DT)
+library(viridis)
+library(htmltools)
+library(knitr)
+library(kableExtra)
+library(janitor)
+library(stringr)
+
+# Custom plotly theme colors
+orange_palette <- c("#d97706", "#ea580c", "#f59e0b", "#fbbf24", "#fcd34d")
+```
+
+<div class="content-section">
+
+# Interactive Visualizations
+
+This page features **interactive visualizations** that allow you to explore Alzheimer's disease and cognitive decline data across the United States. Hover over data points for details, zoom in on regions of interest, and filter data dynamically.
+
+**Features include:**
+
+- **Interactive Maps**: Explore state-level cognitive burden with hover tooltips
+- **Dynamic Time Series**: Track prevalence trends over time
+- **Linked Scatter Plots**: Examine relationships between socioeconomic factors and cognitive outcomes
+- **Data Explorer**: Filter and search the underlying data
+- **Shiny Dashboard**: A comprehensive interactive tool for in-depth analysis
+
+</div>
+
+<div class="content-section">
+
+# Data Preparation
+
+```{r data-loading}
+# Load Alzheimer's data
+raw_az_data <- read.csv("data/2015-2022 Alzheimer Data.csv") |>
+  janitor::clean_names()
+
+raw_az_data <- raw_az_data[-nrow(raw_az_data), ]
+
+az_clean <- raw_az_data |>
+  filter(
+    !is.na(data_value),
+    !is.na(year_start),
+    !is.na(location_abbr)
+  )
+
+# Filter for cognitive decline/impairment
+az_cog <- az_clean |>
+  filter(
+    str_detect(topic, regex("cognitive decline|cognitive impairment",
+                            ignore_case = TRUE))
+  )
+
+# Create base summary with age and sex groups
+az_cog_summary_base <- az_cog |>
+  mutate(
+    age_group = case_when(
+      stratification_category1 == "Age Group" ~ stratification1,
+      TRUE ~ "Overall"
+    ),
+    sex_group = case_when(
+      stratification_category2 == "Sex" ~ stratification2,
+      TRUE ~ "Overall"
+    )
+  )
+
+# Filter for 65+ overall
+az_cog_65_overall <- az_cog_summary_base |>
+  filter(
+    age_group == "65 years or older",
+    sex_group == "Overall"
+  )
+
+# State-year level data for all years
+az_state_year_all <- az_cog_65_overall |>
+  group_by(
+    year = year_start,
+    state_abbr = location_abbr,
+    state_name = location_desc
+  ) |>
+  summarise(
+    mean_prev = mean(data_value, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  filter(!state_abbr %in% c("US", "GU", "PR", "VI", "DC", "NRE", "SOU", "MDW", "WST"))
+
+# Load and prepare socioeconomic data for 2015-2016
+inc15 <- read_csv("data/median income-2015.csv", skip = 1) |>
+  janitor::clean_names() |>
+  transmute(
+    year = 2015,
+    state_name = geographic_area_name,
+    median_income = as.numeric(median_income_dollars_estimate_households)
+  )
+
+inc16 <- read_csv("data/median income-2016.csv", skip = 1) |>
+  janitor::clean_names() |>
+  transmute(
+    year = 2016,
+    state_name = geographic_area_name,
+    median_income = as.numeric(median_income_dollars_estimate_households)
+  )
+
+income_state <- bind_rows(inc15, inc16) |>
+  mutate(state = str_squish(str_extract(state_name, "[^,]+$"))) |>
+  group_by(year, state) |>
+  summarise(
+    median_state = median(median_income, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Education data
+edu15_raw <- read_csv("data/education2015.csv", skip = 1) |> janitor::clean_names()
+edu16_raw <- read_csv("data/education2016.csv", skip = 1) |> janitor::clean_names()
+
+edu_state <- bind_rows(
+  edu15_raw |> filter(!str_detect(geographic_area_name, ",")) |>
+    transmute(year = 2015, state = geographic_area_name,
+              educ_bach = as.numeric(percent_estimate_percent_bachelors_degree_or_higher)),
+  edu16_raw |> filter(!str_detect(geographic_area_name, ",")) |>
+    transmute(year = 2016, state = geographic_area_name,
+              educ_bach = as.numeric(percent_estimate_percent_bachelors_degree_or_higher))
+)
+
+# Air quality data
+air15 <- read_csv("data/clean_air_state_2015.csv")
+air16 <- read_csv("data/clean_air_state_2016.csv")
+
+air_state <- bind_rows(air15, air16) |>
+  group_by(year, state_desc) |>
+  summarise(pm25_state = mean(pm25_wtd_mean, na.rm = TRUE), .groups = "drop")
+
+# Combined dataset for 2015-2016
+az_combined <- az_state_year_all |>
+  filter(year %in% c(2015, 2016)) |>
+  left_join(income_state, by = c("year", "state_name" = "state")) |>
+  left_join(edu_state, by = c("year", "state_name" = "state")) |>
+  left_join(air_state, by = c("year", "state_name" = "state_desc"))
+```
+
+</div>
+
+<div class="content-section">
+
+# Interactive Choropleth Maps
+
+Explore Alzheimer's-related cognitive prevalence across U.S. states. **Hover over states** to see detailed information, and use the **dropdown** to switch between years.
+
+```{r interactive-map, fig.height=6}
+# Prepare data for plotly choropleth - one map per year with dropdown
+years <- sort(unique(az_state_year_all$year))
+
+# Get data for the first year (default view)
+first_year_data <- az_state_year_all |> filter(year == years[1])
+
+# Create the base map
+fig_map <- plot_ly(
+  type = "choropleth",
+  locationmode = "USA-states",
+  locations = first_year_data$state_abbr,
+  z = first_year_data$mean_prev,
+  text = paste0("<b>", first_year_data$state_name, "</b><br>",
+                "Year: ", first_year_data$year, "<br>",
+                "Prevalence: ", round(first_year_data$mean_prev, 1), "%"),
+  hoverinfo = "text",
+  colorscale = list(
+    c(0, "#fef3c7"),
+    c(0.25, "#fcd34d"),
+    c(0.5, "#f59e0b"),
+    c(0.75, "#d97706"),
+    c(1, "#92400e")
+  ),
+  zmin = min(az_state_year_all$mean_prev, na.rm = TRUE),
+  zmax = max(az_state_year_all$mean_prev, na.rm = TRUE),
+  colorbar = list(
+    title = list(text = "Prevalence (%)", font = list(family = "Georgia")),
+    tickfont = list(family = "Georgia")
+  )
+)
+
+# Create dropdown buttons for each year
+buttons <- lapply(years, function(yr) {
+  year_data <- az_state_year_all |> filter(year == yr)
+  list(
+    method = "restyle",
+    args = list(list(
+      z = list(year_data$mean_prev),
+      locations = list(year_data$state_abbr),
+      text = list(paste0("<b>", year_data$state_name, "</b><br>",
+                         "Year: ", year_data$year, "<br>",
+                         "Prevalence: ", round(year_data$mean_prev, 1), "%"))
+    )),
+    label = as.character(yr)
+  )
+})
+
+fig_map <- fig_map |>
+  layout(
+    title = list(
+      text = "<b>Alzheimer's-Related Cognitive Prevalence by State (Age 65+)</b>",
+      font = list(family = "Georgia", size = 18, color = "#d97706"),
+      y = 0.98,
+      x = 0.5,
+      xanchor = "center"
+    ),
+    geo = list(
+      scope = "usa",
+      showlakes = TRUE,
+      lakecolor = toRGB("white"),
+      bgcolor = "rgba(0,0,0,0)"
+    ),
+    paper_bgcolor = "rgba(0,0,0,0)",
+    plot_bgcolor = "rgba(0,0,0,0)",
+    font = list(family = "Georgia"),
+    margin = list(t = 80),
+    updatemenus = list(
+      list(
+        type = "dropdown",
+        active = 0,
+        buttons = buttons,
+        x = 0.02,
+        y = 0.95,
+        xanchor = "left",
+        yanchor = "top",
+        font = list(family = "Georgia"),
+        bgcolor = "#fff",
+        bordercolor = "#d97706",
+        pad = list(r = 10, t = 10)
+      )
+    ),
+    annotations = list(
+      list(
+        text = "<b>Select Year:</b>",
+        x = 0.02,
+        y = 1.0,
+        xref = "paper",
+        yref = "paper",
+        showarrow = FALSE,
+        font = list(family = "Georgia", size = 12, color = "#d97706")
+      )
+    )
+  )
+
+fig_map
+```
+
+The interactive map reveals regional patterns in cognitive decline prevalence. **Southern and Southeastern states** consistently show higher prevalence rates, while **Western and Northeastern states** tend to have lower rates. Use the year slider to observe temporal changes.
+
+</div>
+
+<div class="content-section">
+
+# Time Series Analysis
+
+## National Trends Over Time
+
+Track the **national average** cognitive prevalence from 2015 to 2022. Click on legend items to show/hide specific metrics.
+
+```{r time-series, fig.height=5}
+# National yearly summary
+national_trend <- az_state_year_all |>
+  group_by(year) |>
+  summarise(
+    mean_prev = mean(mean_prev, na.rm = TRUE),
+    sd_prev = sd(mean_prev, na.rm = TRUE),
+    min_prev = min(mean_prev, na.rm = TRUE),
+    max_prev = max(mean_prev, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+fig_trend <- plot_ly(national_trend, x = ~year) |>
+  add_ribbons(
+    ymin = ~mean_prev - sd_prev,
+    ymax = ~mean_prev + sd_prev,
+    fillcolor = "rgba(217, 119, 6, 0.2)",
+    line = list(color = "transparent"),
+    name = "±1 SD",
+    hoverinfo = "skip"
+  ) |>
+  add_trace(
+    y = ~mean_prev,
+    type = "scatter",
+    mode = "lines+markers",
+    line = list(color = "#d97706", width = 3),
+    marker = list(color = "#d97706", size = 10, 
+                  line = list(color = "white", width = 2)),
+    name = "National Mean",
+    hovertemplate = paste0(
+      "<b>Year: %{x}</b><br>",
+      "Mean Prevalence: %{y:.1f}%<br>",
+      "<extra></extra>"
+    )
+  ) |>
+  add_trace(
+    y = ~min_prev,
+    type = "scatter",
+    mode = "lines",
+    line = list(color = "#fbbf24", width = 1, dash = "dot"),
+    name = "State Min",
+    hovertemplate = "Min: %{y:.1f}%<extra></extra>"
+  ) |>
+  add_trace(
+    y = ~max_prev,
+    type = "scatter",
+    mode = "lines",
+    line = list(color = "#92400e", width = 1, dash = "dot"),
+    name = "State Max",
+    hovertemplate = "Max: %{y:.1f}%<extra></extra>"
+  ) |>
+  layout(
+    title = list(
+      text = "<b>National Cognitive Prevalence Trends (2015-2022)</b>",
+      font = list(family = "Georgia", size = 16, color = "#d97706")
+    ),
+    xaxis = list(
+      title = "Year",
+      tickfont = list(family = "Georgia"),
+      titlefont = list(family = "Georgia", size = 14),
+      dtick = 1
+    ),
+    yaxis = list(
+      title = "Prevalence (%)",
+      tickfont = list(family = "Georgia"),
+      titlefont = list(family = "Georgia", size = 14),
+      range = c(15, 35)
+    ),
+    legend = list(
+      orientation = "h",
+      x = 0.5,
+      xanchor = "center",
+      y = -0.15,
+      font = list(family = "Georgia")
+    ),
+    paper_bgcolor = "rgba(0,0,0,0)",
+    plot_bgcolor = "rgba(0,0,0,0)",
+    font = list(family = "Georgia"),
+    hovermode = "x unified"
+  )
+
+fig_trend
+```
+
+## State Comparison Over Time
+
+Select multiple states to compare their cognitive prevalence trajectories.
+
+```{r state-comparison, fig.height=6}
+# Top and bottom 5 states by average prevalence
+state_avg <- az_state_year_all |>
+  group_by(state_name, state_abbr) |>
+  summarise(avg_prev = mean(mean_prev, na.rm = TRUE), .groups = "drop") |>
+  arrange(desc(avg_prev))
+
+highlight_states <- c(
+  head(state_avg$state_abbr, 5),  # Top 5
+  tail(state_avg$state_abbr, 5)   # Bottom 5
+)
+
+state_trends <- az_state_year_all |>
+  filter(state_abbr %in% highlight_states) |>
+  mutate(
+    category = case_when(
+      state_abbr %in% head(state_avg$state_abbr, 5) ~ "Highest Prevalence",
+      TRUE ~ "Lowest Prevalence"
+    )
+  )
+
+fig_states <- plot_ly(state_trends, x = ~year, y = ~mean_prev, 
+                      color = ~state_name, colors = viridis(10)) |>
+  add_trace(
+    type = "scatter",
+    mode = "lines+markers",
+    marker = list(size = 8),
+    line = list(width = 2),
+    hovertemplate = paste0(
+      "<b>%{text}</b><br>",
+      "Year: %{x}<br>",
+      "Prevalence: %{y:.1f}%<br>",
+      "<extra></extra>"
+    ),
+    text = ~state_name
+  ) |>
+  layout(
+    title = list(
+      text = "<b>State Comparison: Highest vs Lowest Prevalence States</b>",
+      font = list(family = "Georgia", size = 16, color = "#d97706")
+    ),
+    xaxis = list(
+      title = "Year",
+      tickfont = list(family = "Georgia"),
+      titlefont = list(family = "Georgia"),
+      dtick = 1
+    ),
+    yaxis = list(
+      title = "Prevalence (%)",
+      tickfont = list(family = "Georgia"),
+      titlefont = list(family = "Georgia")
+    ),
+    legend = list(
+      font = list(family = "Georgia"),
+      orientation = "v",
+      x = 1.02,
+      y = 0.5
+    ),
+    paper_bgcolor = "rgba(0,0,0,0)",
+    plot_bgcolor = "rgba(0,0,0,0)",
+    font = list(family = "Georgia"),
+    hovermode = "closest"
+  )
+
+fig_states
+```
+
+</div>
+
+<div class="content-section">
+
+# Socioeconomic Factor Analysis
+
+## Interactive Scatter Plots with Linked Brushing
+
+The following visualizations use **linked brushing** – select points in one plot and see them highlighted across all plots. This helps identify states that may be outliers across multiple dimensions.
+
+```{r linked-scatter, fig.height=8}
+# Create shared data for crosstalk
+shared_data <- SharedData$new(
+  az_combined |> 
+    filter(!is.na(median_state) & !is.na(educ_bach) & !is.na(pm25_state)) |>
+    mutate(
+      year_factor = factor(year),
+      tooltip = paste0(
+        "<b>", state_name, " (", year, ")</b><br>",
+        "Prevalence: ", round(mean_prev, 1), "%<br>",
+        "Income: $", format(round(median_state), big.mark = ","), "<br>",
+        "Education: ", round(educ_bach, 1), "%<br>",
+        "PM2.5: ", round(pm25_state, 1), " µg/m³"
+      )
+    ),
+  key = ~paste(state_abbr, year)
+)
+
+# Income vs Prevalence
+p1 <- plot_ly(shared_data, x = ~median_state, y = ~mean_prev, 
+              color = ~year_factor, colors = c("#d97706", "#2563eb")) |>
+  add_markers(
+    marker = list(size = 12, opacity = 0.7,
+                  line = list(color = "white", width = 1)),
+    hovertemplate = "%{text}<extra></extra>",
+    text = ~tooltip
+  ) |>
+  layout(
+    xaxis = list(title = "Median Household Income ($)", tickfont = list(family = "Georgia")),
+    yaxis = list(title = "Prevalence (%)", tickfont = list(family = "Georgia")),
+    showlegend = FALSE
+  )
+
+# Education vs Prevalence
+p2 <- plot_ly(shared_data, x = ~educ_bach, y = ~mean_prev,
+              color = ~year_factor, colors = c("#d97706", "#2563eb")) |>
+  add_markers(
+    marker = list(size = 12, opacity = 0.7,
+                  line = list(color = "white", width = 1)),
+    hovertemplate = "%{text}<extra></extra>",
+    text = ~tooltip
+  ) |>
+  layout(
+    xaxis = list(title = "% with Bachelor's Degree", tickfont = list(family = "Georgia")),
+    yaxis = list(title = "Prevalence (%)", tickfont = list(family = "Georgia")),
+    showlegend = FALSE
+  )
+
+# PM2.5 vs Prevalence
+p3 <- plot_ly(shared_data, x = ~pm25_state, y = ~mean_prev,
+              color = ~year_factor, colors = c("#d97706", "#2563eb")) |>
+  add_markers(
+    marker = list(size = 12, opacity = 0.7,
+                  line = list(color = "white", width = 1)),
+    hovertemplate = "%{text}<extra></extra>",
+    text = ~tooltip
+  ) |>
+  layout(
+    xaxis = list(title = "PM2.5 (µg/m³)", tickfont = list(family = "Georgia")),
+    yaxis = list(title = "Prevalence (%)", tickfont = list(family = "Georgia")),
+    legend = list(
+      title = list(text = "Year"),
+      font = list(family = "Georgia")
+    )
+  )
+
+# Combine plots
+subplot(p1, p2, p3, nrows = 1, shareY = TRUE, titleX = TRUE) |>
+  layout(
+    title = list(
+      text = "<b>Cognitive Prevalence vs Socioeconomic & Environmental Factors</b>",
+      font = list(family = "Georgia", size = 16, color = "#d97706"),
+      y = 0.98
+    ),
+    annotations = list(
+      list(x = 0.12, y = 1.08, text = "<b>Income Effect</b>", 
+           showarrow = FALSE, xref = "paper", yref = "paper",
+           font = list(family = "Georgia", size = 13, color = "#ea580c")),
+      list(x = 0.5, y = 1.08, text = "<b>Education Effect</b>",
+           showarrow = FALSE, xref = "paper", yref = "paper",
+           font = list(family = "Georgia", size = 13, color = "#ea580c")),
+      list(x = 0.88, y = 1.08, text = "<b>Air Quality Effect</b>",
+           showarrow = FALSE, xref = "paper", yref = "paper",
+           font = list(family = "Georgia", size = 13, color = "#ea580c"))
+    ),
+    paper_bgcolor = "rgba(0,0,0,0)",
+    plot_bgcolor = "rgba(0,0,0,0)",
+    font = list(family = "Georgia"),
+    hovermode = "closest"
+  ) |>
+  highlight(on = "plotly_click", off = "plotly_doubleclick", 
+            color = "#ef4444", opacityDim = 0.3)
+```
+
+**Key Observations:**
+
+- **Income**: States with higher median household income tend to show slightly lower cognitive prevalence
+- **Education**: Higher educational attainment is associated with modestly lower prevalence rates  
+- **Air Quality**: PM2.5 levels show minimal correlation with cognitive outcomes at the state level
+
+</div>
+
+<div class="content-section">
+
+# Distribution Analysis
+
+## Prevalence by Demographics
+
+```{r demographic-plots, fig.height=5}
+# Prepare demographic summaries
+az_by_age <- az_cog_summary_base |>
+  filter(age_group != "Overall") |>
+  group_by(year = year_start, age_group) |>
+  summarise(mean_value = mean(data_value, na.rm = TRUE), .groups = "drop")
+
+az_by_sex <- az_cog_summary_base |>
+  filter(sex_group != "Overall") |>
+  group_by(year = year_start, sex_group) |>
+  summarise(mean_value = mean(data_value, na.rm = TRUE), .groups = "drop")
+
+# Age group plot
+p_age <- plot_ly(az_by_age, x = ~year, y = ~mean_value, 
+                 color = ~age_group, colors = c("#d97706", "#2563eb")) |>
+  add_trace(
+    type = "bar",
+    hovertemplate = paste0(
+      "<b>%{text}</b><br>",
+      "Year: %{x}<br>",
+      "Prevalence: %{y:.1f}%<br>",
+      "<extra></extra>"
+    ),
+    text = ~age_group
+  ) |>
+  layout(
+    barmode = "group",
+    xaxis = list(title = "Year", tickfont = list(family = "Georgia"), dtick = 1),
+    yaxis = list(title = "Prevalence (%)", tickfont = list(family = "Georgia")),
+    legend = list(title = list(text = "Age Group"), font = list(family = "Georgia"))
+  )
+
+# Sex group plot  
+p_sex <- plot_ly(az_by_sex, x = ~year, y = ~mean_value,
+                 color = ~sex_group, colors = c("#d97706", "#2563eb")) |>
+  add_trace(
+    type = "bar",
+    hovertemplate = paste0(
+      "<b>%{text}</b><br>",
+      "Year: %{x}<br>",
+      "Prevalence: %{y:.1f}%<br>",
+      "<extra></extra>"
+    ),
+    text = ~sex_group
+  ) |>
+  layout(
+    barmode = "group",
+    xaxis = list(title = "Year", tickfont = list(family = "Georgia"), dtick = 1),
+    yaxis = list(title = "Prevalence (%)", tickfont = list(family = "Georgia")),
+    legend = list(title = list(text = "Sex"), font = list(family = "Georgia"))
+  )
+
+subplot(p_age, p_sex, nrows = 1, shareY = TRUE, titleX = TRUE) |>
+  layout(
+    title = list(
+      text = "<b>Prevalence by Age Group and Sex Over Time</b>",
+      font = list(family = "Georgia", size = 16, color = "#d97706")
+    ),
+    paper_bgcolor = "rgba(0,0,0,0)",
+    plot_bgcolor = "rgba(0,0,0,0)",
+    font = list(family = "Georgia")
+  )
+```
+
+## State-Level Distribution
+
+```{r boxplot, fig.height=5}
+# Create boxplot by year
+fig_box <- plot_ly(az_state_year_all, x = ~factor(year), y = ~mean_prev) |>
+  add_boxplot(
+    fillcolor = "rgba(217, 119, 6, 0.5)",
+    line = list(color = "#d97706"),
+    marker = list(color = "#d97706", outliercolor = "#92400e"),
+    hoverinfo = "y",
+    name = ""
+  ) |>
+  add_trace(
+    data = az_state_year_all |> group_by(year) |> summarise(mean_prev = mean(mean_prev)),
+    x = ~factor(year),
+    y = ~mean_prev,
+    type = "scatter",
+    mode = "markers",
+    marker = list(color = "#ef4444", size = 12, symbol = "diamond"),
+    name = "National Mean",
+    hovertemplate = "National Mean: %{y:.1f}%<extra></extra>"
+  ) |>
+  layout(
+    title = list(
+      text = "<b>Distribution of State-Level Prevalence by Year</b>",
+      font = list(family = "Georgia", size = 16, color = "#d97706")
+    ),
+    xaxis = list(
+      title = "Year",
+      tickfont = list(family = "Georgia"),
+      titlefont = list(family = "Georgia")
+    ),
+    yaxis = list(
+      title = "Prevalence (%)",
+      tickfont = list(family = "Georgia"),
+      titlefont = list(family = "Georgia")
+    ),
+    showlegend = TRUE,
+    legend = list(
+      orientation = "h",
+      x = 0.5,
+      xanchor = "center",
+      y = -0.15,
+      font = list(family = "Georgia")
+    ),
+    paper_bgcolor = "rgba(0,0,0,0)",
+    plot_bgcolor = "rgba(0,0,0,0)",
+    font = list(family = "Georgia")
+  )
+
+fig_box
+```
+
+</div>
+
+<div class="content-section">
+
+# Data Explorer
+
+Use the interactive table below to **search, filter, and sort** the underlying data. Click column headers to sort, use the search box to find specific states, and adjust entries per page.
+
+```{r data-table}
+# Prepare comprehensive dataset for display
+display_data <- az_state_year_all |>
+  left_join(income_state, by = c("year", "state_name" = "state")) |>
+  left_join(edu_state, by = c("year", "state_name" = "state")) |>
+  left_join(air_state, by = c("year", "state_name" = "state_desc")) |>
+  select(
+    Year = year,
+    State = state_name,
+    `State Code` = state_abbr,
+    `Prevalence (%)` = mean_prev,
+    `Median Income ($)` = median_state,
+    `Education (% BA+)` = educ_bach,
+    `PM2.5 (µg/m³)` = pm25_state
+  ) |>
+  mutate(
+    `Prevalence (%)` = round(`Prevalence (%)`, 1),
+    `Median Income ($)` = ifelse(!is.na(`Median Income ($)`), 
+                                  format(round(`Median Income ($)`), big.mark = ","), 
+                                  NA),
+    `Education (% BA+)` = round(`Education (% BA+)`, 1),
+    `PM2.5 (µg/m³)` = round(`PM2.5 (µg/m³)`, 1)
+  )
+
+datatable(
+  display_data,
+  filter = "top",
+  options = list(
+    pageLength = 15,
+    autoWidth = TRUE,
+    dom = 'Bfrtip',
+    scrollX = TRUE,
+    columnDefs = list(
+      list(className = 'dt-center', targets = c(0, 2, 3, 4, 5, 6))
+    )
+  ),
+  rownames = FALSE,
+  class = 'cell-border stripe hover',
+  caption = htmltools::tags$caption(
+    style = 'caption-side: top; text-align: left; color: #d97706; font-weight: bold; font-family: Georgia; font-size: 14px;',
+    'State-Year Level Alzheimer\'s Cognitive Prevalence Data (2015-2022)'
+  )
+) |>
+  formatStyle(
+    'Prevalence (%)',
+    background = styleColorBar(range(display_data$`Prevalence (%)`, na.rm = TRUE), '#fcd34d'),
+    backgroundSize = '98% 80%',
+    backgroundRepeat = 'no-repeat',
+    backgroundPosition = 'center'
+  ) |>
+  formatStyle(
+    columns = 1:7,
+    fontFamily = "Georgia"
+  )
+```
+
+</div>
+
+<div class="content-section">
+
+# Shiny Dashboard
+
+For a more comprehensive and fully interactive exploration experience, we've created a **Shiny Dashboard** that allows you to:
+
+- **Select specific states** for detailed comparison
+- **Choose different time periods** to analyze trends
+- **Compare multiple socioeconomic factors** simultaneously
+- **Download customized visualizations** and data
+- **Explore correlations** between factors interactively
+
+<div class="viz-container">
+
+### Dashboard Features
+
+| Feature | Description |
+|---------|-------------|
+| **State Selector** | Choose one or multiple states to focus your analysis |
+| **Year Range Slider** | Filter data to specific time periods |
+| **Factor Comparison** | Toggle between income, education, and air quality views |
+| **Dynamic Maps** | Choropleth maps that update based on your selections |
+| **Trend Analysis** | Animated time series showing changes over time |
+| **Data Export** | Download filtered data in CSV format |
+
+</div>
+
+### Launch the Dashboard Online
+
+Click the button below to access the interactive Shiny dashboard:
+
+<center>
+<a href="https://wenye404.shinyapps.io/shiny_app/" target="_blank" 
+   style="display: inline-block; padding: 18px 40px; background: linear-gradient(135deg, #d97706 0%, #ea580c 100%); 
+          color: white; text-decoration: none; border-radius: 10px; font-weight: bold; font-family: Georgia;
+          font-size: 1.1em; box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3); transition: transform 0.2s, box-shadow 0.2s;
+          margin: 20px 0;"
+   onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(217, 119, 6, 0.4)';"
+   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(217, 119, 6, 0.3)';">
+  🔍 Launch Interactive Dashboard
+</a>
+</center>
+
+<div class="viz-container">
+
+### Run Locally (Alternative)
+
+You can also run the dashboard locally on your machine:
+
+**Step 1:** Install required packages:
+```r
+install.packages(c("shiny", "shinydashboard", "shinyWidgets", 
+                   "tidyverse", "plotly", "DT", "viridis", "janitor"))
+```
+
+**Step 2:** Launch from R/RStudio:
+```r
+shiny::runApp("shiny_app")
+```
+
+</div>
+
+**Note:** The online dashboard may take a few seconds to load initially.
+
+</div>
+
+<div class="content-section">
+
+# Summary of Findings
+
+Based on our interactive exploration:
+
+1. **Geographic Patterns**: Southern and Southeastern states consistently show higher Alzheimer's-related cognitive prevalence rates compared to Western and Northeastern states.
+
+2. **Temporal Stability**: National average prevalence has remained relatively stable between 25-27% among adults aged 65+ from 2015-2022, with considerable between-state variation.
+
+3. **Demographic Differences**: 
+   - Women report higher cognitive burden than men (~31% vs ~27%)
+   - Adults aged 50-64 show higher prevalence than those 65+ (~32% vs ~26%)
+
+4. **Socioeconomic Associations**:
+   - Higher state-level income is weakly associated with lower prevalence
+   - Education shows a modest negative correlation with cognitive burden
+   - Air quality (PM2.5) shows minimal association at the ecological level
+
+5. **State Variability**: Individual states can vary by 10+ percentage points in prevalence, suggesting important local factors beyond what aggregate socioeconomic indicators capture.
+
+</div>

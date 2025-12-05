@@ -36,6 +36,23 @@
 <script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/htmltools-fill-0.5.8.1/fill.css" rel="stylesheet" />
+<script src="site_libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
+<script src="site_libs/plotly-binding-4.11.0/plotly.js"></script>
+<script src="site_libs/typedarray-0.1/typedarray.min.js"></script>
+<link href="site_libs/crosstalk-1.2.2/css/crosstalk.min.css" rel="stylesheet" />
+<script src="site_libs/crosstalk-1.2.2/js/crosstalk.min.js"></script>
+<link href="site_libs/plotly-htmlwidgets-css-2.11.1/plotly-htmlwidgets.css" rel="stylesheet" />
+<script src="site_libs/plotly-main-2.11.1/plotly-latest.min.js"></script>
+<link href="site_libs/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet" />
+<script src="site_libs/datatables-binding-0.34.0/datatables.js"></script>
+<link href="site_libs/dt-core-1.13.6/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="site_libs/dt-core-1.13.6/css/jquery.dataTables.extra.css" rel="stylesheet" />
+<script src="site_libs/dt-core-1.13.6/js/jquery.dataTables.min.js"></script>
+<link href="site_libs/nouislider-7.0.10/jquery.nouislider.min.css" rel="stylesheet" />
+<script src="site_libs/nouislider-7.0.10/jquery.nouislider.min.js"></script>
+<link href="site_libs/selectize-0.12.0/selectize.bootstrap3.css" rel="stylesheet" />
+<script src="site_libs/selectize-0.12.0/selectize.min.js"></script>
 <link href="site_libs/font-awesome-6.5.2/css/all.min.css" rel="stylesheet" />
 <link href="site_libs/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet" />
 
@@ -512,7 +529,900 @@ body {
 .content-section li {
   margin-bottom: 8px;
 }
+
+/* Shiny app iframe styling */
+.shiny-frame {
+  border: 2px solid #d97706;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(217, 119, 6, 0.2);
+  margin: 20px auto;
+  display: block;
+}
+
+/* Interactive visualization containers */
+.viz-container {
+  background: linear-gradient(135deg, #fff9f0 0%, #ffffff 100%);
+  border-radius: 10px;
+  padding: 15px;
+  margin: 15px 0;
+  border-left: 4px solid #d97706;
+}
+
+/* Filter controls styling */
+.filter-controls {
+  background: #f8f4f0;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.filter-controls label {
+  color: #d97706;
+  font-weight: 600;
+}
+
+/* Code blocks */
+pre {
+  background: #f5f5f5;
+  border-left: 4px solid #d97706;
+  padding: 15px;
+  border-radius: 5px;
+  overflow-x: auto;
+}
+
+code {
+  color: #d97706;
+  background: rgba(217, 119, 6, 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+/* Tables */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 20px 0;
+}
+
+table th {
+  background: #d97706;
+  color: white;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+}
+
+table td {
+  padding: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+table tr:hover {
+  background: rgba(217, 119, 6, 0.05);
+}
+
+/* Center all figures */
+.figure {
+  text-align: center !important;
+  margin: 20px auto !important;
+}
+
+img {
+  display: block !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
 </style>
+<div id="interactive-visualizations"
+class="section level1 content-section">
+<h1>Interactive Visualizations</h1>
+<p>This page features <strong>interactive visualizations</strong> that
+allow you to explore Alzheimer’s disease and cognitive decline data
+across the United States. Hover over data points for details, zoom in on
+regions of interest, and filter data dynamically.</p>
+<p><strong>Features include:</strong></p>
+<ul>
+<li><strong>Interactive Maps</strong>: Explore state-level cognitive
+burden with hover tooltips</li>
+<li><strong>Dynamic Time Series</strong>: Track prevalence trends over
+time</li>
+<li><strong>Linked Scatter Plots</strong>: Examine relationships between
+socioeconomic factors and cognitive outcomes</li>
+<li><strong>Data Explorer</strong>: Filter and search the underlying
+data</li>
+<li><strong>Shiny Dashboard</strong>: A comprehensive interactive tool
+for in-depth analysis</li>
+</ul>
+</div>
+<div id="data-preparation" class="section level1 content-section">
+<h1>Data Preparation</h1>
+<pre class="r"><code># Load Alzheimer&#39;s data
+raw_az_data &lt;- read.csv(&quot;data/2015-2022 Alzheimer Data.csv&quot;) |&gt;
+  janitor::clean_names()
+
+raw_az_data &lt;- raw_az_data[-nrow(raw_az_data), ]
+
+az_clean &lt;- raw_az_data |&gt;
+  filter(
+    !is.na(data_value),
+    !is.na(year_start),
+    !is.na(location_abbr)
+  )
+
+# Filter for cognitive decline/impairment
+az_cog &lt;- az_clean |&gt;
+  filter(
+    str_detect(topic, regex(&quot;cognitive decline|cognitive impairment&quot;,
+                            ignore_case = TRUE))
+  )
+
+# Create base summary with age and sex groups
+az_cog_summary_base &lt;- az_cog |&gt;
+  mutate(
+    age_group = case_when(
+      stratification_category1 == &quot;Age Group&quot; ~ stratification1,
+      TRUE ~ &quot;Overall&quot;
+    ),
+    sex_group = case_when(
+      stratification_category2 == &quot;Sex&quot; ~ stratification2,
+      TRUE ~ &quot;Overall&quot;
+    )
+  )
+
+# Filter for 65+ overall
+az_cog_65_overall &lt;- az_cog_summary_base |&gt;
+  filter(
+    age_group == &quot;65 years or older&quot;,
+    sex_group == &quot;Overall&quot;
+  )
+
+# State-year level data for all years
+az_state_year_all &lt;- az_cog_65_overall |&gt;
+  group_by(
+    year = year_start,
+    state_abbr = location_abbr,
+    state_name = location_desc
+  ) |&gt;
+  summarise(
+    mean_prev = mean(data_value, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  ) |&gt;
+  filter(!state_abbr %in% c(&quot;US&quot;, &quot;GU&quot;, &quot;PR&quot;, &quot;VI&quot;, &quot;DC&quot;, &quot;NRE&quot;, &quot;SOU&quot;, &quot;MDW&quot;, &quot;WST&quot;))
+
+# Load and prepare socioeconomic data for 2015-2016
+inc15 &lt;- read_csv(&quot;data/median income-2015.csv&quot;, skip = 1) |&gt;
+  janitor::clean_names() |&gt;
+  transmute(
+    year = 2015,
+    state_name = geographic_area_name,
+    median_income = as.numeric(median_income_dollars_estimate_households)
+  )
+
+inc16 &lt;- read_csv(&quot;data/median income-2016.csv&quot;, skip = 1) |&gt;
+  janitor::clean_names() |&gt;
+  transmute(
+    year = 2016,
+    state_name = geographic_area_name,
+    median_income = as.numeric(median_income_dollars_estimate_households)
+  )
+
+income_state &lt;- bind_rows(inc15, inc16) |&gt;
+  mutate(state = str_squish(str_extract(state_name, &quot;[^,]+$&quot;))) |&gt;
+  group_by(year, state) |&gt;
+  summarise(
+    median_state = median(median_income, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  )
+
+# Education data
+edu15_raw &lt;- read_csv(&quot;data/education2015.csv&quot;, skip = 1) |&gt; janitor::clean_names()
+edu16_raw &lt;- read_csv(&quot;data/education2016.csv&quot;, skip = 1) |&gt; janitor::clean_names()
+
+edu_state &lt;- bind_rows(
+  edu15_raw |&gt; filter(!str_detect(geographic_area_name, &quot;,&quot;)) |&gt;
+    transmute(year = 2015, state = geographic_area_name,
+              educ_bach = as.numeric(percent_estimate_percent_bachelors_degree_or_higher)),
+  edu16_raw |&gt; filter(!str_detect(geographic_area_name, &quot;,&quot;)) |&gt;
+    transmute(year = 2016, state = geographic_area_name,
+              educ_bach = as.numeric(percent_estimate_percent_bachelors_degree_or_higher))
+)
+
+# Air quality data
+air15 &lt;- read_csv(&quot;data/clean_air_state_2015.csv&quot;)
+air16 &lt;- read_csv(&quot;data/clean_air_state_2016.csv&quot;)
+
+air_state &lt;- bind_rows(air15, air16) |&gt;
+  group_by(year, state_desc) |&gt;
+  summarise(pm25_state = mean(pm25_wtd_mean, na.rm = TRUE), .groups = &quot;drop&quot;)
+
+# Combined dataset for 2015-2016
+az_combined &lt;- az_state_year_all |&gt;
+  filter(year %in% c(2015, 2016)) |&gt;
+  left_join(income_state, by = c(&quot;year&quot;, &quot;state_name&quot; = &quot;state&quot;)) |&gt;
+  left_join(edu_state, by = c(&quot;year&quot;, &quot;state_name&quot; = &quot;state&quot;)) |&gt;
+  left_join(air_state, by = c(&quot;year&quot;, &quot;state_name&quot; = &quot;state_desc&quot;))</code></pre>
+</div>
+<div id="interactive-choropleth-maps"
+class="section level1 content-section">
+<h1>Interactive Choropleth Maps</h1>
+<p>Explore Alzheimer’s-related cognitive prevalence across U.S. states.
+<strong>Hover over states</strong> to see detailed information, and use
+the <strong>dropdown</strong> to switch between years.</p>
+<pre class="r"><code># Prepare data for plotly choropleth - one map per year with dropdown
+years &lt;- sort(unique(az_state_year_all$year))
+
+# Get data for the first year (default view)
+first_year_data &lt;- az_state_year_all |&gt; filter(year == years[1])
+
+# Create the base map
+fig_map &lt;- plot_ly(
+  type = &quot;choropleth&quot;,
+  locationmode = &quot;USA-states&quot;,
+  locations = first_year_data$state_abbr,
+  z = first_year_data$mean_prev,
+  text = paste0(&quot;&lt;b&gt;&quot;, first_year_data$state_name, &quot;&lt;/b&gt;&lt;br&gt;&quot;,
+                &quot;Year: &quot;, first_year_data$year, &quot;&lt;br&gt;&quot;,
+                &quot;Prevalence: &quot;, round(first_year_data$mean_prev, 1), &quot;%&quot;),
+  hoverinfo = &quot;text&quot;,
+  colorscale = list(
+    c(0, &quot;#fef3c7&quot;),
+    c(0.25, &quot;#fcd34d&quot;),
+    c(0.5, &quot;#f59e0b&quot;),
+    c(0.75, &quot;#d97706&quot;),
+    c(1, &quot;#92400e&quot;)
+  ),
+  zmin = min(az_state_year_all$mean_prev, na.rm = TRUE),
+  zmax = max(az_state_year_all$mean_prev, na.rm = TRUE),
+  colorbar = list(
+    title = list(text = &quot;Prevalence (%)&quot;, font = list(family = &quot;Georgia&quot;)),
+    tickfont = list(family = &quot;Georgia&quot;)
+  )
+)
+
+# Create dropdown buttons for each year
+buttons &lt;- lapply(years, function(yr) {
+  year_data &lt;- az_state_year_all |&gt; filter(year == yr)
+  list(
+    method = &quot;restyle&quot;,
+    args = list(list(
+      z = list(year_data$mean_prev),
+      locations = list(year_data$state_abbr),
+      text = list(paste0(&quot;&lt;b&gt;&quot;, year_data$state_name, &quot;&lt;/b&gt;&lt;br&gt;&quot;,
+                         &quot;Year: &quot;, year_data$year, &quot;&lt;br&gt;&quot;,
+                         &quot;Prevalence: &quot;, round(year_data$mean_prev, 1), &quot;%&quot;))
+    )),
+    label = as.character(yr)
+  )
+})
+
+fig_map &lt;- fig_map |&gt;
+  layout(
+    title = list(
+      text = &quot;&lt;b&gt;Alzheimer&#39;s-Related Cognitive Prevalence by State (Age 65+)&lt;/b&gt;&quot;,
+      font = list(family = &quot;Georgia&quot;, size = 18, color = &quot;#d97706&quot;),
+      y = 0.98,
+      x = 0.5,
+      xanchor = &quot;center&quot;
+    ),
+    geo = list(
+      scope = &quot;usa&quot;,
+      showlakes = TRUE,
+      lakecolor = toRGB(&quot;white&quot;),
+      bgcolor = &quot;rgba(0,0,0,0)&quot;
+    ),
+    paper_bgcolor = &quot;rgba(0,0,0,0)&quot;,
+    plot_bgcolor = &quot;rgba(0,0,0,0)&quot;,
+    font = list(family = &quot;Georgia&quot;),
+    margin = list(t = 80),
+    updatemenus = list(
+      list(
+        type = &quot;dropdown&quot;,
+        active = 0,
+        buttons = buttons,
+        x = 0.02,
+        y = 0.95,
+        xanchor = &quot;left&quot;,
+        yanchor = &quot;top&quot;,
+        font = list(family = &quot;Georgia&quot;),
+        bgcolor = &quot;#fff&quot;,
+        bordercolor = &quot;#d97706&quot;,
+        pad = list(r = 10, t = 10)
+      )
+    ),
+    annotations = list(
+      list(
+        text = &quot;&lt;b&gt;Select Year:&lt;/b&gt;&quot;,
+        x = 0.02,
+        y = 1.0,
+        xref = &quot;paper&quot;,
+        yref = &quot;paper&quot;,
+        showarrow = FALSE,
+        font = list(family = &quot;Georgia&quot;, size = 12, color = &quot;#d97706&quot;)
+      )
+    )
+  )
+
+fig_map</code></pre>
+<div class="plotly html-widget html-fill-item" id="htmlwidget-7184c96307e2ef91f0f8" style="width:100%;height:576px;"></div>
+<script type="application/json" data-for="htmlwidget-7184c96307e2ef91f0f8">{"x":{"visdat":{"12f6e629cca1":["function () ","plotlyVisDat"]},"cur_data":"12f6e629cca1","attrs":{"12f6e629cca1":{"locationmode":"USA-states","locations":["AL","AR","AZ","CA","CO","FL","GA","HI","IA","ID","IL","IN","KY","LA","MD","ME","MI","MN","MS","ND","NE","NJ","NV","NY","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VA","WEST","WI","WV","WY"],"z":[30.25,27.587499999999999,23.444444444444446,25.742857142857144,22.787500000000001,25.181818181818183,31.824999999999999,23.149999999999999,19.240000000000002,8.4000000000000004,22.372727272727271,12,12.949999999999999,27.789999999999999,18.190000000000001,13.300000000000001,24.925000000000001,21.137499999999999,31.414285714285715,25.712499999999999,20.09,18.824999999999999,23.425000000000001,22.945454545454545,25.166666666666668,31.537499999999998,20.84,7.75,28.100000000000001,29.464285714285715,30.9375,25.063636363636363,29.055555555555554,18.41,21.899999999999999,25.475862068965519,21.240000000000002,28.420000000000002,18.039999999999999],"text":["<b>Alabama<\/b><br>Year: 2015<br>Prevalence: 30.2%","<b>Arkansas<\/b><br>Year: 2015<br>Prevalence: 27.6%","<b>Arizona<\/b><br>Year: 2015<br>Prevalence: 23.4%","<b>California<\/b><br>Year: 2015<br>Prevalence: 25.7%","<b>Colorado<\/b><br>Year: 2015<br>Prevalence: 22.8%","<b>Florida<\/b><br>Year: 2015<br>Prevalence: 25.2%","<b>Georgia<\/b><br>Year: 2015<br>Prevalence: 31.8%","<b>Hawaii<\/b><br>Year: 2015<br>Prevalence: 23.1%","<b>Iowa<\/b><br>Year: 2015<br>Prevalence: 19.2%","<b>Idaho<\/b><br>Year: 2015<br>Prevalence: 8.4%","<b>Illinois<\/b><br>Year: 2015<br>Prevalence: 22.4%","<b>Indiana<\/b><br>Year: 2015<br>Prevalence: 12%","<b>Kentucky<\/b><br>Year: 2015<br>Prevalence: 12.9%","<b>Louisiana<\/b><br>Year: 2015<br>Prevalence: 27.8%","<b>Maryland<\/b><br>Year: 2015<br>Prevalence: 18.2%","<b>Maine<\/b><br>Year: 2015<br>Prevalence: 13.3%","<b>Michigan<\/b><br>Year: 2015<br>Prevalence: 24.9%","<b>Minnesota<\/b><br>Year: 2015<br>Prevalence: 21.1%","<b>Mississippi<\/b><br>Year: 2015<br>Prevalence: 31.4%","<b>North Dakota<\/b><br>Year: 2015<br>Prevalence: 25.7%","<b>Nebraska<\/b><br>Year: 2015<br>Prevalence: 20.1%","<b>New Jersey<\/b><br>Year: 2015<br>Prevalence: 18.8%","<b>Nevada<\/b><br>Year: 2015<br>Prevalence: 23.4%","<b>New York<\/b><br>Year: 2015<br>Prevalence: 22.9%","<b>Ohio<\/b><br>Year: 2015<br>Prevalence: 25.2%","<b>Oklahoma<\/b><br>Year: 2015<br>Prevalence: 31.5%","<b>Oregon<\/b><br>Year: 2015<br>Prevalence: 20.8%","<b>Pennsylvania<\/b><br>Year: 2015<br>Prevalence: 7.8%","<b>Rhode Island<\/b><br>Year: 2015<br>Prevalence: 28.1%","<b>South Carolina<\/b><br>Year: 2015<br>Prevalence: 29.5%","<b>South Dakota<\/b><br>Year: 2015<br>Prevalence: 30.9%","<b>Tennessee<\/b><br>Year: 2015<br>Prevalence: 25.1%","<b>Texas<\/b><br>Year: 2015<br>Prevalence: 29.1%","<b>Utah<\/b><br>Year: 2015<br>Prevalence: 18.4%","<b>Virginia<\/b><br>Year: 2015<br>Prevalence: 21.9%","<b>West<\/b><br>Year: 2015<br>Prevalence: 25.5%","<b>Wisconsin<\/b><br>Year: 2015<br>Prevalence: 21.2%","<b>West Virginia<\/b><br>Year: 2015<br>Prevalence: 28.4%","<b>Wyoming<\/b><br>Year: 2015<br>Prevalence: 18%"],"hoverinfo":"text","colorscale":[["0","#fef3c7"],["0.25","#fcd34d"],["0.5","#f59e0b"],["0.75","#d97706"],["1","#92400e"]],"zmin":7.75,"zmax":31.824999999999999,"colorbar":{"title":{"text":"Prevalence (%)","font":{"family":"Georgia"}},"tickfont":{"family":"Georgia"}},"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"choropleth"}},"layout":{"margin":{"b":40,"l":60,"t":80,"r":10},"title":{"text":"<b>Alzheimer's-Related Cognitive Prevalence by State (Age 65+)<\/b>","font":{"family":"Georgia","size":18,"color":"#d97706"},"y":0.97999999999999998,"x":0.5,"xanchor":"center"},"geo":{"scope":"usa","showlakes":true,"lakecolor":"rgba(255,255,255,1)","bgcolor":"rgba(0,0,0,0)"},"paper_bgcolor":"rgba(0,0,0,0)","plot_bgcolor":"rgba(0,0,0,0)","font":{"family":"Georgia"},"updatemenus":[{"type":"dropdown","active":0,"buttons":[{"method":"restyle","args":[{"z":[[30.25,27.587499999999999,23.444444444444446,25.742857142857144,22.787500000000001,25.181818181818183,31.824999999999999,23.149999999999999,19.240000000000002,8.4000000000000004,22.372727272727271,12,12.949999999999999,27.789999999999999,18.190000000000001,13.300000000000001,24.925000000000001,21.137499999999999,31.414285714285715,25.712499999999999,20.09,18.824999999999999,23.425000000000001,22.945454545454545,25.166666666666668,31.537499999999998,20.84,7.75,28.100000000000001,29.464285714285715,30.9375,25.063636363636363,29.055555555555554,18.41,21.899999999999999,25.475862068965519,21.240000000000002,28.420000000000002,18.039999999999999]],"locations":[["AL","AR","AZ","CA","CO","FL","GA","HI","IA","ID","IL","IN","KY","LA","MD","ME","MI","MN","MS","ND","NE","NJ","NV","NY","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VA","WEST","WI","WV","WY"]],"text":[["<b>Alabama<\/b><br>Year: 2015<br>Prevalence: 30.2%","<b>Arkansas<\/b><br>Year: 2015<br>Prevalence: 27.6%","<b>Arizona<\/b><br>Year: 2015<br>Prevalence: 23.4%","<b>California<\/b><br>Year: 2015<br>Prevalence: 25.7%","<b>Colorado<\/b><br>Year: 2015<br>Prevalence: 22.8%","<b>Florida<\/b><br>Year: 2015<br>Prevalence: 25.2%","<b>Georgia<\/b><br>Year: 2015<br>Prevalence: 31.8%","<b>Hawaii<\/b><br>Year: 2015<br>Prevalence: 23.1%","<b>Iowa<\/b><br>Year: 2015<br>Prevalence: 19.2%","<b>Idaho<\/b><br>Year: 2015<br>Prevalence: 8.4%","<b>Illinois<\/b><br>Year: 2015<br>Prevalence: 22.4%","<b>Indiana<\/b><br>Year: 2015<br>Prevalence: 12%","<b>Kentucky<\/b><br>Year: 2015<br>Prevalence: 12.9%","<b>Louisiana<\/b><br>Year: 2015<br>Prevalence: 27.8%","<b>Maryland<\/b><br>Year: 2015<br>Prevalence: 18.2%","<b>Maine<\/b><br>Year: 2015<br>Prevalence: 13.3%","<b>Michigan<\/b><br>Year: 2015<br>Prevalence: 24.9%","<b>Minnesota<\/b><br>Year: 2015<br>Prevalence: 21.1%","<b>Mississippi<\/b><br>Year: 2015<br>Prevalence: 31.4%","<b>North Dakota<\/b><br>Year: 2015<br>Prevalence: 25.7%","<b>Nebraska<\/b><br>Year: 2015<br>Prevalence: 20.1%","<b>New Jersey<\/b><br>Year: 2015<br>Prevalence: 18.8%","<b>Nevada<\/b><br>Year: 2015<br>Prevalence: 23.4%","<b>New York<\/b><br>Year: 2015<br>Prevalence: 22.9%","<b>Ohio<\/b><br>Year: 2015<br>Prevalence: 25.2%","<b>Oklahoma<\/b><br>Year: 2015<br>Prevalence: 31.5%","<b>Oregon<\/b><br>Year: 2015<br>Prevalence: 20.8%","<b>Pennsylvania<\/b><br>Year: 2015<br>Prevalence: 7.8%","<b>Rhode Island<\/b><br>Year: 2015<br>Prevalence: 28.1%","<b>South Carolina<\/b><br>Year: 2015<br>Prevalence: 29.5%","<b>South Dakota<\/b><br>Year: 2015<br>Prevalence: 30.9%","<b>Tennessee<\/b><br>Year: 2015<br>Prevalence: 25.1%","<b>Texas<\/b><br>Year: 2015<br>Prevalence: 29.1%","<b>Utah<\/b><br>Year: 2015<br>Prevalence: 18.4%","<b>Virginia<\/b><br>Year: 2015<br>Prevalence: 21.9%","<b>West<\/b><br>Year: 2015<br>Prevalence: 25.5%","<b>Wisconsin<\/b><br>Year: 2015<br>Prevalence: 21.2%","<b>West Virginia<\/b><br>Year: 2015<br>Prevalence: 28.4%","<b>Wyoming<\/b><br>Year: 2015<br>Prevalence: 18%"]]}],"label":"2015"},{"method":"restyle","args":[{"z":[[29.785714285714285,9.6999999999999993,9.1500000000000004,11.949999999999999,21.98,27.912500000000001,8.1999999999999993,24.300000000000001,23.016666666666666,27.985714285714284,24.028571428571428,30.82,27.366666666666667,8.6999999999999993]],"locations":[["AK","AR","AZ","CO","CT","DE","GA","ID","IN","KS","KY","MA","ME","MN"]],"text":[["<b>Alaska<\/b><br>Year: 2016<br>Prevalence: 29.8%","<b>Arkansas<\/b><br>Year: 2016<br>Prevalence: 9.7%","<b>Arizona<\/b><br>Year: 2016<br>Prevalence: 9.2%","<b>Colorado<\/b><br>Year: 2016<br>Prevalence: 11.9%","<b>Connecticut<\/b><br>Year: 2016<br>Prevalence: 22%","<b>Delaware<\/b><br>Year: 2016<br>Prevalence: 27.9%","<b>Georgia<\/b><br>Year: 2016<br>Prevalence: 8.2%","<b>Idaho<\/b><br>Year: 2016<br>Prevalence: 24.3%","<b>Indiana<\/b><br>Year: 2016<br>Prevalence: 23%","<b>Kansas<\/b><br>Year: 2016<br>Prevalence: 28%","<b>Kentucky<\/b><br>Year: 2016<br>Prevalence: 24%","<b>Massachusetts<\/b><br>Year: 2016<br>Prevalence: 30.8%","<b>Maine<\/b><br>Year: 2016<br>Prevalence: 27.4%","<b>Minnesota<\/b><br>Year: 2016<br>Prevalence: 8.7%"]]}],"label":"2016"}],"x":0.02,"y":0.94999999999999996,"xanchor":"left","yanchor":"top","font":{"family":"Georgia"},"bgcolor":"#fff","bordercolor":"#d97706","pad":{"r":10,"t":10}}],"annotations":[{"text":"<b>Select Year:<\/b>","x":0.02,"y":1,"xref":"paper","yref":"paper","showarrow":false,"font":{"family":"Georgia","size":12,"color":"#d97706"}}],"scene":{"zaxis":{"title":[]}},"hovermode":"closest","showlegend":false,"legend":{"yanchor":"top","y":0.5}},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"colorbar":{"title":{"text":"Prevalence (%)","font":{"family":"Georgia"}},"ticklen":2,"tickfont":{"family":"Georgia"},"len":0.5,"lenmode":"fraction","y":1,"yanchor":"top"},"colorscale":[["0","#fef3c7"],["0.25","#fcd34d"],["0.5","#f59e0b"],["0.75","#d97706"],["1","#92400e"]],"showscale":true,"locationmode":"USA-states","locations":["AL","AR","AZ","CA","CO","FL","GA","HI","IA","ID","IL","IN","KY","LA","MD","ME","MI","MN","MS","ND","NE","NJ","NV","NY","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VA","WEST","WI","WV","WY"],"z":[30.25,27.587499999999999,23.444444444444446,25.742857142857144,22.787500000000001,25.181818181818183,31.824999999999999,23.149999999999999,19.240000000000002,8.4000000000000004,22.372727272727271,12,12.949999999999999,27.789999999999999,18.190000000000001,13.300000000000001,24.925000000000001,21.137499999999999,31.414285714285715,25.712499999999999,20.09,18.824999999999999,23.425000000000001,22.945454545454545,25.166666666666668,31.537499999999998,20.84,7.75,28.100000000000001,29.464285714285715,30.9375,25.063636363636363,29.055555555555554,18.41,21.899999999999999,25.475862068965519,21.240000000000002,28.420000000000002,18.039999999999999],"text":["<b>Alabama<\/b><br>Year: 2015<br>Prevalence: 30.2%","<b>Arkansas<\/b><br>Year: 2015<br>Prevalence: 27.6%","<b>Arizona<\/b><br>Year: 2015<br>Prevalence: 23.4%","<b>California<\/b><br>Year: 2015<br>Prevalence: 25.7%","<b>Colorado<\/b><br>Year: 2015<br>Prevalence: 22.8%","<b>Florida<\/b><br>Year: 2015<br>Prevalence: 25.2%","<b>Georgia<\/b><br>Year: 2015<br>Prevalence: 31.8%","<b>Hawaii<\/b><br>Year: 2015<br>Prevalence: 23.1%","<b>Iowa<\/b><br>Year: 2015<br>Prevalence: 19.2%","<b>Idaho<\/b><br>Year: 2015<br>Prevalence: 8.4%","<b>Illinois<\/b><br>Year: 2015<br>Prevalence: 22.4%","<b>Indiana<\/b><br>Year: 2015<br>Prevalence: 12%","<b>Kentucky<\/b><br>Year: 2015<br>Prevalence: 12.9%","<b>Louisiana<\/b><br>Year: 2015<br>Prevalence: 27.8%","<b>Maryland<\/b><br>Year: 2015<br>Prevalence: 18.2%","<b>Maine<\/b><br>Year: 2015<br>Prevalence: 13.3%","<b>Michigan<\/b><br>Year: 2015<br>Prevalence: 24.9%","<b>Minnesota<\/b><br>Year: 2015<br>Prevalence: 21.1%","<b>Mississippi<\/b><br>Year: 2015<br>Prevalence: 31.4%","<b>North Dakota<\/b><br>Year: 2015<br>Prevalence: 25.7%","<b>Nebraska<\/b><br>Year: 2015<br>Prevalence: 20.1%","<b>New Jersey<\/b><br>Year: 2015<br>Prevalence: 18.8%","<b>Nevada<\/b><br>Year: 2015<br>Prevalence: 23.4%","<b>New York<\/b><br>Year: 2015<br>Prevalence: 22.9%","<b>Ohio<\/b><br>Year: 2015<br>Prevalence: 25.2%","<b>Oklahoma<\/b><br>Year: 2015<br>Prevalence: 31.5%","<b>Oregon<\/b><br>Year: 2015<br>Prevalence: 20.8%","<b>Pennsylvania<\/b><br>Year: 2015<br>Prevalence: 7.8%","<b>Rhode Island<\/b><br>Year: 2015<br>Prevalence: 28.1%","<b>South Carolina<\/b><br>Year: 2015<br>Prevalence: 29.5%","<b>South Dakota<\/b><br>Year: 2015<br>Prevalence: 30.9%","<b>Tennessee<\/b><br>Year: 2015<br>Prevalence: 25.1%","<b>Texas<\/b><br>Year: 2015<br>Prevalence: 29.1%","<b>Utah<\/b><br>Year: 2015<br>Prevalence: 18.4%","<b>Virginia<\/b><br>Year: 2015<br>Prevalence: 21.9%","<b>West<\/b><br>Year: 2015<br>Prevalence: 25.5%","<b>Wisconsin<\/b><br>Year: 2015<br>Prevalence: 21.2%","<b>West Virginia<\/b><br>Year: 2015<br>Prevalence: 28.4%","<b>Wyoming<\/b><br>Year: 2015<br>Prevalence: 18%"],"hoverinfo":["text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text"],"zmin":7.75,"zmax":31.824999999999999,"type":"choropleth","marker":{"line":{"color":"rgba(31,119,180,1)"}},"frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<p>The interactive map reveals regional patterns in cognitive decline
+prevalence. <strong>Southern and Southeastern states</strong>
+consistently show higher prevalence rates, while <strong>Western and
+Northeastern states</strong> tend to have lower rates. Use the year
+slider to observe temporal changes.</p>
+</div>
+<div id="time-series-analysis" class="section level1 content-section">
+<h1>Time Series Analysis</h1>
+<div id="national-trends-over-time" class="section level2">
+<h2>National Trends Over Time</h2>
+<p>Track the <strong>national average</strong> cognitive prevalence from
+2015 to 2022. Click on legend items to show/hide specific metrics.</p>
+<pre class="r"><code># National yearly summary
+national_trend &lt;- az_state_year_all |&gt;
+  group_by(year) |&gt;
+  summarise(
+    mean_prev = mean(mean_prev, na.rm = TRUE),
+    sd_prev = sd(mean_prev, na.rm = TRUE),
+    min_prev = min(mean_prev, na.rm = TRUE),
+    max_prev = max(mean_prev, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  )
+
+fig_trend &lt;- plot_ly(national_trend, x = ~year) |&gt;
+  add_ribbons(
+    ymin = ~mean_prev - sd_prev,
+    ymax = ~mean_prev + sd_prev,
+    fillcolor = &quot;rgba(217, 119, 6, 0.2)&quot;,
+    line = list(color = &quot;transparent&quot;),
+    name = &quot;±1 SD&quot;,
+    hoverinfo = &quot;skip&quot;
+  ) |&gt;
+  add_trace(
+    y = ~mean_prev,
+    type = &quot;scatter&quot;,
+    mode = &quot;lines+markers&quot;,
+    line = list(color = &quot;#d97706&quot;, width = 3),
+    marker = list(color = &quot;#d97706&quot;, size = 10, 
+                  line = list(color = &quot;white&quot;, width = 2)),
+    name = &quot;National Mean&quot;,
+    hovertemplate = paste0(
+      &quot;&lt;b&gt;Year: %{x}&lt;/b&gt;&lt;br&gt;&quot;,
+      &quot;Mean Prevalence: %{y:.1f}%&lt;br&gt;&quot;,
+      &quot;&lt;extra&gt;&lt;/extra&gt;&quot;
+    )
+  ) |&gt;
+  add_trace(
+    y = ~min_prev,
+    type = &quot;scatter&quot;,
+    mode = &quot;lines&quot;,
+    line = list(color = &quot;#fbbf24&quot;, width = 1, dash = &quot;dot&quot;),
+    name = &quot;State Min&quot;,
+    hovertemplate = &quot;Min: %{y:.1f}%&lt;extra&gt;&lt;/extra&gt;&quot;
+  ) |&gt;
+  add_trace(
+    y = ~max_prev,
+    type = &quot;scatter&quot;,
+    mode = &quot;lines&quot;,
+    line = list(color = &quot;#92400e&quot;, width = 1, dash = &quot;dot&quot;),
+    name = &quot;State Max&quot;,
+    hovertemplate = &quot;Max: %{y:.1f}%&lt;extra&gt;&lt;/extra&gt;&quot;
+  ) |&gt;
+  layout(
+    title = list(
+      text = &quot;&lt;b&gt;National Cognitive Prevalence Trends (2015-2022)&lt;/b&gt;&quot;,
+      font = list(family = &quot;Georgia&quot;, size = 16, color = &quot;#d97706&quot;)
+    ),
+    xaxis = list(
+      title = &quot;Year&quot;,
+      tickfont = list(family = &quot;Georgia&quot;),
+      titlefont = list(family = &quot;Georgia&quot;, size = 14),
+      dtick = 1
+    ),
+    yaxis = list(
+      title = &quot;Prevalence (%)&quot;,
+      tickfont = list(family = &quot;Georgia&quot;),
+      titlefont = list(family = &quot;Georgia&quot;, size = 14),
+      range = c(15, 35)
+    ),
+    legend = list(
+      orientation = &quot;h&quot;,
+      x = 0.5,
+      xanchor = &quot;center&quot;,
+      y = -0.15,
+      font = list(family = &quot;Georgia&quot;)
+    ),
+    paper_bgcolor = &quot;rgba(0,0,0,0)&quot;,
+    plot_bgcolor = &quot;rgba(0,0,0,0)&quot;,
+    font = list(family = &quot;Georgia&quot;),
+    hovermode = &quot;x unified&quot;
+  )
+
+fig_trend</code></pre>
+<div class="plotly html-widget html-fill-item" id="htmlwidget-f803842be1530c7fcf70" style="width:100%;height:576px;"></div>
+<script type="application/json" data-for="htmlwidget-f803842be1530c7fcf70">{"x":{"visdat":{"12f6e7aa9d206":["function () ","plotlyVisDat"]},"cur_data":"12f6e7aa9d206","attrs":{"12f6e7aa9d206":{"x":{},"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"ymin":{},"ymax":{},"type":"scatter","mode":"lines","hoveron":"points","fill":"toself","fillcolor":"rgba(217, 119, 6, 0.2)","line":{"color":"transparent"},"name":"±1 SD","hoverinfo":"skip","inherit":true},"12f6e7aa9d206.1":{"x":{},"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"y":{},"type":"scatter","mode":"lines+markers","line":{"color":"#d97706","width":3},"marker":{"color":"#d97706","size":10,"line":{"color":"white","width":2}},"name":"National Mean","hovertemplate":"<b>Year: %{x}<\/b><br>Mean Prevalence: %{y:.1f}%<br><extra><\/extra>","inherit":true},"12f6e7aa9d206.2":{"x":{},"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"y":{},"type":"scatter","mode":"lines","line":{"color":"#fbbf24","width":1,"dash":"dot"},"name":"State Min","hovertemplate":"Min: %{y:.1f}%<extra><\/extra>","inherit":true},"12f6e7aa9d206.3":{"x":{},"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"y":{},"type":"scatter","mode":"lines","line":{"color":"#92400e","width":1,"dash":"dot"},"name":"State Max","hovertemplate":"Max: %{y:.1f}%<extra><\/extra>","inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"title":{"text":"<b>National Cognitive Prevalence Trends (2015-2022)<\/b>","font":{"family":"Georgia","size":16,"color":"#d97706"}},"xaxis":{"domain":[0,1],"automargin":true,"title":"Year","tickfont":{"family":"Georgia"},"titlefont":{"family":"Georgia","size":14},"dtick":1},"yaxis":{"domain":[0,1],"automargin":true,"title":"Prevalence (%)","tickfont":{"family":"Georgia"},"titlefont":{"family":"Georgia","size":14},"range":[15,35]},"legend":{"orientation":"h","x":0.5,"xanchor":"center","y":-0.14999999999999999,"font":{"family":"Georgia"}},"paper_bgcolor":"rgba(0,0,0,0)","plot_bgcolor":"rgba(0,0,0,0)","font":{"family":"Georgia"},"hovermode":"x unified","showlegend":true},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"fillcolor":"rgba(217, 119, 6, 0.2)","x":[2015,2016,2016,2016,2015],"type":"scatter","mode":"lines","hoveron":"points","fill":"toself","line":{"color":"transparent"},"name":"±1 SD","hoverinfo":["skip","skip","skip","skip","skip"],"y":[null,null,null,null,null],"marker":{"color":"rgba(31,119,180,1)","line":{"color":"rgba(31,119,180,1)"}},"error_y":{"color":"rgba(31,119,180,1)"},"error_x":{"color":"rgba(31,119,180,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[2015,2016],"y":[22.925322914633259,20.34970238095238],"type":"scatter","mode":"lines+markers","line":{"color":"#d97706","width":3},"marker":{"color":"#d97706","size":10,"line":{"color":"white","width":2}},"name":"National Mean","hovertemplate":["<b>Year: %{x}<\/b><br>Mean Prevalence: %{y:.1f}%<br><extra><\/extra>","<b>Year: %{x}<\/b><br>Mean Prevalence: %{y:.1f}%<br><extra><\/extra>"],"error_y":{"color":"rgba(255,127,14,1)"},"error_x":{"color":"rgba(255,127,14,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[2015,2016],"y":[22.925322914633259,20.34970238095238],"type":"scatter","mode":"lines","line":{"color":"#fbbf24","width":1,"dash":"dot"},"name":"State Min","hovertemplate":["Min: %{y:.1f}%<extra><\/extra>","Min: %{y:.1f}%<extra><\/extra>"],"marker":{"color":"rgba(44,160,44,1)","line":{"color":"rgba(44,160,44,1)"}},"error_y":{"color":"rgba(44,160,44,1)"},"error_x":{"color":"rgba(44,160,44,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[2015,2016],"y":[22.925322914633259,20.34970238095238],"type":"scatter","mode":"lines","line":{"color":"#92400e","width":1,"dash":"dot"},"name":"State Max","hovertemplate":["Max: %{y:.1f}%<extra><\/extra>","Max: %{y:.1f}%<extra><\/extra>"],"marker":{"color":"rgba(214,39,40,1)","line":{"color":"rgba(214,39,40,1)"}},"error_y":{"color":"rgba(214,39,40,1)"},"error_x":{"color":"rgba(214,39,40,1)"},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="state-comparison-over-time" class="section level2">
+<h2>State Comparison Over Time</h2>
+<p>Select multiple states to compare their cognitive prevalence
+trajectories.</p>
+<pre class="r"><code># Top and bottom 5 states by average prevalence
+state_avg &lt;- az_state_year_all |&gt;
+  group_by(state_name, state_abbr) |&gt;
+  summarise(avg_prev = mean(mean_prev, na.rm = TRUE), .groups = &quot;drop&quot;) |&gt;
+  arrange(desc(avg_prev))
+
+highlight_states &lt;- c(
+  head(state_avg$state_abbr, 5),  # Top 5
+  tail(state_avg$state_abbr, 5)   # Bottom 5
+)
+
+state_trends &lt;- az_state_year_all |&gt;
+  filter(state_abbr %in% highlight_states) |&gt;
+  mutate(
+    category = case_when(
+      state_abbr %in% head(state_avg$state_abbr, 5) ~ &quot;Highest Prevalence&quot;,
+      TRUE ~ &quot;Lowest Prevalence&quot;
+    )
+  )
+
+fig_states &lt;- plot_ly(state_trends, x = ~year, y = ~mean_prev, 
+                      color = ~state_name, colors = viridis(10)) |&gt;
+  add_trace(
+    type = &quot;scatter&quot;,
+    mode = &quot;lines+markers&quot;,
+    marker = list(size = 8),
+    line = list(width = 2),
+    hovertemplate = paste0(
+      &quot;&lt;b&gt;%{text}&lt;/b&gt;&lt;br&gt;&quot;,
+      &quot;Year: %{x}&lt;br&gt;&quot;,
+      &quot;Prevalence: %{y:.1f}%&lt;br&gt;&quot;,
+      &quot;&lt;extra&gt;&lt;/extra&gt;&quot;
+    ),
+    text = ~state_name
+  ) |&gt;
+  layout(
+    title = list(
+      text = &quot;&lt;b&gt;State Comparison: Highest vs Lowest Prevalence States&lt;/b&gt;&quot;,
+      font = list(family = &quot;Georgia&quot;, size = 16, color = &quot;#d97706&quot;)
+    ),
+    xaxis = list(
+      title = &quot;Year&quot;,
+      tickfont = list(family = &quot;Georgia&quot;),
+      titlefont = list(family = &quot;Georgia&quot;),
+      dtick = 1
+    ),
+    yaxis = list(
+      title = &quot;Prevalence (%)&quot;,
+      tickfont = list(family = &quot;Georgia&quot;),
+      titlefont = list(family = &quot;Georgia&quot;)
+    ),
+    legend = list(
+      font = list(family = &quot;Georgia&quot;),
+      orientation = &quot;v&quot;,
+      x = 1.02,
+      y = 0.5
+    ),
+    paper_bgcolor = &quot;rgba(0,0,0,0)&quot;,
+    plot_bgcolor = &quot;rgba(0,0,0,0)&quot;,
+    font = list(family = &quot;Georgia&quot;),
+    hovermode = &quot;closest&quot;
+  )
+
+fig_states</code></pre>
+<div class="plotly html-widget html-fill-item" id="htmlwidget-9f332a59348f827dd358" style="width:100%;height:576px;"></div>
+<script type="application/json" data-for="htmlwidget-9f332a59348f827dd358">{"x":{"visdat":{"12f6e52087109":["function () ","plotlyVisDat"]},"cur_data":"12f6e52087109","attrs":{"12f6e52087109":{"x":{},"y":{},"color":{},"colors":["#440154FF","#482878FF","#3E4A89FF","#31688EFF","#26828EFF","#1F9E89FF","#35B779FF","#6DCD59FF","#B4DE2CFF","#FDE725FF"],"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter","mode":"lines+markers","marker":{"size":8},"line":{"width":2},"hovertemplate":"<b>%{text}<\/b><br>Year: %{x}<br>Prevalence: %{y:.1f}%<br><extra><\/extra>","text":{},"inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"title":{"text":"<b>State Comparison: Highest vs Lowest Prevalence States<\/b>","font":{"family":"Georgia","size":16,"color":"#d97706"}},"xaxis":{"domain":[0,1],"automargin":true,"title":"Year","tickfont":{"family":"Georgia"},"titlefont":{"family":"Georgia"},"dtick":1},"yaxis":{"domain":[0,1],"automargin":true,"title":"Prevalence (%)","tickfont":{"family":"Georgia"},"titlefont":{"family":"Georgia"}},"legend":{"font":{"family":"Georgia"},"orientation":"v","x":1.02,"y":0.5},"paper_bgcolor":"rgba(0,0,0,0)","plot_bgcolor":"rgba(0,0,0,0)","font":{"family":"Georgia"},"hovermode":"closest","showlegend":true},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"x":[2015],"y":[30.25],"type":"scatter","mode":"lines+markers","marker":{"color":"rgba(68,1,84,1)","size":8,"line":{"color":"rgba(68,1,84,1)"}},"line":{"color":"rgba(68,1,84,1)","width":2},"hovertemplate":"<b>%{text}<\/b><br>Year: %{x}<br>Prevalence: %{y:.1f}%<br><extra><\/extra>","text":"Alabama","name":"Alabama","textfont":{"color":"rgba(68,1,84,1)"},"error_y":{"color":"rgba(68,1,84,1)"},"error_x":{"color":"rgba(68,1,84,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[2015,2016],"y":[23.444444444444446,9.1500000000000004],"type":"scatter","mode":"lines+markers","marker":{"color":"rgba(72,40,120,1)","size":8,"line":{"color":"rgba(72,40,120,1)"}},"line":{"color":"rgba(72,40,120,1)","width":2},"hovertemplate":["<b>%{text}<\/b><br>Year: %{x}<br>Prevalence: %{y:.1f}%<br><extra><\/extra>","<b>%{text}<\/b><br>Year: %{x}<br>Prevalence: %{y:.1f}%<br><extra><\/extra>"],"text":["Arizona","Arizona"],"name":"Arizona","textfont":{"color":"rgba(72,40,120,1)"},"error_y":{"color":"rgba(72,40,120,1)"},"error_x":{"color":"rgba(72,40,120,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[2015,2016],"y":[22.787500000000001,11.949999999999999],"type":"scatter","mode":"lines+markers","marker":{"color":"rgba(62,74,137,1)","size":8,"line":{"color":"rgba(62,74,137,1)"}},"line":{"color":"rgba(62,74,137,1)","width":2},"hovertemplate":["<b>%{text}<\/b><br>Year: %{x}<br>Prevalence: %{y:.1f}%<br><extra><\/extra>","<b>%{text}<\/b><br>Year: %{x}<br>Prevalence: %{y:.1f}%<br><extra><\/extra>"],"text":["Colorado","Colorado"],"name":"Colorado","textfont":{"color":"rgba(62,74,137,1)"},"error_y":{"color":"rgba(62,74,137,1)"},"error_x":{"color":"rgba(62,74,137,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[2015,2016],"y":[8.4000000000000004,24.300000000000001],"type":"scatter","mode":"lines+markers","marker":{"color":"rgba(49,104,142,1)","size":8,"line":{"color":"rgba(49,104,142,1)"}},"line":{"color":"rgba(49,104,142,1)","width":2},"hovertemplate":["<b>%{text}<\/b><br>Year: %{x}<br>Prevalence: %{y:.1f}%<br><extra><\/extra>","<b>%{text}<\/b><br>Year: %{x}<br>Prevalence: %{y:.1f}%<br><extra><\/extra>"],"text":["Idaho","Idaho"],"name":"Idaho","textfont":{"color":"rgba(49,104,142,1)"},"error_y":{"color":"rgba(49,104,142,1)"},"error_x":{"color":"rgba(49,104,142,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[2016],"y":[30.82],"type":"scatter","mode":"lines+markers","marker":{"color":"rgba(38,130,142,1)","size":8,"line":{"color":"rgba(38,130,142,1)"}},"line":{"color":"rgba(38,130,142,1)","width":2},"hovertemplate":"<b>%{text}<\/b><br>Year: %{x}<br>Prevalence: %{y:.1f}%<br><extra><\/extra>","text":"Massachusetts","name":"Massachusetts","textfont":{"color":"rgba(38,130,142,1)"},"error_y":{"color":"rgba(38,130,142,1)"},"error_x":{"color":"rgba(38,130,142,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[2015,2016],"y":[21.137499999999999,8.6999999999999993],"type":"scatter","mode":"lines+markers","marker":{"color":"rgba(31,158,137,1)","size":8,"line":{"color":"rgba(31,158,137,1)"}},"line":{"color":"rgba(31,158,137,1)","width":2},"hovertemplate":["<b>%{text}<\/b><br>Year: %{x}<br>Prevalence: %{y:.1f}%<br><extra><\/extra>","<b>%{text}<\/b><br>Year: %{x}<br>Prevalence: %{y:.1f}%<br><extra><\/extra>"],"text":["Minnesota","Minnesota"],"name":"Minnesota","textfont":{"color":"rgba(31,158,137,1)"},"error_y":{"color":"rgba(31,158,137,1)"},"error_x":{"color":"rgba(31,158,137,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[2015],"y":[31.414285714285715],"type":"scatter","mode":"lines+markers","marker":{"color":"rgba(53,183,121,1)","size":8,"line":{"color":"rgba(53,183,121,1)"}},"line":{"color":"rgba(53,183,121,1)","width":2},"hovertemplate":"<b>%{text}<\/b><br>Year: %{x}<br>Prevalence: %{y:.1f}%<br><extra><\/extra>","text":"Mississippi","name":"Mississippi","textfont":{"color":"rgba(53,183,121,1)"},"error_y":{"color":"rgba(53,183,121,1)"},"error_x":{"color":"rgba(53,183,121,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[2015],"y":[31.537499999999998],"type":"scatter","mode":"lines+markers","marker":{"color":"rgba(109,205,89,1)","size":8,"line":{"color":"rgba(109,205,89,1)"}},"line":{"color":"rgba(109,205,89,1)","width":2},"hovertemplate":"<b>%{text}<\/b><br>Year: %{x}<br>Prevalence: %{y:.1f}%<br><extra><\/extra>","text":"Oklahoma","name":"Oklahoma","textfont":{"color":"rgba(109,205,89,1)"},"error_y":{"color":"rgba(109,205,89,1)"},"error_x":{"color":"rgba(109,205,89,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[2015],"y":[7.75],"type":"scatter","mode":"lines+markers","marker":{"color":"rgba(180,222,44,1)","size":8,"line":{"color":"rgba(180,222,44,1)"}},"line":{"color":"rgba(180,222,44,1)","width":2},"hovertemplate":"<b>%{text}<\/b><br>Year: %{x}<br>Prevalence: %{y:.1f}%<br><extra><\/extra>","text":"Pennsylvania","name":"Pennsylvania","textfont":{"color":"rgba(180,222,44,1)"},"error_y":{"color":"rgba(180,222,44,1)"},"error_x":{"color":"rgba(180,222,44,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[2015],"y":[30.9375],"type":"scatter","mode":"lines+markers","marker":{"color":"rgba(253,231,37,1)","size":8,"line":{"color":"rgba(253,231,37,1)"}},"line":{"color":"rgba(253,231,37,1)","width":2},"hovertemplate":"<b>%{text}<\/b><br>Year: %{x}<br>Prevalence: %{y:.1f}%<br><extra><\/extra>","text":"South Dakota","name":"South Dakota","textfont":{"color":"rgba(253,231,37,1)"},"error_y":{"color":"rgba(253,231,37,1)"},"error_x":{"color":"rgba(253,231,37,1)"},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<div id="socioeconomic-factor-analysis"
+class="section level1 content-section">
+<h1>Socioeconomic Factor Analysis</h1>
+<div id="interactive-scatter-plots-with-linked-brushing"
+class="section level2">
+<h2>Interactive Scatter Plots with Linked Brushing</h2>
+<p>The following visualizations use <strong>linked brushing</strong> –
+select points in one plot and see them highlighted across all plots.
+This helps identify states that may be outliers across multiple
+dimensions.</p>
+<pre class="r"><code># Create shared data for crosstalk
+shared_data &lt;- SharedData$new(
+  az_combined |&gt; 
+    filter(!is.na(median_state) &amp; !is.na(educ_bach) &amp; !is.na(pm25_state)) |&gt;
+    mutate(
+      year_factor = factor(year),
+      tooltip = paste0(
+        &quot;&lt;b&gt;&quot;, state_name, &quot; (&quot;, year, &quot;)&lt;/b&gt;&lt;br&gt;&quot;,
+        &quot;Prevalence: &quot;, round(mean_prev, 1), &quot;%&lt;br&gt;&quot;,
+        &quot;Income: $&quot;, format(round(median_state), big.mark = &quot;,&quot;), &quot;&lt;br&gt;&quot;,
+        &quot;Education: &quot;, round(educ_bach, 1), &quot;%&lt;br&gt;&quot;,
+        &quot;PM2.5: &quot;, round(pm25_state, 1), &quot; µg/m³&quot;
+      )
+    ),
+  key = ~paste(state_abbr, year)
+)
+
+# Income vs Prevalence
+p1 &lt;- plot_ly(shared_data, x = ~median_state, y = ~mean_prev, 
+              color = ~year_factor, colors = c(&quot;#d97706&quot;, &quot;#2563eb&quot;)) |&gt;
+  add_markers(
+    marker = list(size = 12, opacity = 0.7,
+                  line = list(color = &quot;white&quot;, width = 1)),
+    hovertemplate = &quot;%{text}&lt;extra&gt;&lt;/extra&gt;&quot;,
+    text = ~tooltip
+  ) |&gt;
+  layout(
+    xaxis = list(title = &quot;Median Household Income ($)&quot;, tickfont = list(family = &quot;Georgia&quot;)),
+    yaxis = list(title = &quot;Prevalence (%)&quot;, tickfont = list(family = &quot;Georgia&quot;)),
+    showlegend = FALSE
+  )
+
+# Education vs Prevalence
+p2 &lt;- plot_ly(shared_data, x = ~educ_bach, y = ~mean_prev,
+              color = ~year_factor, colors = c(&quot;#d97706&quot;, &quot;#2563eb&quot;)) |&gt;
+  add_markers(
+    marker = list(size = 12, opacity = 0.7,
+                  line = list(color = &quot;white&quot;, width = 1)),
+    hovertemplate = &quot;%{text}&lt;extra&gt;&lt;/extra&gt;&quot;,
+    text = ~tooltip
+  ) |&gt;
+  layout(
+    xaxis = list(title = &quot;% with Bachelor&#39;s Degree&quot;, tickfont = list(family = &quot;Georgia&quot;)),
+    yaxis = list(title = &quot;Prevalence (%)&quot;, tickfont = list(family = &quot;Georgia&quot;)),
+    showlegend = FALSE
+  )
+
+# PM2.5 vs Prevalence
+p3 &lt;- plot_ly(shared_data, x = ~pm25_state, y = ~mean_prev,
+              color = ~year_factor, colors = c(&quot;#d97706&quot;, &quot;#2563eb&quot;)) |&gt;
+  add_markers(
+    marker = list(size = 12, opacity = 0.7,
+                  line = list(color = &quot;white&quot;, width = 1)),
+    hovertemplate = &quot;%{text}&lt;extra&gt;&lt;/extra&gt;&quot;,
+    text = ~tooltip
+  ) |&gt;
+  layout(
+    xaxis = list(title = &quot;PM2.5 (µg/m³)&quot;, tickfont = list(family = &quot;Georgia&quot;)),
+    yaxis = list(title = &quot;Prevalence (%)&quot;, tickfont = list(family = &quot;Georgia&quot;)),
+    legend = list(
+      title = list(text = &quot;Year&quot;),
+      font = list(family = &quot;Georgia&quot;)
+    )
+  )
+
+# Combine plots
+subplot(p1, p2, p3, nrows = 1, shareY = TRUE, titleX = TRUE) |&gt;
+  layout(
+    title = list(
+      text = &quot;&lt;b&gt;Cognitive Prevalence vs Socioeconomic &amp; Environmental Factors&lt;/b&gt;&quot;,
+      font = list(family = &quot;Georgia&quot;, size = 16, color = &quot;#d97706&quot;),
+      y = 0.98
+    ),
+    annotations = list(
+      list(x = 0.12, y = 1.08, text = &quot;&lt;b&gt;Income Effect&lt;/b&gt;&quot;, 
+           showarrow = FALSE, xref = &quot;paper&quot;, yref = &quot;paper&quot;,
+           font = list(family = &quot;Georgia&quot;, size = 13, color = &quot;#ea580c&quot;)),
+      list(x = 0.5, y = 1.08, text = &quot;&lt;b&gt;Education Effect&lt;/b&gt;&quot;,
+           showarrow = FALSE, xref = &quot;paper&quot;, yref = &quot;paper&quot;,
+           font = list(family = &quot;Georgia&quot;, size = 13, color = &quot;#ea580c&quot;)),
+      list(x = 0.88, y = 1.08, text = &quot;&lt;b&gt;Air Quality Effect&lt;/b&gt;&quot;,
+           showarrow = FALSE, xref = &quot;paper&quot;, yref = &quot;paper&quot;,
+           font = list(family = &quot;Georgia&quot;, size = 13, color = &quot;#ea580c&quot;))
+    ),
+    paper_bgcolor = &quot;rgba(0,0,0,0)&quot;,
+    plot_bgcolor = &quot;rgba(0,0,0,0)&quot;,
+    font = list(family = &quot;Georgia&quot;),
+    hovermode = &quot;closest&quot;
+  ) |&gt;
+  highlight(on = &quot;plotly_click&quot;, off = &quot;plotly_doubleclick&quot;, 
+            color = &quot;#ef4444&quot;, opacityDim = 0.3)</code></pre>
+<div class="plotly html-widget html-fill-item" id="htmlwidget-dfa31d151cb8876163b6" style="width:100%;height:576px;"></div>
+<script type="application/json" data-for="htmlwidget-dfa31d151cb8876163b6">{"x":{"data":[{"x":[43553,46070,45195,58954,65960.5,49466.5,50783.5,73818.5,56493,46679.5,53850,49754,51114,46365,80934.5,50836.5,51839,71677.5,40939,58179.5,58359,71277,53967,57042,49156,49693,51084,53055.5,65978.5,45676,53764.5,48619.5,51799,62316.5,67386,57047,45028,56742.5],"y":[30.25,27.587499999999999,23.444444444444446,25.742857142857144,22.787500000000001,25.181818181818183,31.824999999999999,23.149999999999999,19.240000000000002,8.4000000000000004,22.372727272727271,12,12.949999999999999,27.789999999999999,18.190000000000001,13.300000000000001,24.925000000000001,21.137499999999999,31.414285714285715,25.712499999999999,20.09,18.824999999999999,23.425000000000001,22.945454545454545,25.166666666666668,31.537499999999998,20.84,7.75,28.100000000000001,29.464285714285715,30.9375,25.063636363636363,29.055555555555554,18.41,21.899999999999999,21.240000000000002,28.420000000000002,18.039999999999999],"type":"scatter","mode":"markers","marker":{"color":"rgba(217,119,6,1)","size":12,"opacity":0.69999999999999996,"line":{"color":"white","width":1}},"hovertemplate":["%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>"],"text":["<b>Alabama (2015)<\/b><br>Prevalence: 30.2%<br>Income: $43,553<br>Education: 24.2%<br>PM2.5: 9 µg/m³","<b>Arkansas (2015)<\/b><br>Prevalence: 27.6%<br>Income: $46,070<br>Education: 21.8%<br>PM2.5: 8.8 µg/m³","<b>Arizona (2015)<\/b><br>Prevalence: 23.4%<br>Income: $45,195<br>Education: 27.7%<br>PM2.5: 7.7 µg/m³","<b>California (2015)<\/b><br>Prevalence: 25.7%<br>Income: $58,954<br>Education: 32.3%<br>PM2.5: 9.8 µg/m³","<b>Colorado (2015)<\/b><br>Prevalence: 22.8%<br>Income: $65,960<br>Education: 39.2%<br>PM2.5: 6.4 µg/m³","<b>Florida (2015)<\/b><br>Prevalence: 25.2%<br>Income: $49,466<br>Education: 28.4%<br>PM2.5: 6.5 µg/m³","<b>Georgia (2015)<\/b><br>Prevalence: 31.8%<br>Income: $50,784<br>Education: 29.9%<br>PM2.5: 9 µg/m³","<b>Hawaii (2015)<\/b><br>Prevalence: 23.1%<br>Income: $73,818<br>Education: 31.4%<br>PM2.5: 6.7 µg/m³","<b>Iowa (2015)<\/b><br>Prevalence: 19.2%<br>Income: $56,493<br>Education: 26.8%<br>PM2.5: 8.4 µg/m³","<b>Idaho (2015)<\/b><br>Prevalence: 8.4%<br>Income: $46,680<br>Education: 26%<br>PM2.5: 9.5 µg/m³","<b>Illinois (2015)<\/b><br>Prevalence: 22.4%<br>Income: $53,850<br>Education: 32.9%<br>PM2.5: 9.1 µg/m³","<b>Indiana (2015)<\/b><br>Prevalence: 12%<br>Income: $49,754<br>Education: 24.9%<br>PM2.5: 9.9 µg/m³","<b>Kentucky (2015)<\/b><br>Prevalence: 12.9%<br>Income: $51,114<br>Education: 23.3%<br>PM2.5: 8.8 µg/m³","<b>Louisiana (2015)<\/b><br>Prevalence: 27.8%<br>Income: $46,365<br>Education: 23.2%<br>PM2.5: 8.4 µg/m³","<b>Maryland (2015)<\/b><br>Prevalence: 18.2%<br>Income: $80,934<br>Education: 38.8%<br>PM2.5: 9.2 µg/m³","<b>Maine (2015)<\/b><br>Prevalence: 13.3%<br>Income: $50,836<br>Education: 30.1%<br>PM2.5: 7.3 µg/m³","<b>Michigan (2015)<\/b><br>Prevalence: 24.9%<br>Income: $51,839<br>Education: 27.8%<br>PM2.5: 8.7 µg/m³","<b>Minnesota (2015)<\/b><br>Prevalence: 21.1%<br>Income: $71,678<br>Education: 34.7%<br>PM2.5: 6.5 µg/m³","<b>Mississippi (2015)<\/b><br>Prevalence: 31.4%<br>Income: $40,939<br>Education: 20.8%<br>PM2.5: 8.7 µg/m³","<b>North Dakota (2015)<\/b><br>Prevalence: 25.7%<br>Income: $58,180<br>Education: 29.1%<br>PM2.5: 5.9 µg/m³","<b>Nebraska (2015)<\/b><br>Prevalence: 20.1%<br>Income: $58,359<br>Education: 30.2%<br>PM2.5: 7.5 µg/m³","<b>New Jersey (2015)<\/b><br>Prevalence: 18.8%<br>Income: $71,277<br>Education: 37.6%<br>PM2.5: 9 µg/m³","<b>Nevada (2015)<\/b><br>Prevalence: 23.4%<br>Income: $53,967<br>Education: 23.6%<br>PM2.5: 7.6 µg/m³","<b>New York (2015)<\/b><br>Prevalence: 22.9%<br>Income: $57,042<br>Education: 35%<br>PM2.5: 8 µg/m³","<b>Ohio (2015)<\/b><br>Prevalence: 25.2%<br>Income: $49,156<br>Education: 26.8%<br>PM2.5: 10.3 µg/m³","<b>Oklahoma (2015)<\/b><br>Prevalence: 31.5%<br>Income: $49,693<br>Education: 24.6%<br>PM2.5: 7.8 µg/m³","<b>Oregon (2015)<\/b><br>Prevalence: 20.8%<br>Income: $51,084<br>Education: 32.2%<br>PM2.5: 8.9 µg/m³","<b>Pennsylvania (2015)<\/b><br>Prevalence: 7.8%<br>Income: $53,056<br>Education: 29.7%<br>PM2.5: 10.7 µg/m³","<b>Rhode Island (2015)<\/b><br>Prevalence: 28.1%<br>Income: $65,978<br>Education: 32.7%<br>PM2.5: 7.4 µg/m³","<b>South Carolina (2015)<\/b><br>Prevalence: 29.5%<br>Income: $45,676<br>Education: 26.8%<br>PM2.5: 8.2 µg/m³","<b>South Dakota (2015)<\/b><br>Prevalence: 30.9%<br>Income: $53,764<br>Education: 27.5%<br>PM2.5: 6.6 µg/m³","<b>Tennessee (2015)<\/b><br>Prevalence: 25.1%<br>Income: $48,620<br>Education: 25.7%<br>PM2.5: 8.4 µg/m³","<b>Texas (2015)<\/b><br>Prevalence: 29.1%<br>Income: $51,799<br>Education: 28.4%<br>PM2.5: 9.3 µg/m³","<b>Utah (2015)<\/b><br>Prevalence: 18.4%<br>Income: $62,316<br>Education: 31.8%<br>PM2.5: 6.8 µg/m³","<b>Virginia (2015)<\/b><br>Prevalence: 21.9%<br>Income: $67,386<br>Education: 37%<br>PM2.5: 8.1 µg/m³","<b>Wisconsin (2015)<\/b><br>Prevalence: 21.2%<br>Income: $57,047<br>Education: 28.4%<br>PM2.5: 7.8 µg/m³","<b>West Virginia (2015)<\/b><br>Prevalence: 28.4%<br>Income: $45,028<br>Education: 19.6%<br>PM2.5: 9.7 µg/m³","<b>Wyoming (2015)<\/b><br>Prevalence: 18%<br>Income: $56,742<br>Education: 26.2%<br>PM2.5: 5 µg/m³"],"key":["AL 2015","AR 2015","AZ 2015","CA 2015","CO 2015","FL 2015","GA 2015","HI 2015","IA 2015","ID 2015","IL 2015","IN 2015","KY 2015","LA 2015","MD 2015","ME 2015","MI 2015","MN 2015","MS 2015","ND 2015","NE 2015","NJ 2015","NV 2015","NY 2015","OH 2015","OK 2015","OR 2015","PA 2015","RI 2015","SC 2015","SD 2015","TN 2015","TX 2015","UT 2015","VA 2015","WI 2015","WV 2015","WY 2015"],"set":"SharedData2d017d50","name":"2015","textfont":{"color":"rgba(217,119,6,1)"},"error_y":{"color":"rgba(217,119,6,1)"},"error_x":{"color":"rgba(217,119,6,1)"},"line":{"color":"rgba(217,119,6,1)"},"xaxis":"x","yaxis":"y","_isNestedKey":false,"frame":null},{"x":[77328,45679,46534,66251,73846,57734,53583,51487.5,51401,56027.5,52148,66962.5,50327,73309],"y":[29.785714285714285,9.6999999999999993,9.1500000000000004,11.949999999999999,21.98,27.912500000000001,8.1999999999999993,24.300000000000001,23.016666666666666,27.985714285714284,24.028571428571428,30.82,27.366666666666667,8.6999999999999993],"type":"scatter","mode":"markers","marker":{"color":"rgba(37,99,235,1)","size":12,"opacity":0.69999999999999996,"line":{"color":"white","width":1}},"hovertemplate":["%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>"],"text":["<b>Alaska (2016)<\/b><br>Prevalence: 29.8%<br>Income: $77,328<br>Education: 29.6%<br>PM2.5: 8 µg/m³","<b>Arkansas (2016)<\/b><br>Prevalence: 9.7%<br>Income: $45,679<br>Education: 22.4%<br>PM2.5: 8.8 µg/m³","<b>Arizona (2016)<\/b><br>Prevalence: 9.2%<br>Income: $46,534<br>Education: 28.9%<br>PM2.5: 8.9 µg/m³","<b>Colorado (2016)<\/b><br>Prevalence: 11.9%<br>Income: $66,251<br>Education: 39.9%<br>PM2.5: 6.2 µg/m³","<b>Connecticut (2016)<\/b><br>Prevalence: 22%<br>Income: $73,846<br>Education: 38.6%<br>PM2.5: 7.1 µg/m³","<b>Delaware (2016)<\/b><br>Prevalence: 27.9%<br>Income: $57,734<br>Education: 31%<br>PM2.5: 8.9 µg/m³","<b>Georgia (2016)<\/b><br>Prevalence: 8.2%<br>Income: $53,583<br>Education: 30.5%<br>PM2.5: 8.9 µg/m³","<b>Idaho (2016)<\/b><br>Prevalence: 24.3%<br>Income: $51,488<br>Education: 27.6%<br>PM2.5: 8.5 µg/m³","<b>Indiana (2016)<\/b><br>Prevalence: 23%<br>Income: $51,401<br>Education: 25.6%<br>PM2.5: 8.6 µg/m³","<b>Kansas (2016)<\/b><br>Prevalence: 28%<br>Income: $56,028<br>Education: 32.8%<br>PM2.5: 6.9 µg/m³","<b>Kentucky (2016)<\/b><br>Prevalence: 24%<br>Income: $52,148<br>Education: 23.4%<br>PM2.5: 8.4 µg/m³","<b>Massachusetts (2016)<\/b><br>Prevalence: 30.8%<br>Income: $66,962<br>Education: 42.7%<br>PM2.5: 6.1 µg/m³","<b>Maine (2016)<\/b><br>Prevalence: 27.4%<br>Income: $50,327<br>Education: 30.1%<br>PM2.5: 6.1 µg/m³","<b>Minnesota (2016)<\/b><br>Prevalence: 8.7%<br>Income: $73,309<br>Education: 34.8%<br>PM2.5: 5.6 µg/m³"],"key":["AK 2016","AR 2016","AZ 2016","CO 2016","CT 2016","DE 2016","GA 2016","ID 2016","IN 2016","KS 2016","KY 2016","MA 2016","ME 2016","MN 2016"],"set":"SharedData2d017d50","name":"2016","textfont":{"color":"rgba(37,99,235,1)"},"error_y":{"color":"rgba(37,99,235,1)"},"error_x":{"color":"rgba(37,99,235,1)"},"line":{"color":"rgba(37,99,235,1)"},"xaxis":"x","yaxis":"y","_isNestedKey":false,"frame":null},{"x":[24.199999999999999,21.800000000000001,27.699999999999999,32.299999999999997,39.200000000000003,28.399999999999999,29.899999999999999,31.399999999999999,26.800000000000001,26,32.899999999999999,24.899999999999999,23.300000000000001,23.199999999999999,38.799999999999997,30.100000000000001,27.800000000000001,34.700000000000003,20.800000000000001,29.100000000000001,30.199999999999999,37.600000000000001,23.600000000000001,35,26.800000000000001,24.600000000000001,32.200000000000003,29.699999999999999,32.700000000000003,26.800000000000001,27.5,25.699999999999999,28.399999999999999,31.800000000000001,37,28.399999999999999,19.600000000000001,26.199999999999999],"y":[30.25,27.587499999999999,23.444444444444446,25.742857142857144,22.787500000000001,25.181818181818183,31.824999999999999,23.149999999999999,19.240000000000002,8.4000000000000004,22.372727272727271,12,12.949999999999999,27.789999999999999,18.190000000000001,13.300000000000001,24.925000000000001,21.137499999999999,31.414285714285715,25.712499999999999,20.09,18.824999999999999,23.425000000000001,22.945454545454545,25.166666666666668,31.537499999999998,20.84,7.75,28.100000000000001,29.464285714285715,30.9375,25.063636363636363,29.055555555555554,18.41,21.899999999999999,21.240000000000002,28.420000000000002,18.039999999999999],"type":"scatter","mode":"markers","marker":{"color":"rgba(217,119,6,1)","size":12,"opacity":0.69999999999999996,"line":{"color":"white","width":1}},"hovertemplate":["%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>"],"text":["<b>Alabama (2015)<\/b><br>Prevalence: 30.2%<br>Income: $43,553<br>Education: 24.2%<br>PM2.5: 9 µg/m³","<b>Arkansas (2015)<\/b><br>Prevalence: 27.6%<br>Income: $46,070<br>Education: 21.8%<br>PM2.5: 8.8 µg/m³","<b>Arizona (2015)<\/b><br>Prevalence: 23.4%<br>Income: $45,195<br>Education: 27.7%<br>PM2.5: 7.7 µg/m³","<b>California (2015)<\/b><br>Prevalence: 25.7%<br>Income: $58,954<br>Education: 32.3%<br>PM2.5: 9.8 µg/m³","<b>Colorado (2015)<\/b><br>Prevalence: 22.8%<br>Income: $65,960<br>Education: 39.2%<br>PM2.5: 6.4 µg/m³","<b>Florida (2015)<\/b><br>Prevalence: 25.2%<br>Income: $49,466<br>Education: 28.4%<br>PM2.5: 6.5 µg/m³","<b>Georgia (2015)<\/b><br>Prevalence: 31.8%<br>Income: $50,784<br>Education: 29.9%<br>PM2.5: 9 µg/m³","<b>Hawaii (2015)<\/b><br>Prevalence: 23.1%<br>Income: $73,818<br>Education: 31.4%<br>PM2.5: 6.7 µg/m³","<b>Iowa (2015)<\/b><br>Prevalence: 19.2%<br>Income: $56,493<br>Education: 26.8%<br>PM2.5: 8.4 µg/m³","<b>Idaho (2015)<\/b><br>Prevalence: 8.4%<br>Income: $46,680<br>Education: 26%<br>PM2.5: 9.5 µg/m³","<b>Illinois (2015)<\/b><br>Prevalence: 22.4%<br>Income: $53,850<br>Education: 32.9%<br>PM2.5: 9.1 µg/m³","<b>Indiana (2015)<\/b><br>Prevalence: 12%<br>Income: $49,754<br>Education: 24.9%<br>PM2.5: 9.9 µg/m³","<b>Kentucky (2015)<\/b><br>Prevalence: 12.9%<br>Income: $51,114<br>Education: 23.3%<br>PM2.5: 8.8 µg/m³","<b>Louisiana (2015)<\/b><br>Prevalence: 27.8%<br>Income: $46,365<br>Education: 23.2%<br>PM2.5: 8.4 µg/m³","<b>Maryland (2015)<\/b><br>Prevalence: 18.2%<br>Income: $80,934<br>Education: 38.8%<br>PM2.5: 9.2 µg/m³","<b>Maine (2015)<\/b><br>Prevalence: 13.3%<br>Income: $50,836<br>Education: 30.1%<br>PM2.5: 7.3 µg/m³","<b>Michigan (2015)<\/b><br>Prevalence: 24.9%<br>Income: $51,839<br>Education: 27.8%<br>PM2.5: 8.7 µg/m³","<b>Minnesota (2015)<\/b><br>Prevalence: 21.1%<br>Income: $71,678<br>Education: 34.7%<br>PM2.5: 6.5 µg/m³","<b>Mississippi (2015)<\/b><br>Prevalence: 31.4%<br>Income: $40,939<br>Education: 20.8%<br>PM2.5: 8.7 µg/m³","<b>North Dakota (2015)<\/b><br>Prevalence: 25.7%<br>Income: $58,180<br>Education: 29.1%<br>PM2.5: 5.9 µg/m³","<b>Nebraska (2015)<\/b><br>Prevalence: 20.1%<br>Income: $58,359<br>Education: 30.2%<br>PM2.5: 7.5 µg/m³","<b>New Jersey (2015)<\/b><br>Prevalence: 18.8%<br>Income: $71,277<br>Education: 37.6%<br>PM2.5: 9 µg/m³","<b>Nevada (2015)<\/b><br>Prevalence: 23.4%<br>Income: $53,967<br>Education: 23.6%<br>PM2.5: 7.6 µg/m³","<b>New York (2015)<\/b><br>Prevalence: 22.9%<br>Income: $57,042<br>Education: 35%<br>PM2.5: 8 µg/m³","<b>Ohio (2015)<\/b><br>Prevalence: 25.2%<br>Income: $49,156<br>Education: 26.8%<br>PM2.5: 10.3 µg/m³","<b>Oklahoma (2015)<\/b><br>Prevalence: 31.5%<br>Income: $49,693<br>Education: 24.6%<br>PM2.5: 7.8 µg/m³","<b>Oregon (2015)<\/b><br>Prevalence: 20.8%<br>Income: $51,084<br>Education: 32.2%<br>PM2.5: 8.9 µg/m³","<b>Pennsylvania (2015)<\/b><br>Prevalence: 7.8%<br>Income: $53,056<br>Education: 29.7%<br>PM2.5: 10.7 µg/m³","<b>Rhode Island (2015)<\/b><br>Prevalence: 28.1%<br>Income: $65,978<br>Education: 32.7%<br>PM2.5: 7.4 µg/m³","<b>South Carolina (2015)<\/b><br>Prevalence: 29.5%<br>Income: $45,676<br>Education: 26.8%<br>PM2.5: 8.2 µg/m³","<b>South Dakota (2015)<\/b><br>Prevalence: 30.9%<br>Income: $53,764<br>Education: 27.5%<br>PM2.5: 6.6 µg/m³","<b>Tennessee (2015)<\/b><br>Prevalence: 25.1%<br>Income: $48,620<br>Education: 25.7%<br>PM2.5: 8.4 µg/m³","<b>Texas (2015)<\/b><br>Prevalence: 29.1%<br>Income: $51,799<br>Education: 28.4%<br>PM2.5: 9.3 µg/m³","<b>Utah (2015)<\/b><br>Prevalence: 18.4%<br>Income: $62,316<br>Education: 31.8%<br>PM2.5: 6.8 µg/m³","<b>Virginia (2015)<\/b><br>Prevalence: 21.9%<br>Income: $67,386<br>Education: 37%<br>PM2.5: 8.1 µg/m³","<b>Wisconsin (2015)<\/b><br>Prevalence: 21.2%<br>Income: $57,047<br>Education: 28.4%<br>PM2.5: 7.8 µg/m³","<b>West Virginia (2015)<\/b><br>Prevalence: 28.4%<br>Income: $45,028<br>Education: 19.6%<br>PM2.5: 9.7 µg/m³","<b>Wyoming (2015)<\/b><br>Prevalence: 18%<br>Income: $56,742<br>Education: 26.2%<br>PM2.5: 5 µg/m³"],"key":["AL 2015","AR 2015","AZ 2015","CA 2015","CO 2015","FL 2015","GA 2015","HI 2015","IA 2015","ID 2015","IL 2015","IN 2015","KY 2015","LA 2015","MD 2015","ME 2015","MI 2015","MN 2015","MS 2015","ND 2015","NE 2015","NJ 2015","NV 2015","NY 2015","OH 2015","OK 2015","OR 2015","PA 2015","RI 2015","SC 2015","SD 2015","TN 2015","TX 2015","UT 2015","VA 2015","WI 2015","WV 2015","WY 2015"],"set":"SharedData2d017d50","name":"2015","textfont":{"color":"rgba(217,119,6,1)"},"error_y":{"color":"rgba(217,119,6,1)"},"error_x":{"color":"rgba(217,119,6,1)"},"line":{"color":"rgba(217,119,6,1)"},"xaxis":"x2","yaxis":"y","_isNestedKey":false,"frame":null},{"x":[29.600000000000001,22.399999999999999,28.899999999999999,39.899999999999999,38.600000000000001,31,30.5,27.600000000000001,25.600000000000001,32.799999999999997,23.399999999999999,42.700000000000003,30.100000000000001,34.799999999999997],"y":[29.785714285714285,9.6999999999999993,9.1500000000000004,11.949999999999999,21.98,27.912500000000001,8.1999999999999993,24.300000000000001,23.016666666666666,27.985714285714284,24.028571428571428,30.82,27.366666666666667,8.6999999999999993],"type":"scatter","mode":"markers","marker":{"color":"rgba(37,99,235,1)","size":12,"opacity":0.69999999999999996,"line":{"color":"white","width":1}},"hovertemplate":["%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>"],"text":["<b>Alaska (2016)<\/b><br>Prevalence: 29.8%<br>Income: $77,328<br>Education: 29.6%<br>PM2.5: 8 µg/m³","<b>Arkansas (2016)<\/b><br>Prevalence: 9.7%<br>Income: $45,679<br>Education: 22.4%<br>PM2.5: 8.8 µg/m³","<b>Arizona (2016)<\/b><br>Prevalence: 9.2%<br>Income: $46,534<br>Education: 28.9%<br>PM2.5: 8.9 µg/m³","<b>Colorado (2016)<\/b><br>Prevalence: 11.9%<br>Income: $66,251<br>Education: 39.9%<br>PM2.5: 6.2 µg/m³","<b>Connecticut (2016)<\/b><br>Prevalence: 22%<br>Income: $73,846<br>Education: 38.6%<br>PM2.5: 7.1 µg/m³","<b>Delaware (2016)<\/b><br>Prevalence: 27.9%<br>Income: $57,734<br>Education: 31%<br>PM2.5: 8.9 µg/m³","<b>Georgia (2016)<\/b><br>Prevalence: 8.2%<br>Income: $53,583<br>Education: 30.5%<br>PM2.5: 8.9 µg/m³","<b>Idaho (2016)<\/b><br>Prevalence: 24.3%<br>Income: $51,488<br>Education: 27.6%<br>PM2.5: 8.5 µg/m³","<b>Indiana (2016)<\/b><br>Prevalence: 23%<br>Income: $51,401<br>Education: 25.6%<br>PM2.5: 8.6 µg/m³","<b>Kansas (2016)<\/b><br>Prevalence: 28%<br>Income: $56,028<br>Education: 32.8%<br>PM2.5: 6.9 µg/m³","<b>Kentucky (2016)<\/b><br>Prevalence: 24%<br>Income: $52,148<br>Education: 23.4%<br>PM2.5: 8.4 µg/m³","<b>Massachusetts (2016)<\/b><br>Prevalence: 30.8%<br>Income: $66,962<br>Education: 42.7%<br>PM2.5: 6.1 µg/m³","<b>Maine (2016)<\/b><br>Prevalence: 27.4%<br>Income: $50,327<br>Education: 30.1%<br>PM2.5: 6.1 µg/m³","<b>Minnesota (2016)<\/b><br>Prevalence: 8.7%<br>Income: $73,309<br>Education: 34.8%<br>PM2.5: 5.6 µg/m³"],"key":["AK 2016","AR 2016","AZ 2016","CO 2016","CT 2016","DE 2016","GA 2016","ID 2016","IN 2016","KS 2016","KY 2016","MA 2016","ME 2016","MN 2016"],"set":"SharedData2d017d50","name":"2016","textfont":{"color":"rgba(37,99,235,1)"},"error_y":{"color":"rgba(37,99,235,1)"},"error_x":{"color":"rgba(37,99,235,1)"},"line":{"color":"rgba(37,99,235,1)"},"xaxis":"x2","yaxis":"y","_isNestedKey":false,"frame":null},{"x":[9.0214285709999995,8.8222222220000006,7.7000000000000002,9.8325581399999997,6.3777777779999996,6.541176471,9.0250000000000004,6.7249999999999996,8.4153846150000007,9.5142857139999997,9.0933333330000004,9.9000000000000004,8.769230769,8.3699999999999992,9.1999999999999993,7.3200000000000003,8.7352941180000006,6.54,8.7400000000000002,5.9111111110000003,7.5,9.0230769229999996,7.5999999999999996,7.9714285709999997,10.32,7.7800000000000002,8.9444444440000002,10.704166669999999,7.4000000000000004,8.1999999999999993,6.5888888889999997,8.3666666670000005,9.3200000000000003,6.75,8.1176470589999994,7.7818181820000003,9.7200000000000006,4.9727272730000003],"y":[30.25,27.587499999999999,23.444444444444446,25.742857142857144,22.787500000000001,25.181818181818183,31.824999999999999,23.149999999999999,19.240000000000002,8.4000000000000004,22.372727272727271,12,12.949999999999999,27.789999999999999,18.190000000000001,13.300000000000001,24.925000000000001,21.137499999999999,31.414285714285715,25.712499999999999,20.09,18.824999999999999,23.425000000000001,22.945454545454545,25.166666666666668,31.537499999999998,20.84,7.75,28.100000000000001,29.464285714285715,30.9375,25.063636363636363,29.055555555555554,18.41,21.899999999999999,21.240000000000002,28.420000000000002,18.039999999999999],"type":"scatter","mode":"markers","marker":{"color":"rgba(217,119,6,1)","size":12,"opacity":0.69999999999999996,"line":{"color":"white","width":1}},"hovertemplate":["%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>"],"text":["<b>Alabama (2015)<\/b><br>Prevalence: 30.2%<br>Income: $43,553<br>Education: 24.2%<br>PM2.5: 9 µg/m³","<b>Arkansas (2015)<\/b><br>Prevalence: 27.6%<br>Income: $46,070<br>Education: 21.8%<br>PM2.5: 8.8 µg/m³","<b>Arizona (2015)<\/b><br>Prevalence: 23.4%<br>Income: $45,195<br>Education: 27.7%<br>PM2.5: 7.7 µg/m³","<b>California (2015)<\/b><br>Prevalence: 25.7%<br>Income: $58,954<br>Education: 32.3%<br>PM2.5: 9.8 µg/m³","<b>Colorado (2015)<\/b><br>Prevalence: 22.8%<br>Income: $65,960<br>Education: 39.2%<br>PM2.5: 6.4 µg/m³","<b>Florida (2015)<\/b><br>Prevalence: 25.2%<br>Income: $49,466<br>Education: 28.4%<br>PM2.5: 6.5 µg/m³","<b>Georgia (2015)<\/b><br>Prevalence: 31.8%<br>Income: $50,784<br>Education: 29.9%<br>PM2.5: 9 µg/m³","<b>Hawaii (2015)<\/b><br>Prevalence: 23.1%<br>Income: $73,818<br>Education: 31.4%<br>PM2.5: 6.7 µg/m³","<b>Iowa (2015)<\/b><br>Prevalence: 19.2%<br>Income: $56,493<br>Education: 26.8%<br>PM2.5: 8.4 µg/m³","<b>Idaho (2015)<\/b><br>Prevalence: 8.4%<br>Income: $46,680<br>Education: 26%<br>PM2.5: 9.5 µg/m³","<b>Illinois (2015)<\/b><br>Prevalence: 22.4%<br>Income: $53,850<br>Education: 32.9%<br>PM2.5: 9.1 µg/m³","<b>Indiana (2015)<\/b><br>Prevalence: 12%<br>Income: $49,754<br>Education: 24.9%<br>PM2.5: 9.9 µg/m³","<b>Kentucky (2015)<\/b><br>Prevalence: 12.9%<br>Income: $51,114<br>Education: 23.3%<br>PM2.5: 8.8 µg/m³","<b>Louisiana (2015)<\/b><br>Prevalence: 27.8%<br>Income: $46,365<br>Education: 23.2%<br>PM2.5: 8.4 µg/m³","<b>Maryland (2015)<\/b><br>Prevalence: 18.2%<br>Income: $80,934<br>Education: 38.8%<br>PM2.5: 9.2 µg/m³","<b>Maine (2015)<\/b><br>Prevalence: 13.3%<br>Income: $50,836<br>Education: 30.1%<br>PM2.5: 7.3 µg/m³","<b>Michigan (2015)<\/b><br>Prevalence: 24.9%<br>Income: $51,839<br>Education: 27.8%<br>PM2.5: 8.7 µg/m³","<b>Minnesota (2015)<\/b><br>Prevalence: 21.1%<br>Income: $71,678<br>Education: 34.7%<br>PM2.5: 6.5 µg/m³","<b>Mississippi (2015)<\/b><br>Prevalence: 31.4%<br>Income: $40,939<br>Education: 20.8%<br>PM2.5: 8.7 µg/m³","<b>North Dakota (2015)<\/b><br>Prevalence: 25.7%<br>Income: $58,180<br>Education: 29.1%<br>PM2.5: 5.9 µg/m³","<b>Nebraska (2015)<\/b><br>Prevalence: 20.1%<br>Income: $58,359<br>Education: 30.2%<br>PM2.5: 7.5 µg/m³","<b>New Jersey (2015)<\/b><br>Prevalence: 18.8%<br>Income: $71,277<br>Education: 37.6%<br>PM2.5: 9 µg/m³","<b>Nevada (2015)<\/b><br>Prevalence: 23.4%<br>Income: $53,967<br>Education: 23.6%<br>PM2.5: 7.6 µg/m³","<b>New York (2015)<\/b><br>Prevalence: 22.9%<br>Income: $57,042<br>Education: 35%<br>PM2.5: 8 µg/m³","<b>Ohio (2015)<\/b><br>Prevalence: 25.2%<br>Income: $49,156<br>Education: 26.8%<br>PM2.5: 10.3 µg/m³","<b>Oklahoma (2015)<\/b><br>Prevalence: 31.5%<br>Income: $49,693<br>Education: 24.6%<br>PM2.5: 7.8 µg/m³","<b>Oregon (2015)<\/b><br>Prevalence: 20.8%<br>Income: $51,084<br>Education: 32.2%<br>PM2.5: 8.9 µg/m³","<b>Pennsylvania (2015)<\/b><br>Prevalence: 7.8%<br>Income: $53,056<br>Education: 29.7%<br>PM2.5: 10.7 µg/m³","<b>Rhode Island (2015)<\/b><br>Prevalence: 28.1%<br>Income: $65,978<br>Education: 32.7%<br>PM2.5: 7.4 µg/m³","<b>South Carolina (2015)<\/b><br>Prevalence: 29.5%<br>Income: $45,676<br>Education: 26.8%<br>PM2.5: 8.2 µg/m³","<b>South Dakota (2015)<\/b><br>Prevalence: 30.9%<br>Income: $53,764<br>Education: 27.5%<br>PM2.5: 6.6 µg/m³","<b>Tennessee (2015)<\/b><br>Prevalence: 25.1%<br>Income: $48,620<br>Education: 25.7%<br>PM2.5: 8.4 µg/m³","<b>Texas (2015)<\/b><br>Prevalence: 29.1%<br>Income: $51,799<br>Education: 28.4%<br>PM2.5: 9.3 µg/m³","<b>Utah (2015)<\/b><br>Prevalence: 18.4%<br>Income: $62,316<br>Education: 31.8%<br>PM2.5: 6.8 µg/m³","<b>Virginia (2015)<\/b><br>Prevalence: 21.9%<br>Income: $67,386<br>Education: 37%<br>PM2.5: 8.1 µg/m³","<b>Wisconsin (2015)<\/b><br>Prevalence: 21.2%<br>Income: $57,047<br>Education: 28.4%<br>PM2.5: 7.8 µg/m³","<b>West Virginia (2015)<\/b><br>Prevalence: 28.4%<br>Income: $45,028<br>Education: 19.6%<br>PM2.5: 9.7 µg/m³","<b>Wyoming (2015)<\/b><br>Prevalence: 18%<br>Income: $56,742<br>Education: 26.2%<br>PM2.5: 5 µg/m³"],"key":["AL 2015","AR 2015","AZ 2015","CA 2015","CO 2015","FL 2015","GA 2015","HI 2015","IA 2015","ID 2015","IL 2015","IN 2015","KY 2015","LA 2015","MD 2015","ME 2015","MI 2015","MN 2015","MS 2015","ND 2015","NE 2015","NJ 2015","NV 2015","NY 2015","OH 2015","OK 2015","OR 2015","PA 2015","RI 2015","SC 2015","SD 2015","TN 2015","TX 2015","UT 2015","VA 2015","WI 2015","WV 2015","WY 2015"],"set":"SharedData2d017d50","name":"2015","textfont":{"color":"rgba(217,119,6,1)"},"error_y":{"color":"rgba(217,119,6,1)"},"error_x":{"color":"rgba(217,119,6,1)"},"line":{"color":"rgba(217,119,6,1)"},"xaxis":"x3","yaxis":"y","_isNestedKey":false,"frame":null},{"x":[7.9500000000000002,8.8222222220000006,8.8666666670000005,6.21,7.0999999999999996,8.9000000000000004,8.9049999999999994,8.5,8.5652173909999991,6.8857142859999998,8.3571428569999995,6.0555555559999998,6.1142857140000002,5.5764705880000003],"y":[29.785714285714285,9.6999999999999993,9.1500000000000004,11.949999999999999,21.98,27.912500000000001,8.1999999999999993,24.300000000000001,23.016666666666666,27.985714285714284,24.028571428571428,30.82,27.366666666666667,8.6999999999999993],"type":"scatter","mode":"markers","marker":{"color":"rgba(37,99,235,1)","size":12,"opacity":0.69999999999999996,"line":{"color":"white","width":1}},"hovertemplate":["%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>","%{text}<extra><\/extra>"],"text":["<b>Alaska (2016)<\/b><br>Prevalence: 29.8%<br>Income: $77,328<br>Education: 29.6%<br>PM2.5: 8 µg/m³","<b>Arkansas (2016)<\/b><br>Prevalence: 9.7%<br>Income: $45,679<br>Education: 22.4%<br>PM2.5: 8.8 µg/m³","<b>Arizona (2016)<\/b><br>Prevalence: 9.2%<br>Income: $46,534<br>Education: 28.9%<br>PM2.5: 8.9 µg/m³","<b>Colorado (2016)<\/b><br>Prevalence: 11.9%<br>Income: $66,251<br>Education: 39.9%<br>PM2.5: 6.2 µg/m³","<b>Connecticut (2016)<\/b><br>Prevalence: 22%<br>Income: $73,846<br>Education: 38.6%<br>PM2.5: 7.1 µg/m³","<b>Delaware (2016)<\/b><br>Prevalence: 27.9%<br>Income: $57,734<br>Education: 31%<br>PM2.5: 8.9 µg/m³","<b>Georgia (2016)<\/b><br>Prevalence: 8.2%<br>Income: $53,583<br>Education: 30.5%<br>PM2.5: 8.9 µg/m³","<b>Idaho (2016)<\/b><br>Prevalence: 24.3%<br>Income: $51,488<br>Education: 27.6%<br>PM2.5: 8.5 µg/m³","<b>Indiana (2016)<\/b><br>Prevalence: 23%<br>Income: $51,401<br>Education: 25.6%<br>PM2.5: 8.6 µg/m³","<b>Kansas (2016)<\/b><br>Prevalence: 28%<br>Income: $56,028<br>Education: 32.8%<br>PM2.5: 6.9 µg/m³","<b>Kentucky (2016)<\/b><br>Prevalence: 24%<br>Income: $52,148<br>Education: 23.4%<br>PM2.5: 8.4 µg/m³","<b>Massachusetts (2016)<\/b><br>Prevalence: 30.8%<br>Income: $66,962<br>Education: 42.7%<br>PM2.5: 6.1 µg/m³","<b>Maine (2016)<\/b><br>Prevalence: 27.4%<br>Income: $50,327<br>Education: 30.1%<br>PM2.5: 6.1 µg/m³","<b>Minnesota (2016)<\/b><br>Prevalence: 8.7%<br>Income: $73,309<br>Education: 34.8%<br>PM2.5: 5.6 µg/m³"],"key":["AK 2016","AR 2016","AZ 2016","CO 2016","CT 2016","DE 2016","GA 2016","ID 2016","IN 2016","KS 2016","KY 2016","MA 2016","ME 2016","MN 2016"],"set":"SharedData2d017d50","name":"2016","textfont":{"color":"rgba(37,99,235,1)"},"error_y":{"color":"rgba(37,99,235,1)"},"error_x":{"color":"rgba(37,99,235,1)"},"line":{"color":"rgba(37,99,235,1)"},"xaxis":"x3","yaxis":"y","_isNestedKey":false,"frame":null}],"layout":{"xaxis":{"domain":[0,0.3133333333333333],"automargin":true,"title":"Median Household Income ($)","tickfont":{"family":"Georgia"},"anchor":"y"},"xaxis2":{"domain":[0.35333333333333333,0.64666666666666661],"automargin":true,"title":"% with Bachelor's Degree","tickfont":{"family":"Georgia"},"anchor":"y"},"xaxis3":{"domain":[0.68666666666666665,1],"automargin":true,"title":"PM2.5 (µg/m³)","tickfont":{"family":"Georgia"},"anchor":"y"},"yaxis":{"domain":[0,1],"automargin":true,"title":"Prevalence (%)","tickfont":{"family":"Georgia"},"anchor":"x"},"annotations":[{"x":0.12,"y":1.0800000000000001,"text":"<b>Income Effect<\/b>","showarrow":false,"xref":"paper","yref":"paper","font":{"family":"Georgia","size":13,"color":"#ea580c"}},{"x":0.5,"y":1.0800000000000001,"text":"<b>Education Effect<\/b>","showarrow":false,"xref":"paper","yref":"paper","font":{"family":"Georgia","size":13,"color":"#ea580c"}},{"x":0.88,"y":1.0800000000000001,"text":"<b>Air Quality Effect<\/b>","showarrow":false,"xref":"paper","yref":"paper","font":{"family":"Georgia","size":13,"color":"#ea580c"}}],"shapes":[],"images":[],"margin":{"b":40,"l":60,"t":25,"r":10},"showlegend":true,"dragmode":"zoom","hovermode":"closest","legend":{"title":{"text":"Year"},"font":{"family":"Georgia"}},"title":{"text":"<b>Cognitive Prevalence vs Socioeconomic & Environmental Factors<\/b>","font":{"family":"Georgia","size":16,"color":"#d97706"},"y":0.97999999999999998},"paper_bgcolor":"rgba(0,0,0,0)","plot_bgcolor":"rgba(0,0,0,0)","font":{"family":"Georgia"}},"attrs":{"12f6e2084e840":{"x":{},"y":{},"color":{},"colors":["#d97706","#2563eb"],"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter","mode":"markers","marker":{"size":12,"opacity":0.69999999999999996,"line":{"color":"white","width":1}},"hovertemplate":"%{text}<extra><\/extra>","text":{},"inherit":true},"12f6e75abd26d":{"x":{},"y":{},"color":{},"colors":["#d97706","#2563eb"],"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter","mode":"markers","marker":{"size":12,"opacity":0.69999999999999996,"line":{"color":"white","width":1}},"hovertemplate":"%{text}<extra><\/extra>","text":{},"inherit":true},"12f6e63842e75":{"x":{},"y":{},"color":{},"colors":["#d97706","#2563eb"],"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter","mode":"markers","marker":{"size":12,"opacity":0.69999999999999996,"line":{"color":"white","width":1}},"hovertemplate":"%{text}<extra><\/extra>","text":{},"inherit":true}},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"highlight":{"on":"plotly_click","off":"plotly_doubleclick","persistent":false,"dynamic":false,"color":"rgba(239,68,68,1)","selectize":false,"defaultValues":null,"opacityDim":0.29999999999999999,"selected":{"opacity":1},"debounce":0,"ctGroups":["SharedData2d017d50"]},"subplot":true,"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<p><strong>Key Observations:</strong></p>
+<ul>
+<li><strong>Income</strong>: States with higher median household income
+tend to show slightly lower cognitive prevalence</li>
+<li><strong>Education</strong>: Higher educational attainment is
+associated with modestly lower prevalence rates<br />
+</li>
+<li><strong>Air Quality</strong>: PM2.5 levels show minimal correlation
+with cognitive outcomes at the state level</li>
+</ul>
+</div>
+</div>
+<div id="distribution-analysis" class="section level1 content-section">
+<h1>Distribution Analysis</h1>
+<div id="prevalence-by-demographics" class="section level2">
+<h2>Prevalence by Demographics</h2>
+<pre class="r"><code># Prepare demographic summaries
+az_by_age &lt;- az_cog_summary_base |&gt;
+  filter(age_group != &quot;Overall&quot;) |&gt;
+  group_by(year = year_start, age_group) |&gt;
+  summarise(mean_value = mean(data_value, na.rm = TRUE), .groups = &quot;drop&quot;)
+
+az_by_sex &lt;- az_cog_summary_base |&gt;
+  filter(sex_group != &quot;Overall&quot;) |&gt;
+  group_by(year = year_start, sex_group) |&gt;
+  summarise(mean_value = mean(data_value, na.rm = TRUE), .groups = &quot;drop&quot;)
+
+# Age group plot
+p_age &lt;- plot_ly(az_by_age, x = ~year, y = ~mean_value, 
+                 color = ~age_group, colors = c(&quot;#d97706&quot;, &quot;#2563eb&quot;)) |&gt;
+  add_trace(
+    type = &quot;bar&quot;,
+    hovertemplate = paste0(
+      &quot;&lt;b&gt;%{text}&lt;/b&gt;&lt;br&gt;&quot;,
+      &quot;Year: %{x}&lt;br&gt;&quot;,
+      &quot;Prevalence: %{y:.1f}%&lt;br&gt;&quot;,
+      &quot;&lt;extra&gt;&lt;/extra&gt;&quot;
+    ),
+    text = ~age_group
+  ) |&gt;
+  layout(
+    barmode = &quot;group&quot;,
+    xaxis = list(title = &quot;Year&quot;, tickfont = list(family = &quot;Georgia&quot;), dtick = 1),
+    yaxis = list(title = &quot;Prevalence (%)&quot;, tickfont = list(family = &quot;Georgia&quot;)),
+    legend = list(title = list(text = &quot;Age Group&quot;), font = list(family = &quot;Georgia&quot;))
+  )
+
+# Sex group plot  
+p_sex &lt;- plot_ly(az_by_sex, x = ~year, y = ~mean_value,
+                 color = ~sex_group, colors = c(&quot;#d97706&quot;, &quot;#2563eb&quot;)) |&gt;
+  add_trace(
+    type = &quot;bar&quot;,
+    hovertemplate = paste0(
+      &quot;&lt;b&gt;%{text}&lt;/b&gt;&lt;br&gt;&quot;,
+      &quot;Year: %{x}&lt;br&gt;&quot;,
+      &quot;Prevalence: %{y:.1f}%&lt;br&gt;&quot;,
+      &quot;&lt;extra&gt;&lt;/extra&gt;&quot;
+    ),
+    text = ~sex_group
+  ) |&gt;
+  layout(
+    barmode = &quot;group&quot;,
+    xaxis = list(title = &quot;Year&quot;, tickfont = list(family = &quot;Georgia&quot;), dtick = 1),
+    yaxis = list(title = &quot;Prevalence (%)&quot;, tickfont = list(family = &quot;Georgia&quot;)),
+    legend = list(title = list(text = &quot;Sex&quot;), font = list(family = &quot;Georgia&quot;))
+  )
+
+subplot(p_age, p_sex, nrows = 1, shareY = TRUE, titleX = TRUE) |&gt;
+  layout(
+    title = list(
+      text = &quot;&lt;b&gt;Prevalence by Age Group and Sex Over Time&lt;/b&gt;&quot;,
+      font = list(family = &quot;Georgia&quot;, size = 16, color = &quot;#d97706&quot;)
+    ),
+    paper_bgcolor = &quot;rgba(0,0,0,0)&quot;,
+    plot_bgcolor = &quot;rgba(0,0,0,0)&quot;,
+    font = list(family = &quot;Georgia&quot;)
+  )</code></pre>
+<div class="plotly html-widget html-fill-item" id="htmlwidget-ca562a0968878a70b62c" style="width:100%;height:576px;"></div>
+<script type="application/json" data-for="htmlwidget-ca562a0968878a70b62c">{"x":{"data":[{"x":[2015,2016],"y":[32.121900347624567,29.984269662921349],"type":"bar","hovertemplate":["<b>%{text}<\/b><br>Year: %{x}<br>Prevalence: %{y:.1f}%<br><extra><\/extra>","<b>%{text}<\/b><br>Year: %{x}<br>Prevalence: %{y:.1f}%<br><extra><\/extra>"],"text":["50-64 years","50-64 years"],"name":"50-64 years","marker":{"color":"rgba(217,119,6,1)","line":{"color":"rgba(217,119,6,1)"}},"textfont":{"color":"rgba(217,119,6,1)"},"error_y":{"color":"rgba(217,119,6,1)"},"error_x":{"color":"rgba(217,119,6,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[2015,2016],"y":[25.910365135453475,25.311834319526628],"type":"bar","hovertemplate":["<b>%{text}<\/b><br>Year: %{x}<br>Prevalence: %{y:.1f}%<br><extra><\/extra>","<b>%{text}<\/b><br>Year: %{x}<br>Prevalence: %{y:.1f}%<br><extra><\/extra>"],"text":["65 years or older","65 years or older"],"name":"65 years or older","marker":{"color":"rgba(37,99,235,1)","line":{"color":"rgba(37,99,235,1)"}},"textfont":{"color":"rgba(37,99,235,1)"},"error_y":{"color":"rgba(37,99,235,1)"},"error_x":{"color":"rgba(37,99,235,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[2015,2016],"y":[31.061469534050179,30.226190476190474],"type":"bar","hovertemplate":["<b>%{text}<\/b><br>Year: %{x}<br>Prevalence: %{y:.1f}%<br><extra><\/extra>","<b>%{text}<\/b><br>Year: %{x}<br>Prevalence: %{y:.1f}%<br><extra><\/extra>"],"text":["Female","Female"],"name":"Female","marker":{"color":"rgba(217,119,6,1)","line":{"color":"rgba(217,119,6,1)"}},"textfont":{"color":"rgba(217,119,6,1)"},"error_y":{"color":"rgba(217,119,6,1)"},"error_x":{"color":"rgba(217,119,6,1)"},"xaxis":"x2","yaxis":"y","frame":null},{"x":[2015,2016],"y":[27.249498997995993,24.673584905660377],"type":"bar","hovertemplate":["<b>%{text}<\/b><br>Year: %{x}<br>Prevalence: %{y:.1f}%<br><extra><\/extra>","<b>%{text}<\/b><br>Year: %{x}<br>Prevalence: %{y:.1f}%<br><extra><\/extra>"],"text":["Male","Male"],"name":"Male","marker":{"color":"rgba(37,99,235,1)","line":{"color":"rgba(37,99,235,1)"}},"textfont":{"color":"rgba(37,99,235,1)"},"error_y":{"color":"rgba(37,99,235,1)"},"error_x":{"color":"rgba(37,99,235,1)"},"xaxis":"x2","yaxis":"y","frame":null}],"layout":{"xaxis":{"domain":[0,0.47999999999999998],"automargin":true,"title":"Year","tickfont":{"family":"Georgia"},"dtick":1,"anchor":"y"},"xaxis2":{"domain":[0.52000000000000002,1],"automargin":true,"title":"Year","tickfont":{"family":"Georgia"},"dtick":1,"anchor":"y"},"yaxis":{"domain":[0,1],"automargin":true,"title":"Prevalence (%)","tickfont":{"family":"Georgia"},"anchor":"x"},"annotations":[],"shapes":[],"images":[],"margin":{"b":40,"l":60,"t":25,"r":10},"barmode":"group","legend":{"title":{"text":"Sex"},"font":{"family":"Georgia"}},"hovermode":"closest","showlegend":true,"title":{"text":"<b>Prevalence by Age Group and Sex Over Time<\/b>","font":{"family":"Georgia","size":16,"color":"#d97706"}},"paper_bgcolor":"rgba(0,0,0,0)","plot_bgcolor":"rgba(0,0,0,0)","font":{"family":"Georgia"}},"attrs":{"12f6eb16ed62":{"x":{},"y":{},"color":{},"colors":["#d97706","#2563eb"],"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"bar","hovertemplate":"<b>%{text}<\/b><br>Year: %{x}<br>Prevalence: %{y:.1f}%<br><extra><\/extra>","text":{},"inherit":true},"12f6ee3ac29e":{"x":{},"y":{},"color":{},"colors":["#d97706","#2563eb"],"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"bar","hovertemplate":"<b>%{text}<\/b><br>Year: %{x}<br>Prevalence: %{y:.1f}%<br><extra><\/extra>","text":{},"inherit":true}},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"subplot":true,"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="state-level-distribution" class="section level2">
+<h2>State-Level Distribution</h2>
+<pre class="r"><code># Create boxplot by year
+fig_box &lt;- plot_ly(az_state_year_all, x = ~factor(year), y = ~mean_prev) |&gt;
+  add_boxplot(
+    fillcolor = &quot;rgba(217, 119, 6, 0.5)&quot;,
+    line = list(color = &quot;#d97706&quot;),
+    marker = list(color = &quot;#d97706&quot;, outliercolor = &quot;#92400e&quot;),
+    hoverinfo = &quot;y&quot;,
+    name = &quot;&quot;
+  ) |&gt;
+  add_trace(
+    data = az_state_year_all |&gt; group_by(year) |&gt; summarise(mean_prev = mean(mean_prev)),
+    x = ~factor(year),
+    y = ~mean_prev,
+    type = &quot;scatter&quot;,
+    mode = &quot;markers&quot;,
+    marker = list(color = &quot;#ef4444&quot;, size = 12, symbol = &quot;diamond&quot;),
+    name = &quot;National Mean&quot;,
+    hovertemplate = &quot;National Mean: %{y:.1f}%&lt;extra&gt;&lt;/extra&gt;&quot;
+  ) |&gt;
+  layout(
+    title = list(
+      text = &quot;&lt;b&gt;Distribution of State-Level Prevalence by Year&lt;/b&gt;&quot;,
+      font = list(family = &quot;Georgia&quot;, size = 16, color = &quot;#d97706&quot;)
+    ),
+    xaxis = list(
+      title = &quot;Year&quot;,
+      tickfont = list(family = &quot;Georgia&quot;),
+      titlefont = list(family = &quot;Georgia&quot;)
+    ),
+    yaxis = list(
+      title = &quot;Prevalence (%)&quot;,
+      tickfont = list(family = &quot;Georgia&quot;),
+      titlefont = list(family = &quot;Georgia&quot;)
+    ),
+    showlegend = TRUE,
+    legend = list(
+      orientation = &quot;h&quot;,
+      x = 0.5,
+      xanchor = &quot;center&quot;,
+      y = -0.15,
+      font = list(family = &quot;Georgia&quot;)
+    ),
+    paper_bgcolor = &quot;rgba(0,0,0,0)&quot;,
+    plot_bgcolor = &quot;rgba(0,0,0,0)&quot;,
+    font = list(family = &quot;Georgia&quot;)
+  )
+
+fig_box</code></pre>
+<div class="plotly html-widget html-fill-item" id="htmlwidget-519388036a59a4d90f38" style="width:100%;height:576px;"></div>
+<script type="application/json" data-for="htmlwidget-519388036a59a4d90f38">{"x":{"visdat":{"12f6e74439d1d":["function () ","plotlyVisDat"],"12f6e300168d":["function () ","data"]},"cur_data":"12f6e300168d","attrs":{"12f6e74439d1d":{"x":{},"y":{},"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"box","fillcolor":"rgba(217, 119, 6, 0.5)","line":{"color":"#d97706"},"marker":{"color":"#d97706","outliercolor":"#92400e"},"hoverinfo":"y","name":"","inherit":true},"12f6e300168d":{"x":{},"y":{},"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter","mode":"markers","marker":{"color":"#ef4444","size":12,"symbol":"diamond"},"name":"National Mean","hovertemplate":"National Mean: %{y:.1f}%<extra><\/extra>","inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"title":{"text":"<b>Distribution of State-Level Prevalence by Year<\/b>","font":{"family":"Georgia","size":16,"color":"#d97706"}},"xaxis":{"domain":[0,1],"automargin":true,"title":"Year","tickfont":{"family":"Georgia"},"titlefont":{"family":"Georgia"},"type":"category","categoryorder":"array","categoryarray":["2015","2016"]},"yaxis":{"domain":[0,1],"automargin":true,"title":"Prevalence (%)","tickfont":{"family":"Georgia"},"titlefont":{"family":"Georgia"}},"showlegend":true,"legend":{"orientation":"h","x":0.5,"xanchor":"center","y":-0.14999999999999999,"font":{"family":"Georgia"}},"paper_bgcolor":"rgba(0,0,0,0)","plot_bgcolor":"rgba(0,0,0,0)","font":{"family":"Georgia"},"hovermode":"closest"},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"fillcolor":"rgba(217, 119, 6, 0.5)","x":["2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2015","2016","2016","2016","2016","2016","2016","2016","2016","2016","2016","2016","2016","2016","2016"],"y":[30.25,27.587499999999999,23.444444444444446,25.742857142857144,22.787500000000001,25.181818181818183,31.824999999999999,23.149999999999999,19.240000000000002,8.4000000000000004,22.372727272727271,12,12.949999999999999,27.789999999999999,18.190000000000001,13.300000000000001,24.925000000000001,21.137499999999999,31.414285714285715,25.712499999999999,20.09,18.824999999999999,23.425000000000001,22.945454545454545,25.166666666666668,31.537499999999998,20.84,7.75,28.100000000000001,29.464285714285715,30.9375,25.063636363636363,29.055555555555554,18.41,21.899999999999999,25.475862068965519,21.240000000000002,28.420000000000002,18.039999999999999,29.785714285714285,9.6999999999999993,9.1500000000000004,11.949999999999999,21.98,27.912500000000001,8.1999999999999993,24.300000000000001,23.016666666666666,27.985714285714284,24.028571428571428,30.82,27.366666666666667,8.6999999999999993],"type":"box","line":{"color":"#d97706"},"marker":{"color":"#d97706","outliercolor":"#92400e","line":{"color":"rgba(31,119,180,1)"}},"hoverinfo":["y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y","y"],"name":"","xaxis":"x","yaxis":"y","frame":null},{"x":["2015","2016"],"y":[22.925322914633259,20.34970238095238],"type":"scatter","mode":"markers","marker":{"color":"#ef4444","size":12,"symbol":"diamond","line":{"color":"rgba(255,127,14,1)"}},"name":"National Mean","hovertemplate":["National Mean: %{y:.1f}%<extra><\/extra>","National Mean: %{y:.1f}%<extra><\/extra>"],"error_y":{"color":"rgba(255,127,14,1)"},"error_x":{"color":"rgba(255,127,14,1)"},"line":{"color":"rgba(255,127,14,1)"},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<div id="data-explorer" class="section level1 content-section">
+<h1>Data Explorer</h1>
+<p>Use the interactive table below to <strong>search, filter, and
+sort</strong> the underlying data. Click column headers to sort, use the
+search box to find specific states, and adjust entries per page.</p>
+<pre class="r"><code># Prepare comprehensive dataset for display
+display_data &lt;- az_state_year_all |&gt;
+  left_join(income_state, by = c(&quot;year&quot;, &quot;state_name&quot; = &quot;state&quot;)) |&gt;
+  left_join(edu_state, by = c(&quot;year&quot;, &quot;state_name&quot; = &quot;state&quot;)) |&gt;
+  left_join(air_state, by = c(&quot;year&quot;, &quot;state_name&quot; = &quot;state_desc&quot;)) |&gt;
+  select(
+    Year = year,
+    State = state_name,
+    `State Code` = state_abbr,
+    `Prevalence (%)` = mean_prev,
+    `Median Income ($)` = median_state,
+    `Education (% BA+)` = educ_bach,
+    `PM2.5 (µg/m³)` = pm25_state
+  ) |&gt;
+  mutate(
+    `Prevalence (%)` = round(`Prevalence (%)`, 1),
+    `Median Income ($)` = ifelse(!is.na(`Median Income ($)`), 
+                                  format(round(`Median Income ($)`), big.mark = &quot;,&quot;), 
+                                  NA),
+    `Education (% BA+)` = round(`Education (% BA+)`, 1),
+    `PM2.5 (µg/m³)` = round(`PM2.5 (µg/m³)`, 1)
+  )
+
+datatable(
+  display_data,
+  filter = &quot;top&quot;,
+  options = list(
+    pageLength = 15,
+    autoWidth = TRUE,
+    dom = &#39;Bfrtip&#39;,
+    scrollX = TRUE,
+    columnDefs = list(
+      list(className = &#39;dt-center&#39;, targets = c(0, 2, 3, 4, 5, 6))
+    )
+  ),
+  rownames = FALSE,
+  class = &#39;cell-border stripe hover&#39;,
+  caption = htmltools::tags$caption(
+    style = &#39;caption-side: top; text-align: left; color: #d97706; font-weight: bold; font-family: Georgia; font-size: 14px;&#39;,
+    &#39;State-Year Level Alzheimer\&#39;s Cognitive Prevalence Data (2015-2022)&#39;
+  )
+) |&gt;
+  formatStyle(
+    &#39;Prevalence (%)&#39;,
+    background = styleColorBar(range(display_data$`Prevalence (%)`, na.rm = TRUE), &#39;#fcd34d&#39;),
+    backgroundSize = &#39;98% 80%&#39;,
+    backgroundRepeat = &#39;no-repeat&#39;,
+    backgroundPosition = &#39;center&#39;
+  ) |&gt;
+  formatStyle(
+    columns = 1:7,
+    fontFamily = &quot;Georgia&quot;
+  )</code></pre>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-0054cca8bd2e4a3a934e" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-0054cca8bd2e4a3a934e">{"x":{"filter":"top","vertical":false,"filterHTML":"<tr>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"2015\" data-max=\"2016\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"character\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"character\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"7.8\" data-max=\"31.8\" data-scale=\"1\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"character\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"19.6\" data-max=\"42.7\" data-scale=\"1\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"5\" data-max=\"10.7\" data-scale=\"1\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n<\/tr>","caption":"<caption style=\"caption-side: top; text-align: left; color: #d97706; font-weight: bold; font-family: Georgia; font-size: 14px;\">State-Year Level Alzheimer's Cognitive Prevalence Data (2015-2022)<\/caption>","data":[[2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2016,2016,2016,2016,2016,2016,2016,2016,2016,2016,2016,2016,2016,2016],["Alabama","Arkansas","Arizona","California","Colorado","Florida","Georgia","Hawaii","Iowa","Idaho","Illinois","Indiana","Kentucky","Louisiana","Maryland","Maine","Michigan","Minnesota","Mississippi","North Dakota","Nebraska","New Jersey","Nevada","New York","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota","Tennessee","Texas","Utah","Virginia","West","Wisconsin","West Virginia","Wyoming","Alaska","Arkansas","Arizona","Colorado","Connecticut","Delaware","Georgia","Idaho","Indiana","Kansas","Kentucky","Massachusetts","Maine","Minnesota"],["AL","AR","AZ","CA","CO","FL","GA","HI","IA","ID","IL","IN","KY","LA","MD","ME","MI","MN","MS","ND","NE","NJ","NV","NY","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VA","WEST","WI","WV","WY","AK","AR","AZ","CO","CT","DE","GA","ID","IN","KS","KY","MA","ME","MN"],[30.2,27.6,23.4,25.7,22.8,25.2,31.8,23.1,19.2,8.4,22.4,12,12.9,27.8,18.2,13.3,24.9,21.1,31.4,25.7,20.1,18.8,23.4,22.9,25.2,31.5,20.8,7.8,28.1,29.5,30.9,25.1,29.1,18.4,21.9,25.5,21.2,28.4,18,29.8,9.699999999999999,9.199999999999999,11.9,22,27.9,8.199999999999999,24.3,23,28,24,30.8,27.4,8.699999999999999],["43,553","46,070","45,195","58,954","65,960","49,466","50,784","73,818","56,493","46,680","53,850","49,754","51,114","46,365","80,934","50,836","51,839","71,678","40,939","58,180","58,359","71,277","53,967","57,042","49,156","49,693","51,084","53,056","65,978","45,676","53,764","48,620","51,799","62,316","67,386",null,"57,047","45,028","56,742","77,328","45,679","46,534","66,251","73,846","57,734","53,583","51,488","51,401","56,028","52,148","66,962","50,327","73,309"],[24.2,21.8,27.7,32.3,39.2,28.4,29.9,31.4,26.8,26,32.9,24.9,23.3,23.2,38.8,30.1,27.8,34.7,20.8,29.1,30.2,37.6,23.6,35,26.8,24.6,32.2,29.7,32.7,26.8,27.5,25.7,28.4,31.8,37,null,28.4,19.6,26.2,29.6,22.4,28.9,39.9,38.6,31,30.5,27.6,25.6,32.8,23.4,42.7,30.1,34.8],[9,8.800000000000001,7.7,9.800000000000001,6.4,6.5,9,6.7,8.4,9.5,9.1,9.9,8.800000000000001,8.4,9.199999999999999,7.3,8.699999999999999,6.5,8.699999999999999,5.9,7.5,9,7.6,8,10.3,7.8,8.9,10.7,7.4,8.199999999999999,6.6,8.4,9.300000000000001,6.8,8.1,null,7.8,9.699999999999999,5,8,8.800000000000001,8.9,6.2,7.1,8.9,8.9,8.5,8.6,6.9,8.4,6.1,6.1,5.6]],"container":"<table class=\"cell-border stripe hover\">\n  <thead>\n    <tr>\n      <th>Year<\/th>\n      <th>State<\/th>\n      <th>State Code<\/th>\n      <th>Prevalence (%)<\/th>\n      <th>Median Income ($)<\/th>\n      <th>Education (% BA+)<\/th>\n      <th>PM2.5 (µg/m³)<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":15,"autoWidth":true,"dom":"Bfrtip","scrollX":true,"columnDefs":[{"className":"dt-center","targets":[0,2,3,4,5,6]},{"name":"Year","targets":0},{"name":"State","targets":1},{"name":"State Code","targets":2},{"name":"Prevalence (%)","targets":3},{"name":"Median Income ($)","targets":4},{"name":"Education (% BA+)","targets":5},{"name":"PM2.5 (µg/m³)","targets":6}],"order":[],"orderClasses":false,"orderCellsTop":true,"lengthMenu":[10,15,25,50,100],"rowCallback":"function(row, data, displayNum, displayIndex, dataIndex) {\nvar value=data[3]; $(this.api().cell(row, 3).node()).css({'background':isNaN(parseFloat(value)) || value <= 7.800000 ? '' : 'linear-gradient(90.000000deg, transparent ' + Math.max(31.800000 - value, 0)/24.000000 * 100 + '%, #fcd34d ' + Math.max(31.800000 - value, 0)/24.000000 * 100 + '%)','background-size':'98% 80%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[0]; $(this.api().cell(row, 0).node()).css({'font-family':'Georgia'});\nvar value=data[1]; $(this.api().cell(row, 1).node()).css({'font-family':'Georgia'});\nvar value=data[2]; $(this.api().cell(row, 2).node()).css({'font-family':'Georgia'});\nvar value=data[3]; $(this.api().cell(row, 3).node()).css({'font-family':'Georgia'});\nvar value=data[4]; $(this.api().cell(row, 4).node()).css({'font-family':'Georgia'});\nvar value=data[5]; $(this.api().cell(row, 5).node()).css({'font-family':'Georgia'});\nvar value=data[6]; $(this.api().cell(row, 6).node()).css({'font-family':'Georgia'});\n}"},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":["options.rowCallback"],"jsHooks":[]}</script>
+</div>
+<div id="shiny-dashboard" class="section level1 content-section">
+<h1>Shiny Dashboard</h1>
+<p>For a more comprehensive and fully interactive exploration
+experience, we’ve created a <strong>Shiny Dashboard</strong> that allows
+you to:</p>
+<ul>
+<li><strong>Select specific states</strong> for detailed comparison</li>
+<li><strong>Choose different time periods</strong> to analyze
+trends</li>
+<li><strong>Compare multiple socioeconomic factors</strong>
+simultaneously</li>
+<li><strong>Download customized visualizations</strong> and data</li>
+<li><strong>Explore correlations</strong> between factors
+interactively</li>
+</ul>
+<div id="dashboard-features" class="section level3 viz-container">
+<h3>Dashboard Features</h3>
+<table>
+<colgroup>
+<col width="40%" />
+<col width="59%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>State Selector</strong></td>
+<td>Choose one or multiple states to focus your analysis</td>
+</tr>
+<tr class="even">
+<td><strong>Year Range Slider</strong></td>
+<td>Filter data to specific time periods</td>
+</tr>
+<tr class="odd">
+<td><strong>Factor Comparison</strong></td>
+<td>Toggle between income, education, and air quality views</td>
+</tr>
+<tr class="even">
+<td><strong>Dynamic Maps</strong></td>
+<td>Choropleth maps that update based on your selections</td>
+</tr>
+<tr class="odd">
+<td><strong>Trend Analysis</strong></td>
+<td>Animated time series showing changes over time</td>
+</tr>
+<tr class="even">
+<td><strong>Data Export</strong></td>
+<td>Download filtered data in CSV format</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="launch-the-dashboard-online" class="section level3">
+<h3>Launch the Dashboard Online</h3>
+<p>Click the button below to access the interactive Shiny dashboard:</p>
+<center>
+<a href="https://wenye404.shinyapps.io/shiny_app/" target="_blank" 
+   style="display: inline-block; padding: 18px 40px; background: linear-gradient(135deg, #d97706 0%, #ea580c 100%); 
+          color: white; text-decoration: none; border-radius: 10px; font-weight: bold; font-family: Georgia;
+          font-size: 1.1em; box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3); transition: transform 0.2s, box-shadow 0.2s;
+          margin: 20px 0;"
+   onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(217, 119, 6, 0.4)';"
+   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(217, 119, 6, 0.3)';">
+🔍 Launch Interactive Dashboard </a>
+</center>
+</div>
+<div id="run-locally-alternative" class="section level3 viz-container">
+<h3>Run Locally (Alternative)</h3>
+<p>You can also run the dashboard locally on your machine:</p>
+<p><strong>Step 1:</strong> Install required packages:</p>
+<pre class="r"><code>install.packages(c(&quot;shiny&quot;, &quot;shinydashboard&quot;, &quot;shinyWidgets&quot;, 
+                   &quot;tidyverse&quot;, &quot;plotly&quot;, &quot;DT&quot;, &quot;viridis&quot;, &quot;janitor&quot;))</code></pre>
+<p><strong>Step 2:</strong> Launch from R/RStudio:</p>
+<pre class="r"><code>shiny::runApp(&quot;shiny_app&quot;)</code></pre>
+</div>
+<p><strong>Note:</strong> The online dashboard may take a few seconds to
+load initially.</p>
+</div>
+<div id="summary-of-findings" class="section level1 content-section">
+<h1>Summary of Findings</h1>
+<p>Based on our interactive exploration:</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>Geographic Patterns</strong>: Southern and Southeastern
+states consistently show higher Alzheimer’s-related cognitive prevalence
+rates compared to Western and Northeastern states.</p></li>
+<li><p><strong>Temporal Stability</strong>: National average prevalence
+has remained relatively stable between 25-27% among adults aged 65+ from
+2015-2022, with considerable between-state variation.</p></li>
+<li><p><strong>Demographic Differences</strong>:</p>
+<ul>
+<li>Women report higher cognitive burden than men (~31% vs ~27%)</li>
+<li>Adults aged 50-64 show higher prevalence than those 65+ (~32% vs
+~26%)</li>
+</ul></li>
+<li><p><strong>Socioeconomic Associations</strong>:</p>
+<ul>
+<li>Higher state-level income is weakly associated with lower
+prevalence</li>
+<li>Education shows a modest negative correlation with cognitive
+burden</li>
+<li>Air quality (PM2.5) shows minimal association at the ecological
+level</li>
+</ul></li>
+<li><p><strong>State Variability</strong>: Individual states can vary by
+10+ percentage points in prevalence, suggesting important local factors
+beyond what aggregate socioeconomic indicators capture.</p></li>
+</ol>
+</div>
 
 
 
