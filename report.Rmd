@@ -409,7 +409,7 @@ ggplot(az_nat_65_overall, aes(x = year, y = mean_prev)) +
   )
 ```
 
-The national average prevalence of Alzheimer's-related cognitive indicators among adults aged 65+ remained relatively **stable between 25–27%** from 2015 to 2022. Year-to-year fluctuations were minimal, and no clear upward or downward trend was observed during this period.
+The national average prevalence of Alzheimer's-related cognitive indicators among adults aged 65+ remained relatively **stable between 25–27%** from 2015 to 2016. Year-to-year fluctuations were minimal, and no clear upward or downward trend was observed during this period.
 
 ## Demographic Differences
 
@@ -647,7 +647,7 @@ kable(summary_table, col.names = c("Factor", "β Coefficient", "R²", "Interpret
 
 ## Key Findings
 
-1. **Temporal Stability**: National cognitive prevalence among adults 65+ remained stable at approximately 25–27% from 2015–2022, with no clear trend.
+1. **Temporal Stability**: National cognitive prevalence among adults 65+ remained stable at approximately 25–27% from 2015–2016, with no clear trend.
 
 2. **Demographic Disparities**: Women consistently reported higher cognitive burden than men. The 50–64 age group showed higher prevalence than those 65+.
 
