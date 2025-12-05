@@ -473,7 +473,7 @@ The interactive map reveals regional patterns in cognitive decline prevalence. *
 
 ## National Trends Over Time
 
-Track the **national average** cognitive prevalence from 2015 to 2022. Click on legend items to show/hide specific metrics.
+Track the **national average** cognitive prevalence from 2015 to 2016. Click on legend items to show/hide specific metrics.
 
 ```{r time-series, fig.height=5}
 # National yearly summary
