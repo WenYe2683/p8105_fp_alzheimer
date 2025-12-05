@@ -1,0 +1,980 @@
+---
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+    theme: flatly
+---
+<style>
+/* Global Styles */
+html, body {
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  line-height: 1.8;
+  color: #333;
+  margin: 10px;
+  padding: 10px;
+  background-color: white;
+}
+
+/* Floating Navigation Bar */
+.navbar {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  border: none !important;
+  position: fixed !important;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.navbar-default .navbar-brand,
+.navbar-default .navbar-nav > li > a {
+  color: white !important;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.navbar-default .navbar-brand:hover,
+.navbar-default .navbar-nav > li > a:hover {
+  color: #f0f0f0 !important;
+}
+
+.navbar-default .navbar-toggle {
+  border-color: rgba(255,255,255,0.5);
+}
+
+.navbar-default .navbar-toggle .icon-bar {
+  background-color: white;
+}
+
+.navbar-default .navbar-toggle:hover,
+.navbar-default .navbar-toggle:focus {
+  background-color: rgba(255,255,255,0.1);
+}
+
+body {
+  padding-top: 70px;
+}
+
+/* Remove spacing before all headings */
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 5px !important;
+  padding-top: 5px !important;
+}
+
+/* Content Sections */
+.content-section {
+  padding: 5px 10px;
+  max-width: 1200px;
+  margin: 0 auto 10px auto;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.content-section h1 {
+  font-size: 1.8em;
+  color: #d97706;
+  margin-top: 5px !important;
+  margin-bottom: 5px;
+  padding-top: 5px !important;
+  font-weight: 900;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.content-section h2 {
+  font-size: 1.5em;
+  color: #ea580c;
+  margin-top: 5px !important;
+  margin-bottom: 10px;
+  padding-top: 5px !important;
+  font-weight: 800;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.content-section h3 {
+  font-size: 1.2em;
+  color: #d97706;
+  margin-top: 5px !important;
+  margin-bottom: 10px;
+  padding-top: 5px !important;
+  font-weight: 600;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.content-section p {
+  font-size: 1em;
+  color: #555;
+  margin-bottom: 15px;
+  line-height: 1.8;
+}
+
+.content-section strong {
+  color: #d97706;
+  font-weight: 700;
+}
+
+.content-section ul, .content-section ol {
+  color: #555;
+  line-height: 1.8;
+  margin-bottom: 15px;
+}
+
+.content-section li {
+  margin-bottom: 8px;
+}
+
+/* Code blocks */
+pre {
+  background: #f5f5f5;
+  border-left: 4px solid #d97706;
+  padding: 15px;
+  border-radius: 5px;
+  overflow-x: auto;
+}
+
+code {
+  color: #d97706;
+  background: rgba(217, 119, 6, 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+/* Tables */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 20px 0;
+}
+
+table th {
+  background: #d97706;
+  color: white;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+}
+
+table td {
+  padding: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+table tr:hover {
+  background: rgba(217, 119, 6, 0.05);
+}
+
+/* Center all figures */
+.figure {
+  text-align: center !important;
+  margin: 20px auto !important;
+}
+
+img {
+  display: block !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  fig.width = 10,
+  fig.asp = 0.6,
+  out.width = "90%"
+)
+
+library(tidyverse)
+library(ggplot2)
+library(knitr)
+library(kableExtra)
+library(janitor)
+library(stringr)
+library(maps)
+
+# Set serif font for all ggplot text
+theme_set(theme_minimal(base_family = "serif") + 
+          theme(legend.position = "bottom",
+                text = element_text(family = "serif"),
+                plot.title = element_text(family = "serif"),
+                axis.title = element_text(family = "serif"),
+                axis.text = element_text(family = "serif"),
+                legend.text = element_text(family = "serif"),
+                legend.title = element_text(family = "serif")))
+```
+
+<div class="content-section">
+
+# Data Loading
+
+```{r data-loading, message=FALSE, warning=FALSE}
+# Load Alzheimer's data
+raw_az_data <- read.csv("data/2015-2022 Alzheimer Data.csv") |>
+  janitor::clean_names()
+
+raw_az_data <- raw_az_data[-nrow(raw_az_data), ]
+
+az_clean <- raw_az_data |>
+  filter(
+    !is.na(data_value),
+    !is.na(year_start),
+    !is.na(location_abbr)
+  )
+
+# Filter for cognitive decline/impairment
+az_cog <- az_clean |>
+  filter(
+    str_detect(topic, regex("cognitive decline|cognitive impairment",
+                            ignore_case = TRUE))
+  )
+
+# Create base summary with age and sex groups
+az_cog_summary_base <- az_cog |>
+  mutate(
+    age_group = case_when(
+      stratification_category1 == "Age Group" ~ stratification1,
+      TRUE ~ "Overall"
+    ),
+    sex_group = case_when(
+      stratification_category2 == "Sex" ~ stratification2,
+      TRUE ~ "Overall"
+    )
+  )
+
+# Filter for 65+ overall
+az_cog_65_overall <- az_cog_summary_base |>
+  filter(
+    age_group == "65 years or older",
+    sex_group == "Overall"
+  )
+
+# Load income data
+inc15 <- read_csv("data/median income-2015.csv", skip = 1) |>
+  janitor::clean_names() |>
+  transmute(
+    year = 2015,
+    state_name = geographic_area_name,
+    median_income = as.numeric(median_income_dollars_estimate_households)
+  )
+
+inc16 <- read_csv("data/median income-2016.csv", skip = 1) |>
+  janitor::clean_names() |>
+  transmute(
+    year = 2016,
+    state_name = geographic_area_name,
+    median_income = as.numeric(median_income_dollars_estimate_households)
+  )
+
+income_state <- bind_rows(inc15, inc16)
+
+income_state_with_state <- income_state |>
+  mutate(
+    state = str_squish(str_extract(state_name, "[^,]+$")))
+
+income_state_level <- income_state_with_state |>
+  group_by(year, state) |>
+  summarise(
+    n_counties = n(),
+    median_state = median(median_income, na.rm = TRUE),
+    mean_state   = mean(median_income, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Merge income with Alzheimer's data
+state_vec <- unique(income_state_level$state)
+
+az_cog_65_overall_state <- az_cog_65_overall |>
+  filter(
+    year_start %in% c(2015, 2016),
+    sex_group == "Overall",
+    location_desc %in% state_vec
+  )
+
+az_income <- az_cog_65_overall_state |>
+  left_join(
+    income_state_level,
+    by = c("year_start" = "year",
+           "location_desc" = "state")
+  )
+
+# Load education data
+edu15_raw <- read_csv("data/education2015.csv", skip = 1) |>
+  janitor::clean_names()
+
+edu15_state <- edu15_raw |>
+  filter(!str_detect(geographic_area_name, ","))
+
+edu16_raw <- read_csv("data/education2016.csv", skip = 1) |>
+  janitor::clean_names()
+
+edu16_state <- edu16_raw |>
+  filter(!str_detect(geographic_area_name, ","))
+
+edu15_state_slim <- edu15_state |>
+  transmute(
+    year = 2015,
+    state = geographic_area_name,
+    educ_bach = as.numeric(percent_estimate_percent_bachelors_degree_or_higher)
+  )
+
+edu16_state_slim <- edu16_state |>
+  transmute(
+    year = 2016,
+    state = geographic_area_name,
+    educ_bach = as.numeric(percent_estimate_percent_bachelors_degree_or_higher)
+  )
+
+edu_state <- bind_rows(edu15_state_slim, edu16_state_slim)
+
+# Merge education with Alzheimer's data
+az_edu <- az_cog_65_overall_state |>
+  left_join(
+    edu_state,
+    by = c(
+      "year_start" = "year",
+      "location_desc" = "state"
+    ))
+
+# Load air pollution data
+air15 <- read_csv("data/clean_air_state_2015.csv")
+air16 <- read_csv("data/clean_air_state_2016.csv")
+
+air_state <- bind_rows(air15, air16)
+
+air_state_level <- air_state |>
+  group_by(year, state_desc) |>
+  summarise(
+    pm25_state = mean(pm25_wtd_mean, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Merge air pollution with Alzheimer's data
+az_air <- az_cog_65_overall_state |>
+  left_join(
+    air_state_level,
+    by = c(
+      "year_start"    = "year",
+      "location_desc" = "state_desc"
+    )
+  )
+```
+
+</div>
+
+<div class="content-section">
+
+# Demographic Analysis
+
+## Distribution Differences
+
+```{r distribution-plots, fig.width=28, fig.asp=0.7, out.width="95%", fig.align="center", message=FALSE, warning=FALSE}
+library(patchwork)
+
+# Prepare data
+az_nat_65_overall <- az_cog_65_overall |>
+  group_by(year = year_start) |>
+  summarise(
+    mean_prev = mean(data_value, na.rm = TRUE),
+    sd_prev   = sd(data_value, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+az_age_desc <- az_cog_summary_base |>
+  group_by(age_group) |>
+  summarise(
+    n_obs      = n(),
+    mean_value = mean(data_value, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  filter(age_group != "Overall")
+
+az_sex_desc <- az_cog_summary_base |>
+  group_by(sex_group) |>
+  summarise(
+    n_obs      = n(),
+    mean_value = mean(data_value, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  filter(sex_group != "Overall")
+
+# Calculate consistent y-axis limit
+max_y <- max(c(az_nat_65_overall$mean_prev, az_age_desc$mean_value, az_sex_desc$mean_value)) * 1.2
+
+# Plot 1: Prevalence by Year
+p_year <- az_nat_65_overall |>
+  mutate(year = factor(year)) |>
+  ggplot(aes(x = year, y = mean_prev)) +
+  geom_col(fill = "#d97706", alpha = 0.85, width = 0.65) +
+  geom_text(aes(label = paste0(round(mean_prev, 1), "%")), 
+            vjust = -0.5, size = 10, fontface = "bold", color = "#d97706", family = "serif") +
+  scale_y_continuous(limits = c(0, max_y), expand = c(0, 0),
+                     breaks = seq(0, 35, by = 5)) +
+  labs(
+    x = "Year",
+    y = "Mean prevalence (%)",
+    title = "Prevalence by Year"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 35, face = "bold", color = "#d97706", hjust = 0.5, margin = margin(b = 15), family = "serif"),
+    axis.title = element_text(size = 30, face = "bold", family = "serif"),
+    axis.title.y = element_text(margin = margin(r = 10)),
+    axis.text = element_text(size = 25, family = "serif"),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_line(color = "grey90", linewidth = 0.5),
+    plot.margin = margin(10, 10, 10, 10),
+    text = element_text(family = "serif")
+  )
+
+# Plot 2: Prevalence by Age
+p_age <- az_age_desc |>
+  mutate(age_group = factor(age_group, levels = c("50-64 years", "65 years or older"))) |>
+  ggplot(aes(x = age_group, y = mean_value)) +
+  geom_col(fill = "#d97706", alpha = 0.85, width = 0.65) +
+  geom_text(aes(label = paste0(round(mean_value, 1), "%")), 
+            vjust = -0.5, size = 10, fontface = "bold", color = "#d97706", family = "serif") +
+  scale_y_continuous(limits = c(0, max_y), expand = c(0, 0),
+                     breaks = seq(0, 35, by = 5)) +
+  labs(
+    x = "Age group",
+    y = "",
+    title = "Prevalence by Age"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 35, face = "bold", color = "#d97706", hjust = 0.5, margin = margin(b = 15), family = "serif"),
+    axis.title = element_text(size = 30, face = "bold", family = "serif"),
+    axis.text = element_text(size = 25, family = "serif"),
+    axis.text.x = element_text(angle = 15, hjust = 1, vjust = 1),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_line(color = "grey90", linewidth = 0.5),
+    plot.margin = margin(10, 10, 10, 10),
+    text = element_text(family = "serif")
+  )
+
+# Plot 3: Prevalence by Sex
+p_sex <- az_sex_desc |>
+  ggplot(aes(x = sex_group, y = mean_value)) +
+  geom_col(fill = "#d97706", alpha = 0.85, width = 0.65) +
+  geom_text(aes(label = paste0(round(mean_value, 1), "%")), 
+            vjust = -0.5, size = 10, fontface = "bold", color = "#d97706", family = "serif") +
+  scale_y_continuous(limits = c(0, max_y), expand = c(0, 0),
+                     breaks = seq(0, 35, by = 5)) +
+  labs(
+    x = "Sex",
+    y = "",
+    title = "Prevalence by Sex"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 35, face = "bold", color = "#d97706", hjust = 0.5, margin = margin(b = 15), family = "serif"),
+    axis.title = element_text(size = 30, face = "bold", family = "serif"),
+    axis.text = element_text(size = 25, family = "serif"),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_line(color = "grey90", linewidth = 0.5),
+    plot.margin = margin(10, 10, 10, 10),
+    text = element_text(family = "serif")
+  )
+
+# Combine plots horizontally
+p_year + p_age + p_sex + plot_layout(ncol = 3, widths = c(1, 1.3, 1))
+```
+
+At the national level, the mean prevalence of Alzheimer's-related cognitive indicators among adults aged 65+ was very similar in 2015 (26.0%) and 2016 (25.8%). The small difference of 0.2 percentage points is well within the between-state variation and does not suggest any clear change over this two-year period.
+
+Across all cognitive items, the mean prevalence was about 31.8% among adults aged 50–64 years and 25.8% among those aged 65 years or older.
+
+Across all states and cognitive items in 2015–2016, women had a higher mean prevalence of Alzheimer's-related cognitive indicators than men (30.9% vs 26.8%), suggesting a consistently greater reported cognitive burden among female respondents.
+
+
+## Socioeconomic and Environmental Factors
+
+### Income Effects
+
+```{r income-plot, fig.width=12, fig.asp=0.65, message=FALSE, warning=FALSE}
+ggplot(az_income,
+       aes(x = median_state, y = data_value,
+           color = factor(year_start))) +
+  geom_point(alpha = 0.7, size = 3) +
+  geom_smooth(method = "lm", se = TRUE, alpha = 0.2) +
+  scale_color_manual(values = c("#d97706", "#2563eb")) +
+  labs(
+    x = "State-level median household income (USD)",
+    y = "Alzheimer's-related cognitive prevalence (%)",
+    color = "Year",
+    title = "State-level cognitive burden vs income among adults 65+ (2015–2016)"
+  ) +
+  theme_minimal(base_family = "serif") +
+  theme(
+    text = element_text(family = "serif"),
+    plot.title = element_text(size = 16, face = "bold", color = "#d97706", family = "serif"),
+    axis.title = element_text(size = 14, family = "serif"),
+    axis.text = element_text(size = 12, family = "serif"),
+    legend.text = element_text(size = 12, family = "serif"),
+    legend.title = element_text(size = 13, face = "bold", family = "serif")
+  )
+```
+
+```{r income-model, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+model_inc <- lm(
+  data_value ~ median_state + factor(year_start),
+  data = az_income
+)
+
+# Extract coefficients
+coef_table <- summary(model_inc)$coefficients
+coef_df <- data.frame(
+  Predictor = rownames(coef_table),
+  Estimate = coef_table[, "Estimate"],
+  StdError = coef_table[, "Std. Error"],
+  tvalue = coef_table[, "t value"],
+  pvalue = coef_table[, "Pr(>|t|)"]
+) |>
+  mutate(
+    Predictor = case_when(
+      Predictor == "(Intercept)" ~ "Intercept",
+      Predictor == "median_state" ~ "Median Household Income",
+      Predictor == "factor(year_start)2016" ~ "Year 2016 (vs 2015)",
+      TRUE ~ Predictor
+    ),
+    Estimate = round(Estimate, 4),
+    `Std. Error` = round(StdError, 4),
+    `t value` = round(tvalue, 3),
+    p_value_num = pvalue,
+    `p-value` = format.pval(pvalue, digits = 3, eps = 0.001)
+  ) |>
+  select(Predictor, Estimate, `Std. Error`, `t value`, `p-value`, p_value_num)
+
+# Model fit statistics
+r_squared <- summary(model_inc)$r.squared
+adj_r_squared <- summary(model_inc)$adj.r.squared
+f_stat <- summary(model_inc)$fstatistic[1]
+f_pvalue <- pf(summary(model_inc)$fstatistic[1], 
+               summary(model_inc)$fstatistic[2], 
+               summary(model_inc)$fstatistic[3], 
+               lower.tail = FALSE)
+
+fit_df <- data.frame(
+  Statistic = c("R-squared", "Adjusted R-squared", "F-statistic", "F p-value"),
+  Value = c(
+    round(r_squared, 4),
+    round(adj_r_squared, 4),
+    round(f_stat, 3),
+    format.pval(f_pvalue, digits = 3, eps = 0.001)
+  )
+)
+
+# Create tables
+t1 <- kable(coef_df |> select(-p_value_num), align = c("l", "r", "r", "r", "r"), 
+            caption = "Linear Regression: Income Model") |>
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = FALSE,
+                position = "left",
+                font_size = 12) |>
+  column_spec(1, bold = TRUE) |>
+  column_spec(5, color = ifelse(coef_df$p_value_num < 0.05, "#d97706", "#666"))
+
+t2 <- kable(fit_df, align = c("l", "r"),
+            caption = "Model Summary") |>
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = FALSE,
+                position = "left",
+                font_size = 12) |>
+  column_spec(1, bold = TRUE)
+cat("<div style='display: flex; gap: 20px; justify-content: center; align-items: flex-start; flex-wrap: wrap; margin: 20px 0;'>\n")
+cat("<div style='flex: 0 1 auto;'>\n")
+cat(as.character(t1))
+cat("\n</div>\n")
+cat("<div style='flex: 0 1 auto;'>\n")
+cat(as.character(t2))
+cat("\n</div>\n")
+cat("</div>\n")
+```
+
+In a linear regression of state-level Alzheimer's-related cognitive prevalence on median household income and survey year, higher income was associated with lower cognitive burden. The estimated coefficient for income was approximately **-2.35 × 10⁻⁴**, meaning that a \$1,000 increase in state median income was associated with about a **0.24–percentage-point lower** prevalence, and a \$10,000 increase was associated with about a **2.35–percentage-point lower** prevalence among adults aged 65+. The coefficient for survey year (2016 vs 2015) was small ($\hat\beta = -0.29$), suggesting no clear overall difference between the two years after accounting for income. However, the model $R^2$ was only **0.04**, indicating that income explains only a small fraction of the large between-state variation in cognitive outcomes.
+
+Although higher state-level income was statistically associated with lower Alzheimer's-related cognitive prevalence, income explained only a small share of the between-state variability. Several factors may contribute to this weak relationship. First, the analysis is ecological: each observation is an aggregated state–year estimate, so large within-state differences in income and cognitive health are not captured, and any individual-level association is diluted. Second, both cognitive burden and income are measured with error (self-reported survey indicators and ACS estimates), and we further aggregated county-level income up to the state level, which may introduce additional noise. Third, we only examined two years (2015–2016), over which variation in both income and prevalence is fairly modest. Finally, many other state-level determinants—such as education, health care access, demographic composition, and prevalence of vascular risk factors—were not adjusted for, so income alone is unlikely to account for the wide variation in cognitive outcomes across states.
+
+### Education Effects
+
+```{r education-plot, fig.width=12, fig.asp=0.65, message=FALSE, warning=FALSE}
+ggplot(az_edu,
+       aes(x = educ_bach,
+           y = data_value,
+           color = factor(year_start))) +
+  geom_point(alpha = 0.7, size = 3) +
+  geom_smooth(method = "lm", se = TRUE, alpha = 0.2) +
+  scale_color_manual(values = c("#d97706", "#2563eb")) +
+  labs(
+    x = "State-level % with bachelor's degree or higher (25+)",
+    y = "Alzheimer's-related cognitive prevalence (%)",
+    color = "Year",
+    title = "State-level cognitive burden vs education among adults 65+ (2015–2016)"
+  ) +
+  theme_minimal(base_family = "serif") +
+  theme(
+    text = element_text(family = "serif"),
+    plot.title = element_text(size = 16, face = "bold", color = "#d97706", family = "serif"),
+    axis.title = element_text(size = 14, family = "serif"),
+    axis.text = element_text(size = 12, family = "serif"),
+    legend.text = element_text(size = 12, family = "serif"),
+    legend.title = element_text(size = 13, face = "bold", family = "serif")
+  )
+```
+
+```{r education-model, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+model_edu <- lm(
+  data_value ~ educ_bach + factor(year_start),
+  data = az_edu
+)
+
+# Extract coefficients
+coef_table <- summary(model_edu)$coefficients
+coef_df <- data.frame(
+  Predictor = rownames(coef_table),
+  Estimate = coef_table[, "Estimate"],
+  StdError = coef_table[, "Std. Error"],
+  tvalue = coef_table[, "t value"],
+  pvalue = coef_table[, "Pr(>|t|)"]
+) |>
+  mutate(
+    Predictor = case_when(
+      Predictor == "(Intercept)" ~ "Intercept",
+      Predictor == "educ_bach" ~ "Education",
+      Predictor == "factor(year_start)2016" ~ "Year 2016 (vs 2015)",
+      TRUE ~ Predictor
+    ),
+    Estimate = round(Estimate, 4),
+     `Std. Error` = round(StdError, 4),
+    `t value` = round(tvalue, 3),
+    p_value_num = pvalue,
+    `p-value` = format.pval(pvalue, digits = 3, eps = 0.001)
+  ) |>
+  select(Predictor, Estimate, `Std. Error`, `t value`, `p-value`, p_value_num)
+
+# Model fit statistics
+r_squared <- summary(model_edu)$r.squared
+adj_r_squared <- summary(model_edu)$adj.r.squared
+f_stat <- summary(model_edu)$fstatistic[1]
+f_pvalue <- pf(summary(model_edu)$fstatistic[1], 
+               summary(model_edu)$fstatistic[2], 
+               summary(model_edu)$fstatistic[3], 
+               lower.tail = FALSE)
+
+fit_df <- data.frame(
+  Statistic = c("R-squared", "Adjusted R-squared", "F-statistic", "F p-value"),
+  Value = c(
+    round(r_squared, 4),
+    round(adj_r_squared, 4),
+    round(f_stat, 3),
+    format.pval(f_pvalue, digits = 3, eps = 0.001)
+  )
+)
+
+# Create tables
+t1 <- kable(coef_df |> select(-p_value_num), align = c("l", "r", "r", "r", "r"), 
+            caption = "Linear Regression: Education Model") |>
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = FALSE,
+                position = "left",
+                font_size = 12) |>
+  column_spec(1, bold = TRUE) |>
+  column_spec(5, color = ifelse(coef_df$p_value_num < 0.05, "#d97706", "#666"))
+t2 <- kable(fit_df, align = c("l", "r"),
+            caption = "Model Summary") |>
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = FALSE,
+                position = "left",
+                font_size = 12) |>
+  column_spec(1, bold = TRUE)
+cat("<div style='display: flex; gap: 20px; justify-content: center; align-items: flex-start; flex-wrap: wrap; margin: 20px 0;'>\n")
+cat("<div style='flex: 0 1 auto;'>\n")
+cat(as.character(t1))
+cat("\n</div>\n")
+cat("<div style='flex: 0 1 auto;'>\n")
+cat(as.character(t2))
+cat("\n</div>\n")
+cat("</div>\n")
+```
+
+In a linear regression of state-level Alzheimer's-related cognitive prevalence on the percentage of adults with a bachelor's degree or higher and survey year, higher education was associated with lower cognitive burden. The estimated coefficient for education was approximately **-0.16**, meaning that a 1–percentage-point increase in the share of adults 25 years and older with at least a bachelor's degree was associated with about a **0.16–percentage-point lower** prevalence of Alzheimer's-related cognitive problems among adults aged 65+. A 10–percentage-point increase in educational attainment would correspond to roughly a **1.6–percentage-point lower** prevalence. However, this association was relatively weak and not conventionally statistically significant. The model $R^2$ was only about **0.01**, indicating that education and year together explain only a small fraction of the large between-state variation in cognitive outcomes.
+
+Although states with higher levels of college education tended to have slightly lower Alzheimer's-related cognitive prevalence, the relationship was weak and most of the between-state variability remained unexplained. Several factors may help explain this. First, the analysis is ecological: each data point is a state–year average, so big within-state differences in education and cognitive health are smoothed out, and any individual-level association is likely diluted. Second, both education and cognitive burden come from survey-based estimates and can be measured with error; on top of that, we aggregated county-level education indicators to the state level, which probably adds extra noise. Third, we only looked at two survey years (2015–2016), so there is not much variation over time in either education or cognitive outcomes. Finally, many other state-level factors—such as income, access to health care, population structure, and the prevalence of vascular and lifestyle risk factors—were not included in the model, so education alone is unlikely to explain the wide differences in cognitive outcomes across states.
+
+### Air Pollution Effects
+
+```{r air-pollution-plot, fig.width=12, fig.asp=0.65, message=FALSE, warning=FALSE}
+ggplot(az_air,
+       aes(x = pm25_state,
+           y = data_value, 
+           color = factor(year_start))) +
+  geom_point(alpha = 0.7, size = 3) +
+  geom_smooth(method = "lm", se = TRUE, alpha = 0.2) +
+  scale_color_manual(values = c("#d97706", "#2563eb")) +
+  labs(
+    x = "State-level PM2.5 weighted mean (µg/m³)",
+    y = "Alzheimer's-related cognitive prevalence (%)",
+    color = "Year",
+    title = "State-level cognitive burden vs PM2.5 among adults 65+ (2015–2016)"
+  ) +
+  theme_minimal(base_family = "serif") +
+  theme(
+    text = element_text(family = "serif"),
+    plot.title = element_text(size = 16, face = "bold", color = "#d97706", family = "serif"),
+    axis.title = element_text(size = 14, family = "serif"),
+    axis.text = element_text(size = 12, family = "serif"),
+    legend.text = element_text(size = 12, family = "serif"),
+    legend.title = element_text(size = 13, face = "bold", family = "serif")
+  )
+```
+
+```{r air-model, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+model_air <- lm(
+  data_value ~ pm25_state + factor(year_start),
+  data = az_air
+)
+
+# Extract coefficients
+coef_table <- summary(model_air)$coefficients
+coef_df <- data.frame(
+  Predictor = rownames(coef_table),
+  Estimate = coef_table[, "Estimate"],
+  StdError = coef_table[, "Std. Error"],
+  tvalue = coef_table[, "t value"],
+  pvalue = coef_table[, "Pr(>|t|)"]
+) |>
+  mutate(
+    Predictor = case_when(
+      Predictor == "(Intercept)" ~ "Intercept",
+      Predictor == "pm25_state" ~ "PM2.5 (µg/m³)",
+      Predictor == "factor(year_start)2016" ~ "Year 2016 (vs 2015)",
+      TRUE ~ Predictor
+    ),
+    `Std. Error` = round(StdError, 4),
+    `t value` = round(tvalue, 3),
+    p_value_num = pvalue,
+    `p-value` = format.pval(pvalue, digits = 3, eps = 0.001)
+  ) |>
+  select(Predictor, Estimate, `Std. Error`, `t value`, `p-value`, p_value_num)
+
+# Model fit statistics
+r_squared <- summary(model_air)$r.squared
+adj_r_squared <- summary(model_air)$adj.r.squared
+f_stat <- summary(model_air)$fstatistic[1]
+f_pvalue <- pf(summary(model_air)$fstatistic[1], 
+               summary(model_air)$fstatistic[2], 
+               summary(model_air)$fstatistic[3], 
+               lower.tail = FALSE)
+
+fit_df <- data.frame(
+  Statistic = c("R-squared", "Adjusted R-squared", "F-statistic", "F p-value"),
+  Value = c(
+    round(r_squared, 4),
+    round(adj_r_squared, 4),
+    round(f_stat, 3),
+    format.pval(f_pvalue, digits = 3, eps = 0.001)
+  )
+)
+
+# Create tables
+t1 <- kable(coef_df |> select(-p_value_num), align = c("l", "r", "r", "r", "r"), 
+            caption = "Linear Regression: Air Pollution Model") |>
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = FALSE,
+                position = "left",
+                font_size = 12) |>
+  column_spec(1, bold = TRUE) |>
+  column_spec(5, color = ifelse(coef_df$p_value_num < 0.05, "#d97706", "#666"))
+t2 <- kable(fit_df, align = c("l", "r"),
+            caption = "Model Summary") |>
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = FALSE,
+                position = "left",
+                font_size = 12) |>
+  column_spec(1, bold = TRUE)
+# Print tables side by side using HTML
+cat("<div style='display: flex; gap: 20px; justify-content: center; align-items: flex-start; flex-wrap: wrap; margin: 20px 0;'>\n")
+cat("<div style='flex: 0 1 auto;'>\n")
+cat(as.character(t1))
+cat("\n</div>\n")
+cat("<div style='flex: 0 1 auto;'>\n")
+cat(as.character(t2))
+cat("\n</div>\n")
+cat("</div>\n")
+```
+
+In a linear regression of state-level Alzheimer's-related cognitive prevalence on PM2.5 and survey year, we did not observe a clear association between air pollution and cognitive burden among adults aged 65+. The estimated coefficient for PM2.5 was approximately **`r round(coef(model_air)[2], 3)`** (p = `r round(summary(model_air)$coefficients[2, 4], 3)`), which was small and not statistically significant, indicating that PM2.5 is not a strong predictor of between-state differences in cognitive burden in this model.
+
+The coefficient for survey year (2016 vs 2015) was approximately **`r round(coef(model_air)[3], 3)`** with p = `r round(summary(model_air)$coefficients[3, 4], 3)`, suggesting no meaningful overall change in prevalence between the two years after accounting for PM2.5. The model $R^2$ was only **`r round(summary(model_air)$r.squared, 3)`**, implying that PM2.5 and year together explain only a negligible fraction of the substantial between-state variation in Alzheimer's-related cognitive outcomes. This is not surprising given the ecological nature of the analysis (state-level averages), potential measurement error in both pollution and cognitive indicators, the short two-year time window, and the absence of other important determinants such as income, education, demographics, and health care access.
+
+</div>
+
+<div class="content-section">
+
+# Geographic Analysis
+
+## Alzheimer's Outcomes at State-Year Level
+
+```{r state-year-data, echo=FALSE, message=FALSE, warning=FALSE}
+az_state_year <- az_cog_65_overall |>
+  filter(
+    year_start %in% c(2015, 2016),
+    sex_group == "Overall"
+  ) |>
+  group_by(
+    year       = year_start,
+    state_abbr = location_abbr,
+    state_name = location_desc
+  ) |>
+  summarise(
+    mean_prev = mean(data_value, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+az_state_year |>
+  head(10) |>
+  mutate(
+    Year = year,
+    `State` = state_name,
+    `State Code` = state_abbr,
+    `Mean Prevalence (%)` = round(mean_prev, 2)
+  ) |>
+  select(Year, State, `State Code`, `Mean Prevalence (%)`) |>
+  kable(align = c("c", "l", "c", "r"),
+        caption = "Sample of State-Year Level Alzheimer's Cognitive Prevalence Data (First 10 rows)") |>
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = FALSE,
+                position = "center",
+                font_size = 12) |>
+  column_spec(1, bold = TRUE, color = "#d97706") |>
+  column_spec(2, bold = FALSE) |>
+  column_spec(3, bold = FALSE) |>
+  column_spec(4, bold = TRUE, color = "#d97706")
+```
+
+## Mapping Alzheimer's-related Cognitive Burden
+
+### State-level Choropleth Map for 2015
+
+```{r map_2015, message = FALSE, warning = FALSE, fig.width=14, fig.asp=0.65}
+az_2015 <- az_state_year |> 
+  filter(year == 2015)
+
+us_map <- map_data("state") |> as_tibble()
+
+az_map_2015 <- az_2015 |> 
+  mutate(region = str_to_lower(state_name)) |> 
+  inner_join(us_map, by = "region")
+
+ggplot(az_map_2015,
+       aes(long, lat, group = group, fill = mean_prev)) +
+  geom_polygon(color = "black", linewidth = 0.3) +
+    geom_path(data = us_map, aes(long, lat, group = group), 
+            color = "black", linewidth = 0.8, inherit.aes = FALSE) +
+  coord_fixed(1.3) +
+  scale_fill_viridis_c(option = "C") +
+  labs(
+    title = "Alzheimer's-related cognitive prevalence (Age 65+, 2015)",
+    fill  = "Prevalence (%)"
+  ) +
+  theme_void(base_family = "serif") +
+  theme(
+    legend.position = "right",
+    text = element_text(family = "serif"),
+    plot.title = element_text(size = 16, face = "bold", color = "#d97706", family = "serif"),
+    legend.text = element_text(size = 12, family = "serif"),
+    legend.title = element_text(size = 13, face = "bold", family = "serif")
+  )
+```
+
+### State-level Choropleth Map for 2016
+
+```{r map_2016, message = FALSE, warning = FALSE, fig.width=14, fig.asp=0.65}
+az_2016 <- az_state_year |> 
+  filter(year == 2016)
+
+us_map <- map_data("state") |> as_tibble()
+
+az_map_2016 <- az_2016 |> 
+  mutate(region = str_to_lower(state_name)) |> 
+  inner_join(us_map, by = "region")
+
+ggplot(az_map_2016,
+       aes(long, lat, group = group, fill = mean_prev)) +
+  geom_polygon(color = "black", linewidth = 0.3) +
+  geom_path(data = us_map, aes(long, lat, group = group), 
+          color = "black", linewidth = 0.8, inherit.aes = FALSE) +
+  coord_fixed(1.3) +
+  scale_fill_viridis_c(option = "C") +
+  labs(
+    title = "Alzheimer's-related cognitive prevalence (Age 65+, 2016)",
+    fill  = "Prevalence (%)"
+  ) +
+  theme_void(base_family = "serif") +
+  theme(
+    legend.position = "right",
+    text = element_text(family = "serif"),
+    plot.title = element_text(size = 16, face = "bold", color = "#d97706", family = "serif"),
+    legend.text = element_text(size = 12, family = "serif"),
+    legend.title = element_text(size = 13, face = "bold", family = "serif")
+  )
+```
+
+### Side-by-side Comparison (2015 vs 2016)
+
+```{r map_compare_2015_2016, message = FALSE, warning = FALSE, fig.width=16, fig.asp=0.6}
+library(patchwork)
+
+az_15_16 <- az_state_year |> 
+  filter(year %in% c(2015, 2016))
+
+us_map <- map_data("state") |> as_tibble()
+
+az_map_15_16 <- az_15_16 |> 
+  mutate(region = str_to_lower(state_name)) |> 
+  inner_join(us_map, by = "region")
+
+p1 <- ggplot(az_map_15_16 |> filter(year == 2015),
+       aes(long, lat, group = group, fill = mean_prev)) +
+  geom_polygon(color = "black", linewidth = 0.3) +
+  geom_path(data = us_map, aes(long, lat, group = group), 
+            color = "black", linewidth = 0.8, inherit.aes = FALSE) +
+  coord_fixed(1.3) +
+  scale_fill_viridis_c(option = "C", name = "Prevalence (%)") +
+  labs(title = "2015") +
+  theme_void(base_family = "serif") +
+  theme(
+    legend.position = "right",
+    text = element_text(family = "serif"),
+    plot.title = element_text(size = 16, face = "bold", color = "#d97706", family = "serif"),
+    legend.text = element_text(size = 12, family = "serif"),
+    legend.title = element_text(size = 13, face = "bold", family = "serif")
+  )
+
+p2 <- ggplot(az_map_15_16 |> filter(year == 2016),
+       aes(long, lat, group = group, fill = mean_prev)) +
+  geom_polygon(color = "black", linewidth = 0.3) +
+  geom_path(data = us_map, aes(long, lat, group = group), 
+            color = "black", linewidth = 0.8, inherit.aes = FALSE) +
+  coord_fixed(1.3) +
+  scale_fill_viridis_c(option = "C", name = "Prevalence (%)") +
+  labs(title = "2016") +
+  theme_void(base_family = "serif") +
+  theme(
+    legend.position = "right",
+    text = element_text(family = "serif"),
+    plot.title = element_text(size = 16, face = "bold", color = "#d97706", family = "serif"),
+    legend.text = element_text(size = 12, family = "serif"),
+    legend.title = element_text(size = 13, face = "bold", family = "serif")
+  )
+
+p1 + p2
+```
+
+Geographic patterns of Alzheimer's-related cognitive prevalence were visualized using state-level choropleth maps for 2015 and 2016. In both years, several Southern and Southeastern states showed higher prevalence levels, while many Western and Northeastern states displayed noticeably lower burdens. The spatial distribution remained largely consistent between 2015 and 2016, suggesting limited short-term change in geographic patterns of cognitive burden among adults aged 65+.
+
+</div>

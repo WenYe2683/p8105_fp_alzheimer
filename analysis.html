@@ -1,0 +1,1831 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>analysis.knit</title>
+
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.5.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet" />
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Cognitive Decline in the U.S.</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="plan.html">Plan</a>
+</li>
+<li>
+  <a href="report.html">Report</a>
+</li>
+<li>
+  <a href="data_source.html">Data</a>
+</li>
+<li>
+  <a href="analysis.html">Analysis</a>
+</li>
+<li>
+  <a href="visualisation.html">Visualization</a>
+</li>
+<li>
+  <a href="about_us.html">About Us</a>
+</li>
+<li>
+  <a href="https://github.com/WenYe2683/p8105_fp_alzheimer">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <span class="fa fa-envelope fa-lg"></span>
+     
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="mailto:bl3175@cumc.columbia.edu">Bing Li</a>
+    </li>
+    <li>
+      <a href="mailto:cw3747@cumc.columbia.edu">Chuhan Wang</a>
+    </li>
+    <li>
+      <a href="mailto:lg3450@cumc.columbia.edu">Luyun Ge</a>
+    </li>
+    <li>
+      <a href="mailto:yw4662@cumc.columbia.edu">Ye Wen</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+<div class="btn-group pull-right float-right">
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+
+</div>
+
+
+<style>
+/* Global Styles */
+html, body {
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  line-height: 1.8;
+  color: #333;
+  margin: 10px;
+  padding: 10px;
+  background-color: white;
+}
+
+/* Floating Navigation Bar */
+.navbar {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  border: none !important;
+  position: fixed !important;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.navbar-default .navbar-brand,
+.navbar-default .navbar-nav > li > a {
+  color: white !important;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.navbar-default .navbar-brand:hover,
+.navbar-default .navbar-nav > li > a:hover {
+  color: #f0f0f0 !important;
+}
+
+.navbar-default .navbar-toggle {
+  border-color: rgba(255,255,255,0.5);
+}
+
+.navbar-default .navbar-toggle .icon-bar {
+  background-color: white;
+}
+
+.navbar-default .navbar-toggle:hover,
+.navbar-default .navbar-toggle:focus {
+  background-color: rgba(255,255,255,0.1);
+}
+
+body {
+  padding-top: 70px;
+}
+
+/* Remove spacing before all headings */
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 5px !important;
+  padding-top: 5px !important;
+}
+
+/* Content Sections */
+.content-section {
+  padding: 5px 10px;
+  max-width: 1200px;
+  margin: 0 auto 10px auto;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.content-section h1 {
+  font-size: 1.8em;
+  color: #d97706;
+  margin-top: 5px !important;
+  margin-bottom: 5px;
+  padding-top: 5px !important;
+  font-weight: 900;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.content-section h2 {
+  font-size: 1.5em;
+  color: #ea580c;
+  margin-top: 5px !important;
+  margin-bottom: 10px;
+  padding-top: 5px !important;
+  font-weight: 800;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.content-section h3 {
+  font-size: 1.2em;
+  color: #d97706;
+  margin-top: 5px !important;
+  margin-bottom: 10px;
+  padding-top: 5px !important;
+  font-weight: 600;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.content-section p {
+  font-size: 1em;
+  color: #555;
+  margin-bottom: 15px;
+  line-height: 1.8;
+}
+
+.content-section strong {
+  color: #d97706;
+  font-weight: 700;
+}
+
+.content-section ul, .content-section ol {
+  color: #555;
+  line-height: 1.8;
+  margin-bottom: 15px;
+}
+
+.content-section li {
+  margin-bottom: 8px;
+}
+
+/* Code blocks */
+pre {
+  background: #f5f5f5;
+  border-left: 4px solid #d97706;
+  padding: 15px;
+  border-radius: 5px;
+  overflow-x: auto;
+}
+
+code {
+  color: #d97706;
+  background: rgba(217, 119, 6, 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+/* Tables */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 20px 0;
+}
+
+table th {
+  background: #d97706;
+  color: white;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+}
+
+table td {
+  padding: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+table tr:hover {
+  background: rgba(217, 119, 6, 0.05);
+}
+
+/* Center all figures */
+.figure {
+  text-align: center !important;
+  margin: 20px auto !important;
+}
+
+img {
+  display: block !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+</style>
+<div id="data-loading" class="section level1 content-section">
+<h1>Data Loading</h1>
+<pre class="r"><code># Load Alzheimer&#39;s data
+raw_az_data &lt;- read.csv(&quot;data/2015-2022 Alzheimer Data.csv&quot;) |&gt;
+  janitor::clean_names()
+
+raw_az_data &lt;- raw_az_data[-nrow(raw_az_data), ]
+
+az_clean &lt;- raw_az_data |&gt;
+  filter(
+    !is.na(data_value),
+    !is.na(year_start),
+    !is.na(location_abbr)
+  )
+
+# Filter for cognitive decline/impairment
+az_cog &lt;- az_clean |&gt;
+  filter(
+    str_detect(topic, regex(&quot;cognitive decline|cognitive impairment&quot;,
+                            ignore_case = TRUE))
+  )
+
+# Create base summary with age and sex groups
+az_cog_summary_base &lt;- az_cog |&gt;
+  mutate(
+    age_group = case_when(
+      stratification_category1 == &quot;Age Group&quot; ~ stratification1,
+      TRUE ~ &quot;Overall&quot;
+    ),
+    sex_group = case_when(
+      stratification_category2 == &quot;Sex&quot; ~ stratification2,
+      TRUE ~ &quot;Overall&quot;
+    )
+  )
+
+# Filter for 65+ overall
+az_cog_65_overall &lt;- az_cog_summary_base |&gt;
+  filter(
+    age_group == &quot;65 years or older&quot;,
+    sex_group == &quot;Overall&quot;
+  )
+
+# Load income data
+inc15 &lt;- read_csv(&quot;data/median income-2015.csv&quot;, skip = 1) |&gt;
+  janitor::clean_names() |&gt;
+  transmute(
+    year = 2015,
+    state_name = geographic_area_name,
+    median_income = as.numeric(median_income_dollars_estimate_households)
+  )
+
+inc16 &lt;- read_csv(&quot;data/median income-2016.csv&quot;, skip = 1) |&gt;
+  janitor::clean_names() |&gt;
+  transmute(
+    year = 2016,
+    state_name = geographic_area_name,
+    median_income = as.numeric(median_income_dollars_estimate_households)
+  )
+
+income_state &lt;- bind_rows(inc15, inc16)
+
+income_state_with_state &lt;- income_state |&gt;
+  mutate(
+    state = str_squish(str_extract(state_name, &quot;[^,]+$&quot;)))
+
+income_state_level &lt;- income_state_with_state |&gt;
+  group_by(year, state) |&gt;
+  summarise(
+    n_counties = n(),
+    median_state = median(median_income, na.rm = TRUE),
+    mean_state   = mean(median_income, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  )
+
+# Merge income with Alzheimer&#39;s data
+state_vec &lt;- unique(income_state_level$state)
+
+az_cog_65_overall_state &lt;- az_cog_65_overall |&gt;
+  filter(
+    year_start %in% c(2015, 2016),
+    sex_group == &quot;Overall&quot;,
+    location_desc %in% state_vec
+  )
+
+az_income &lt;- az_cog_65_overall_state |&gt;
+  left_join(
+    income_state_level,
+    by = c(&quot;year_start&quot; = &quot;year&quot;,
+           &quot;location_desc&quot; = &quot;state&quot;)
+  )
+
+# Load education data
+edu15_raw &lt;- read_csv(&quot;data/education2015.csv&quot;, skip = 1) |&gt;
+  janitor::clean_names()
+
+edu15_state &lt;- edu15_raw |&gt;
+  filter(!str_detect(geographic_area_name, &quot;,&quot;))
+
+edu16_raw &lt;- read_csv(&quot;data/education2016.csv&quot;, skip = 1) |&gt;
+  janitor::clean_names()
+
+edu16_state &lt;- edu16_raw |&gt;
+  filter(!str_detect(geographic_area_name, &quot;,&quot;))
+
+edu15_state_slim &lt;- edu15_state |&gt;
+  transmute(
+    year = 2015,
+    state = geographic_area_name,
+    educ_bach = as.numeric(percent_estimate_percent_bachelors_degree_or_higher)
+  )
+
+edu16_state_slim &lt;- edu16_state |&gt;
+  transmute(
+    year = 2016,
+    state = geographic_area_name,
+    educ_bach = as.numeric(percent_estimate_percent_bachelors_degree_or_higher)
+  )
+
+edu_state &lt;- bind_rows(edu15_state_slim, edu16_state_slim)
+
+# Merge education with Alzheimer&#39;s data
+az_edu &lt;- az_cog_65_overall_state |&gt;
+  left_join(
+    edu_state,
+    by = c(
+      &quot;year_start&quot; = &quot;year&quot;,
+      &quot;location_desc&quot; = &quot;state&quot;
+    ))
+
+# Load air pollution data
+air15 &lt;- read_csv(&quot;data/clean_air_state_2015.csv&quot;)
+air16 &lt;- read_csv(&quot;data/clean_air_state_2016.csv&quot;)
+
+air_state &lt;- bind_rows(air15, air16)
+
+air_state_level &lt;- air_state |&gt;
+  group_by(year, state_desc) |&gt;
+  summarise(
+    pm25_state = mean(pm25_wtd_mean, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  )
+
+# Merge air pollution with Alzheimer&#39;s data
+az_air &lt;- az_cog_65_overall_state |&gt;
+  left_join(
+    air_state_level,
+    by = c(
+      &quot;year_start&quot;    = &quot;year&quot;,
+      &quot;location_desc&quot; = &quot;state_desc&quot;
+    )
+  )</code></pre>
+</div>
+<div id="demographic-analysis" class="section level1 content-section">
+<h1>Demographic Analysis</h1>
+<div id="distribution-differences" class="section level2">
+<h2>Distribution Differences</h2>
+<pre class="r"><code>library(patchwork)
+
+# Prepare data
+az_nat_65_overall &lt;- az_cog_65_overall |&gt;
+  group_by(year = year_start) |&gt;
+  summarise(
+    mean_prev = mean(data_value, na.rm = TRUE),
+    sd_prev   = sd(data_value, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  )
+
+az_age_desc &lt;- az_cog_summary_base |&gt;
+  group_by(age_group) |&gt;
+  summarise(
+    n_obs      = n(),
+    mean_value = mean(data_value, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  ) |&gt;
+  filter(age_group != &quot;Overall&quot;)
+
+az_sex_desc &lt;- az_cog_summary_base |&gt;
+  group_by(sex_group) |&gt;
+  summarise(
+    n_obs      = n(),
+    mean_value = mean(data_value, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  ) |&gt;
+  filter(sex_group != &quot;Overall&quot;)
+
+# Calculate consistent y-axis limit
+max_y &lt;- max(c(az_nat_65_overall$mean_prev, az_age_desc$mean_value, az_sex_desc$mean_value)) * 1.2
+
+# Plot 1: Prevalence by Year
+p_year &lt;- az_nat_65_overall |&gt;
+  mutate(year = factor(year)) |&gt;
+  ggplot(aes(x = year, y = mean_prev)) +
+  geom_col(fill = &quot;#d97706&quot;, alpha = 0.85, width = 0.65) +
+  geom_text(aes(label = paste0(round(mean_prev, 1), &quot;%&quot;)), 
+            vjust = -0.5, size = 10, fontface = &quot;bold&quot;, color = &quot;#d97706&quot;, family = &quot;serif&quot;) +
+  scale_y_continuous(limits = c(0, max_y), expand = c(0, 0),
+                     breaks = seq(0, 35, by = 5)) +
+  labs(
+    x = &quot;Year&quot;,
+    y = &quot;Mean prevalence (%)&quot;,
+    title = &quot;Prevalence by Year&quot;
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 35, face = &quot;bold&quot;, color = &quot;#d97706&quot;, hjust = 0.5, margin = margin(b = 15), family = &quot;serif&quot;),
+    axis.title = element_text(size = 30, face = &quot;bold&quot;, family = &quot;serif&quot;),
+    axis.title.y = element_text(margin = margin(r = 10)),
+    axis.text = element_text(size = 25, family = &quot;serif&quot;),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_line(color = &quot;grey90&quot;, linewidth = 0.5),
+    plot.margin = margin(10, 10, 10, 10),
+    text = element_text(family = &quot;serif&quot;)
+  )
+
+# Plot 2: Prevalence by Age
+p_age &lt;- az_age_desc |&gt;
+  mutate(age_group = factor(age_group, levels = c(&quot;50-64 years&quot;, &quot;65 years or older&quot;))) |&gt;
+  ggplot(aes(x = age_group, y = mean_value)) +
+  geom_col(fill = &quot;#d97706&quot;, alpha = 0.85, width = 0.65) +
+  geom_text(aes(label = paste0(round(mean_value, 1), &quot;%&quot;)), 
+            vjust = -0.5, size = 10, fontface = &quot;bold&quot;, color = &quot;#d97706&quot;, family = &quot;serif&quot;) +
+  scale_y_continuous(limits = c(0, max_y), expand = c(0, 0),
+                     breaks = seq(0, 35, by = 5)) +
+  labs(
+    x = &quot;Age group&quot;,
+    y = &quot;&quot;,
+    title = &quot;Prevalence by Age&quot;
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 35, face = &quot;bold&quot;, color = &quot;#d97706&quot;, hjust = 0.5, margin = margin(b = 15), family = &quot;serif&quot;),
+    axis.title = element_text(size = 30, face = &quot;bold&quot;, family = &quot;serif&quot;),
+    axis.text = element_text(size = 25, family = &quot;serif&quot;),
+    axis.text.x = element_text(angle = 15, hjust = 1, vjust = 1),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_line(color = &quot;grey90&quot;, linewidth = 0.5),
+    plot.margin = margin(10, 10, 10, 10),
+    text = element_text(family = &quot;serif&quot;)
+  )
+
+# Plot 3: Prevalence by Sex
+p_sex &lt;- az_sex_desc |&gt;
+  ggplot(aes(x = sex_group, y = mean_value)) +
+  geom_col(fill = &quot;#d97706&quot;, alpha = 0.85, width = 0.65) +
+  geom_text(aes(label = paste0(round(mean_value, 1), &quot;%&quot;)), 
+            vjust = -0.5, size = 10, fontface = &quot;bold&quot;, color = &quot;#d97706&quot;, family = &quot;serif&quot;) +
+  scale_y_continuous(limits = c(0, max_y), expand = c(0, 0),
+                     breaks = seq(0, 35, by = 5)) +
+  labs(
+    x = &quot;Sex&quot;,
+    y = &quot;&quot;,
+    title = &quot;Prevalence by Sex&quot;
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 35, face = &quot;bold&quot;, color = &quot;#d97706&quot;, hjust = 0.5, margin = margin(b = 15), family = &quot;serif&quot;),
+    axis.title = element_text(size = 30, face = &quot;bold&quot;, family = &quot;serif&quot;),
+    axis.text = element_text(size = 25, family = &quot;serif&quot;),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_line(color = &quot;grey90&quot;, linewidth = 0.5),
+    plot.margin = margin(10, 10, 10, 10),
+    text = element_text(family = &quot;serif&quot;)
+  )
+
+# Combine plots horizontally
+p_year + p_age + p_sex + plot_layout(ncol = 3, widths = c(1, 1.3, 1))</code></pre>
+<p><img src="analysis_files/figure-html/distribution-plots-1.png" width="95%" style="display: block; margin: auto;" /></p>
+<p>At the national level, the mean prevalence of Alzheimer’s-related
+cognitive indicators among adults aged 65+ was very similar in 2015
+(26.0%) and 2016 (25.8%). The small difference of 0.2 percentage points
+is well within the between-state variation and does not suggest any
+clear change over this two-year period.</p>
+<p>Across all cognitive items, the mean prevalence was about 31.8% among
+adults aged 50–64 years and 25.8% among those aged 65 years or
+older.</p>
+<p>Across all states and cognitive items in 2015–2016, women had a
+higher mean prevalence of Alzheimer’s-related cognitive indicators than
+men (30.9% vs 26.8%), suggesting a consistently greater reported
+cognitive burden among female respondents.</p>
+</div>
+<div id="socioeconomic-and-environmental-factors"
+class="section level2">
+<h2>Socioeconomic and Environmental Factors</h2>
+<div id="income-effects" class="section level3">
+<h3>Income Effects</h3>
+<pre class="r"><code>ggplot(az_income,
+       aes(x = median_state, y = data_value,
+           color = factor(year_start))) +
+  geom_point(alpha = 0.7, size = 3) +
+  geom_smooth(method = &quot;lm&quot;, se = TRUE, alpha = 0.2) +
+  scale_color_manual(values = c(&quot;#d97706&quot;, &quot;#2563eb&quot;)) +
+  labs(
+    x = &quot;State-level median household income (USD)&quot;,
+    y = &quot;Alzheimer&#39;s-related cognitive prevalence (%)&quot;,
+    color = &quot;Year&quot;,
+    title = &quot;State-level cognitive burden vs income among adults 65+ (2015–2016)&quot;
+  ) +
+  theme_minimal(base_family = &quot;serif&quot;) +
+  theme(
+    text = element_text(family = &quot;serif&quot;),
+    plot.title = element_text(size = 16, face = &quot;bold&quot;, color = &quot;#d97706&quot;, family = &quot;serif&quot;),
+    axis.title = element_text(size = 14, family = &quot;serif&quot;),
+    axis.text = element_text(size = 12, family = &quot;serif&quot;),
+    legend.text = element_text(size = 12, family = &quot;serif&quot;),
+    legend.title = element_text(size = 13, face = &quot;bold&quot;, family = &quot;serif&quot;)
+  )</code></pre>
+<p><img src="analysis_files/figure-html/income-plot-1.png" width="90%" /></p>
+<div
+style="display: flex; gap: 20px; justify-content: center; align-items: flex-start; flex-wrap: wrap; margin: 20px 0;">
+<div style="flex: 0 1 auto;">
+<table class="table table-striped table-hover" style="font-size: 12px; width: auto !important; ">
+<caption style="font-size: initial !important;">
+Linear Regression: Income Model
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+Predictor
+</th>
+<th style="text-align:right;">
+Estimate
+</th>
+<th style="text-align:right;">
+Std. Error
+</th>
+<th style="text-align:right;">
+t value
+</th>
+<th style="text-align:right;">
+p-value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+(Intercept)
+</td>
+<td style="text-align:left;">
+Intercept
+</td>
+<td style="text-align:right;">
+38.0490
+</td>
+<td style="text-align:right;">
+3.2599
+</td>
+<td style="text-align:right;color: rgba(217, 119, 6, 255) !important;">
+11.672
+</td>
+<td style="text-align:right;">
+&lt;0.001
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+median_state
+</td>
+<td style="text-align:left;">
+Median Household Income
+</td>
+<td style="text-align:right;">
+-0.0002
+</td>
+<td style="text-align:right;">
+0.0001
+</td>
+<td style="text-align:right;color: rgba(217, 119, 6, 255) !important;">
+-4.085
+</td>
+<td style="text-align:right;">
+&lt;0.001
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+factor(year_start)2016
+</td>
+<td style="text-align:left;">
+Year 2016 (vs 2015)
+</td>
+<td style="text-align:right;">
+-0.2920
+</td>
+<td style="text-align:right;">
+1.7231
+</td>
+<td style="text-align:right;color: rgba(102, 102, 102, 255) !important;">
+-0.169
+</td>
+<td style="text-align:right;">
+0.866
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div style="flex: 0 1 auto;">
+<table class="table table-striped table-hover" style="font-size: 12px; width: auto !important; ">
+<caption style="font-size: initial !important;">
+Model Summary
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Statistic
+</th>
+<th style="text-align:right;">
+Value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+R-squared
+</td>
+<td style="text-align:right;">
+0.0388
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Adjusted R-squared
+</td>
+<td style="text-align:right;">
+0.0344
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+F-statistic
+</td>
+<td style="text-align:right;">
+8.704
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+F p-value
+</td>
+<td style="text-align:right;">
+&lt;0.001
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>In a linear regression of state-level Alzheimer’s-related cognitive
+prevalence on median household income and survey year, higher income was
+associated with lower cognitive burden. The estimated coefficient for
+income was approximately <strong>-2.35 × 10⁻⁴</strong>, meaning that a
+$1,000 increase in state median income was associated with about a
+<strong>0.24–percentage-point lower</strong> prevalence, and a $10,000
+increase was associated with about a <strong>2.35–percentage-point
+lower</strong> prevalence among adults aged 65+. The coefficient for
+survey year (2016 vs 2015) was small (<span
+class="math inline">\(\hat\beta = -0.29\)</span>), suggesting no clear
+overall difference between the two years after accounting for income.
+However, the model <span class="math inline">\(R^2\)</span> was only
+<strong>0.04</strong>, indicating that income explains only a small
+fraction of the large between-state variation in cognitive outcomes.</p>
+<p>Although higher state-level income was statistically associated with
+lower Alzheimer’s-related cognitive prevalence, income explained only a
+small share of the between-state variability. Several factors may
+contribute to this weak relationship. First, the analysis is ecological:
+each observation is an aggregated state–year estimate, so large
+within-state differences in income and cognitive health are not
+captured, and any individual-level association is diluted. Second, both
+cognitive burden and income are measured with error (self-reported
+survey indicators and ACS estimates), and we further aggregated
+county-level income up to the state level, which may introduce
+additional noise. Third, we only examined two years (2015–2016), over
+which variation in both income and prevalence is fairly modest. Finally,
+many other state-level determinants—such as education, health care
+access, demographic composition, and prevalence of vascular risk
+factors—were not adjusted for, so income alone is unlikely to account
+for the wide variation in cognitive outcomes across states.</p>
+</div>
+<div id="education-effects" class="section level3">
+<h3>Education Effects</h3>
+<pre class="r"><code>ggplot(az_edu,
+       aes(x = educ_bach,
+           y = data_value,
+           color = factor(year_start))) +
+  geom_point(alpha = 0.7, size = 3) +
+  geom_smooth(method = &quot;lm&quot;, se = TRUE, alpha = 0.2) +
+  scale_color_manual(values = c(&quot;#d97706&quot;, &quot;#2563eb&quot;)) +
+  labs(
+    x = &quot;State-level % with bachelor&#39;s degree or higher (25+)&quot;,
+    y = &quot;Alzheimer&#39;s-related cognitive prevalence (%)&quot;,
+    color = &quot;Year&quot;,
+    title = &quot;State-level cognitive burden vs education among adults 65+ (2015–2016)&quot;
+  ) +
+  theme_minimal(base_family = &quot;serif&quot;) +
+  theme(
+    text = element_text(family = &quot;serif&quot;),
+    plot.title = element_text(size = 16, face = &quot;bold&quot;, color = &quot;#d97706&quot;, family = &quot;serif&quot;),
+    axis.title = element_text(size = 14, family = &quot;serif&quot;),
+    axis.text = element_text(size = 12, family = &quot;serif&quot;),
+    legend.text = element_text(size = 12, family = &quot;serif&quot;),
+    legend.title = element_text(size = 13, face = &quot;bold&quot;, family = &quot;serif&quot;)
+  )</code></pre>
+<p><img src="analysis_files/figure-html/education-plot-1.png" width="90%" /></p>
+<div
+style="display: flex; gap: 20px; justify-content: center; align-items: flex-start; flex-wrap: wrap; margin: 20px 0;">
+<div style="flex: 0 1 auto;">
+<table class="table table-striped table-hover" style="font-size: 12px; width: auto !important; ">
+<caption style="font-size: initial !important;">
+Linear Regression: Education Model
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+Predictor
+</th>
+<th style="text-align:right;">
+Estimate
+</th>
+<th style="text-align:right;">
+Std. Error
+</th>
+<th style="text-align:right;">
+t value
+</th>
+<th style="text-align:right;">
+p-value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+(Intercept)
+</td>
+<td style="text-align:left;">
+Intercept
+</td>
+<td style="text-align:right;">
+29.8727
+</td>
+<td style="text-align:right;">
+2.9527
+</td>
+<td style="text-align:right;color: rgba(217, 119, 6, 255) !important;">
+10.117
+</td>
+<td style="text-align:right;">
+&lt;0.001
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+educ_bach
+</td>
+<td style="text-align:left;">
+Education
+</td>
+<td style="text-align:right;">
+-0.1621
+</td>
+<td style="text-align:right;">
+0.0962
+</td>
+<td style="text-align:right;color: rgba(102, 102, 102, 255) !important;">
+-1.685
+</td>
+<td style="text-align:right;">
+0.0927
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+factor(year_start)2016
+</td>
+<td style="text-align:left;">
+Year 2016 (vs 2015)
+</td>
+<td style="text-align:right;">
+-1.1354
+</td>
+<td style="text-align:right;">
+1.7364
+</td>
+<td style="text-align:right;color: rgba(102, 102, 102, 255) !important;">
+-0.654
+</td>
+<td style="text-align:right;">
+0.5135
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div style="flex: 0 1 auto;">
+<table class="table table-striped table-hover" style="font-size: 12px; width: auto !important; ">
+<caption style="font-size: initial !important;">
+Model Summary
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Statistic
+</th>
+<th style="text-align:right;">
+Value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+R-squared
+</td>
+<td style="text-align:right;">
+0.0081
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Adjusted R-squared
+</td>
+<td style="text-align:right;">
+0.0035
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+F-statistic
+</td>
+<td style="text-align:right;">
+1.769
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+F p-value
+</td>
+<td style="text-align:right;">
+0.172
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>In a linear regression of state-level Alzheimer’s-related cognitive
+prevalence on the percentage of adults with a bachelor’s degree or
+higher and survey year, higher education was associated with lower
+cognitive burden. The estimated coefficient for education was
+approximately <strong>-0.16</strong>, meaning that a 1–percentage-point
+increase in the share of adults 25 years and older with at least a
+bachelor’s degree was associated with about a
+<strong>0.16–percentage-point lower</strong> prevalence of
+Alzheimer’s-related cognitive problems among adults aged 65+. A
+10–percentage-point increase in educational attainment would correspond
+to roughly a <strong>1.6–percentage-point lower</strong> prevalence.
+However, this association was relatively weak and not conventionally
+statistically significant. The model <span
+class="math inline">\(R^2\)</span> was only about <strong>0.01</strong>,
+indicating that education and year together explain only a small
+fraction of the large between-state variation in cognitive outcomes.</p>
+<p>Although states with higher levels of college education tended to
+have slightly lower Alzheimer’s-related cognitive prevalence, the
+relationship was weak and most of the between-state variability remained
+unexplained. Several factors may help explain this. First, the analysis
+is ecological: each data point is a state–year average, so big
+within-state differences in education and cognitive health are smoothed
+out, and any individual-level association is likely diluted. Second,
+both education and cognitive burden come from survey-based estimates and
+can be measured with error; on top of that, we aggregated county-level
+education indicators to the state level, which probably adds extra
+noise. Third, we only looked at two survey years (2015–2016), so there
+is not much variation over time in either education or cognitive
+outcomes. Finally, many other state-level factors—such as income, access
+to health care, population structure, and the prevalence of vascular and
+lifestyle risk factors—were not included in the model, so education
+alone is unlikely to explain the wide differences in cognitive outcomes
+across states.</p>
+</div>
+<div id="air-pollution-effects" class="section level3">
+<h3>Air Pollution Effects</h3>
+<pre class="r"><code>ggplot(az_air,
+       aes(x = pm25_state,
+           y = data_value, 
+           color = factor(year_start))) +
+  geom_point(alpha = 0.7, size = 3) +
+  geom_smooth(method = &quot;lm&quot;, se = TRUE, alpha = 0.2) +
+  scale_color_manual(values = c(&quot;#d97706&quot;, &quot;#2563eb&quot;)) +
+  labs(
+    x = &quot;State-level PM2.5 weighted mean (µg/m³)&quot;,
+    y = &quot;Alzheimer&#39;s-related cognitive prevalence (%)&quot;,
+    color = &quot;Year&quot;,
+    title = &quot;State-level cognitive burden vs PM2.5 among adults 65+ (2015–2016)&quot;
+  ) +
+  theme_minimal(base_family = &quot;serif&quot;) +
+  theme(
+    text = element_text(family = &quot;serif&quot;),
+    plot.title = element_text(size = 16, face = &quot;bold&quot;, color = &quot;#d97706&quot;, family = &quot;serif&quot;),
+    axis.title = element_text(size = 14, family = &quot;serif&quot;),
+    axis.text = element_text(size = 12, family = &quot;serif&quot;),
+    legend.text = element_text(size = 12, family = &quot;serif&quot;),
+    legend.title = element_text(size = 13, face = &quot;bold&quot;, family = &quot;serif&quot;)
+  )</code></pre>
+<p><img src="analysis_files/figure-html/air-pollution-plot-1.png" width="90%" /></p>
+<div
+style="display: flex; gap: 20px; justify-content: center; align-items: flex-start; flex-wrap: wrap; margin: 20px 0;">
+<div style="flex: 0 1 auto;">
+<table class="table table-striped table-hover" style="font-size: 12px; width: auto !important; ">
+<caption style="font-size: initial !important;">
+Linear Regression: Air Pollution Model
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+Predictor
+</th>
+<th style="text-align:right;">
+Estimate
+</th>
+<th style="text-align:right;">
+Std. Error
+</th>
+<th style="text-align:right;">
+t value
+</th>
+<th style="text-align:right;">
+p-value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+(Intercept)
+</td>
+<td style="text-align:left;">
+Intercept
+</td>
+<td style="text-align:right;">
+26.546012
+</td>
+<td style="text-align:right;">
+4.4889
+</td>
+<td style="text-align:right;color: rgba(217, 119, 6, 255) !important;">
+5.914
+</td>
+<td style="text-align:right;">
+&lt;0.001
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+pm25_state
+</td>
+<td style="text-align:left;">
+PM2.5 (µg/m³)
+</td>
+<td style="text-align:right;">
+-0.206672
+</td>
+<td style="text-align:right;">
+0.5494
+</td>
+<td style="text-align:right;color: rgba(102, 102, 102, 255) !important;">
+-0.376
+</td>
+<td style="text-align:right;">
+0.707
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+factor(year_start)2016
+</td>
+<td style="text-align:left;">
+Year 2016 (vs 2015)
+</td>
+<td style="text-align:right;">
+-1.160206
+</td>
+<td style="text-align:right;">
+1.7507
+</td>
+<td style="text-align:right;color: rgba(102, 102, 102, 255) !important;">
+-0.663
+</td>
+<td style="text-align:right;">
+0.508
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div style="flex: 0 1 auto;">
+<table class="table table-striped table-hover" style="font-size: 12px; width: auto !important; ">
+<caption style="font-size: initial !important;">
+Model Summary
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Statistic
+</th>
+<th style="text-align:right;">
+Value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+R-squared
+</td>
+<td style="text-align:right;">
+0.0013
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Adjusted R-squared
+</td>
+<td style="text-align:right;">
+-0.0035
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+F-statistic
+</td>
+<td style="text-align:right;">
+0.263
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+F p-value
+</td>
+<td style="text-align:right;">
+0.769
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>In a linear regression of state-level Alzheimer’s-related cognitive
+prevalence on PM2.5 and survey year, we did not observe a clear
+association between air pollution and cognitive burden among adults aged
+65+. The estimated coefficient for PM2.5 was approximately
+<strong>-0.207</strong> (p = 0.707), which was small and not
+statistically significant, indicating that PM2.5 is not a strong
+predictor of between-state differences in cognitive burden in this
+model.</p>
+<p>The coefficient for survey year (2016 vs 2015) was approximately
+<strong>-1.16</strong> with p = 0.508, suggesting no meaningful overall
+change in prevalence between the two years after accounting for PM2.5.
+The model <span class="math inline">\(R^2\)</span> was only
+<strong>0.001</strong>, implying that PM2.5 and year together explain
+only a negligible fraction of the substantial between-state variation in
+Alzheimer’s-related cognitive outcomes. This is not surprising given the
+ecological nature of the analysis (state-level averages), potential
+measurement error in both pollution and cognitive indicators, the short
+two-year time window, and the absence of other important determinants
+such as income, education, demographics, and health care access.</p>
+</div>
+</div>
+</div>
+<div id="geographic-analysis" class="section level1 content-section">
+<h1>Geographic Analysis</h1>
+<div id="alzheimers-outcomes-at-state-year-level"
+class="section level2">
+<h2>Alzheimer’s Outcomes at State-Year Level</h2>
+<table class="table table-striped table-hover" style="font-size: 12px; width: auto !important; margin-left: auto; margin-right: auto;">
+<caption style="font-size: initial !important;">
+Sample of State-Year Level Alzheimer’s Cognitive Prevalence Data (First
+10 rows)
+</caption>
+<thead>
+<tr>
+<th style="text-align:center;">
+Year
+</th>
+<th style="text-align:left;">
+State
+</th>
+<th style="text-align:center;">
+State Code
+</th>
+<th style="text-align:right;">
+Mean Prevalence (%)
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center;font-weight: bold;color: rgba(217, 119, 6, 255) !important;">
+2015
+</td>
+<td style="text-align:left;">
+Alabama
+</td>
+<td style="text-align:center;">
+AL
+</td>
+<td style="text-align:right;font-weight: bold;color: rgba(217, 119, 6, 255) !important;">
+30.25
+</td>
+</tr>
+<tr>
+<td style="text-align:center;font-weight: bold;color: rgba(217, 119, 6, 255) !important;">
+2015
+</td>
+<td style="text-align:left;">
+Arkansas
+</td>
+<td style="text-align:center;">
+AR
+</td>
+<td style="text-align:right;font-weight: bold;color: rgba(217, 119, 6, 255) !important;">
+27.59
+</td>
+</tr>
+<tr>
+<td style="text-align:center;font-weight: bold;color: rgba(217, 119, 6, 255) !important;">
+2015
+</td>
+<td style="text-align:left;">
+Arizona
+</td>
+<td style="text-align:center;">
+AZ
+</td>
+<td style="text-align:right;font-weight: bold;color: rgba(217, 119, 6, 255) !important;">
+23.44
+</td>
+</tr>
+<tr>
+<td style="text-align:center;font-weight: bold;color: rgba(217, 119, 6, 255) !important;">
+2015
+</td>
+<td style="text-align:left;">
+California
+</td>
+<td style="text-align:center;">
+CA
+</td>
+<td style="text-align:right;font-weight: bold;color: rgba(217, 119, 6, 255) !important;">
+25.74
+</td>
+</tr>
+<tr>
+<td style="text-align:center;font-weight: bold;color: rgba(217, 119, 6, 255) !important;">
+2015
+</td>
+<td style="text-align:left;">
+Colorado
+</td>
+<td style="text-align:center;">
+CO
+</td>
+<td style="text-align:right;font-weight: bold;color: rgba(217, 119, 6, 255) !important;">
+22.79
+</td>
+</tr>
+<tr>
+<td style="text-align:center;font-weight: bold;color: rgba(217, 119, 6, 255) !important;">
+2015
+</td>
+<td style="text-align:left;">
+District of Columbia
+</td>
+<td style="text-align:center;">
+DC
+</td>
+<td style="text-align:right;font-weight: bold;color: rgba(217, 119, 6, 255) !important;">
+30.28
+</td>
+</tr>
+<tr>
+<td style="text-align:center;font-weight: bold;color: rgba(217, 119, 6, 255) !important;">
+2015
+</td>
+<td style="text-align:left;">
+Florida
+</td>
+<td style="text-align:center;">
+FL
+</td>
+<td style="text-align:right;font-weight: bold;color: rgba(217, 119, 6, 255) !important;">
+25.18
+</td>
+</tr>
+<tr>
+<td style="text-align:center;font-weight: bold;color: rgba(217, 119, 6, 255) !important;">
+2015
+</td>
+<td style="text-align:left;">
+Georgia
+</td>
+<td style="text-align:center;">
+GA
+</td>
+<td style="text-align:right;font-weight: bold;color: rgba(217, 119, 6, 255) !important;">
+31.82
+</td>
+</tr>
+<tr>
+<td style="text-align:center;font-weight: bold;color: rgba(217, 119, 6, 255) !important;">
+2015
+</td>
+<td style="text-align:left;">
+Hawaii
+</td>
+<td style="text-align:center;">
+HI
+</td>
+<td style="text-align:right;font-weight: bold;color: rgba(217, 119, 6, 255) !important;">
+23.15
+</td>
+</tr>
+<tr>
+<td style="text-align:center;font-weight: bold;color: rgba(217, 119, 6, 255) !important;">
+2015
+</td>
+<td style="text-align:left;">
+Iowa
+</td>
+<td style="text-align:center;">
+IA
+</td>
+<td style="text-align:right;font-weight: bold;color: rgba(217, 119, 6, 255) !important;">
+19.24
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="mapping-alzheimers-related-cognitive-burden"
+class="section level2">
+<h2>Mapping Alzheimer’s-related Cognitive Burden</h2>
+<div id="state-level-choropleth-map-for-2015" class="section level3">
+<h3>State-level Choropleth Map for 2015</h3>
+<pre class="r"><code>az_2015 &lt;- az_state_year |&gt; 
+  filter(year == 2015)
+
+us_map &lt;- map_data(&quot;state&quot;) |&gt; as_tibble()
+
+az_map_2015 &lt;- az_2015 |&gt; 
+  mutate(region = str_to_lower(state_name)) |&gt; 
+  inner_join(us_map, by = &quot;region&quot;)
+
+ggplot(az_map_2015,
+       aes(long, lat, group = group, fill = mean_prev)) +
+  geom_polygon(color = &quot;black&quot;, linewidth = 0.3) +
+    geom_path(data = us_map, aes(long, lat, group = group), 
+            color = &quot;black&quot;, linewidth = 0.8, inherit.aes = FALSE) +
+  coord_fixed(1.3) +
+  scale_fill_viridis_c(option = &quot;C&quot;) +
+  labs(
+    title = &quot;Alzheimer&#39;s-related cognitive prevalence (Age 65+, 2015)&quot;,
+    fill  = &quot;Prevalence (%)&quot;
+  ) +
+  theme_void(base_family = &quot;serif&quot;) +
+  theme(
+    legend.position = &quot;right&quot;,
+    text = element_text(family = &quot;serif&quot;),
+    plot.title = element_text(size = 16, face = &quot;bold&quot;, color = &quot;#d97706&quot;, family = &quot;serif&quot;),
+    legend.text = element_text(size = 12, family = &quot;serif&quot;),
+    legend.title = element_text(size = 13, face = &quot;bold&quot;, family = &quot;serif&quot;)
+  )</code></pre>
+<p><img src="analysis_files/figure-html/map_2015-1.png" width="90%" /></p>
+</div>
+<div id="state-level-choropleth-map-for-2016" class="section level3">
+<h3>State-level Choropleth Map for 2016</h3>
+<pre class="r"><code>az_2016 &lt;- az_state_year |&gt; 
+  filter(year == 2016)
+
+us_map &lt;- map_data(&quot;state&quot;) |&gt; as_tibble()
+
+az_map_2016 &lt;- az_2016 |&gt; 
+  mutate(region = str_to_lower(state_name)) |&gt; 
+  inner_join(us_map, by = &quot;region&quot;)
+
+ggplot(az_map_2016,
+       aes(long, lat, group = group, fill = mean_prev)) +
+  geom_polygon(color = &quot;black&quot;, linewidth = 0.3) +
+  geom_path(data = us_map, aes(long, lat, group = group), 
+          color = &quot;black&quot;, linewidth = 0.8, inherit.aes = FALSE) +
+  coord_fixed(1.3) +
+  scale_fill_viridis_c(option = &quot;C&quot;) +
+  labs(
+    title = &quot;Alzheimer&#39;s-related cognitive prevalence (Age 65+, 2016)&quot;,
+    fill  = &quot;Prevalence (%)&quot;
+  ) +
+  theme_void(base_family = &quot;serif&quot;) +
+  theme(
+    legend.position = &quot;right&quot;,
+    text = element_text(family = &quot;serif&quot;),
+    plot.title = element_text(size = 16, face = &quot;bold&quot;, color = &quot;#d97706&quot;, family = &quot;serif&quot;),
+    legend.text = element_text(size = 12, family = &quot;serif&quot;),
+    legend.title = element_text(size = 13, face = &quot;bold&quot;, family = &quot;serif&quot;)
+  )</code></pre>
+<p><img src="analysis_files/figure-html/map_2016-1.png" width="90%" /></p>
+</div>
+<div id="side-by-side-comparison-2015-vs-2016" class="section level3">
+<h3>Side-by-side Comparison (2015 vs 2016)</h3>
+<pre class="r"><code>library(patchwork)
+
+az_15_16 &lt;- az_state_year |&gt; 
+  filter(year %in% c(2015, 2016))
+
+us_map &lt;- map_data(&quot;state&quot;) |&gt; as_tibble()
+
+az_map_15_16 &lt;- az_15_16 |&gt; 
+  mutate(region = str_to_lower(state_name)) |&gt; 
+  inner_join(us_map, by = &quot;region&quot;)
+
+p1 &lt;- ggplot(az_map_15_16 |&gt; filter(year == 2015),
+       aes(long, lat, group = group, fill = mean_prev)) +
+  geom_polygon(color = &quot;black&quot;, linewidth = 0.3) +
+  geom_path(data = us_map, aes(long, lat, group = group), 
+            color = &quot;black&quot;, linewidth = 0.8, inherit.aes = FALSE) +
+  coord_fixed(1.3) +
+  scale_fill_viridis_c(option = &quot;C&quot;, name = &quot;Prevalence (%)&quot;) +
+  labs(title = &quot;2015&quot;) +
+  theme_void(base_family = &quot;serif&quot;) +
+  theme(
+    legend.position = &quot;right&quot;,
+    text = element_text(family = &quot;serif&quot;),
+    plot.title = element_text(size = 16, face = &quot;bold&quot;, color = &quot;#d97706&quot;, family = &quot;serif&quot;),
+    legend.text = element_text(size = 12, family = &quot;serif&quot;),
+    legend.title = element_text(size = 13, face = &quot;bold&quot;, family = &quot;serif&quot;)
+  )
+
+p2 &lt;- ggplot(az_map_15_16 |&gt; filter(year == 2016),
+       aes(long, lat, group = group, fill = mean_prev)) +
+  geom_polygon(color = &quot;black&quot;, linewidth = 0.3) +
+  geom_path(data = us_map, aes(long, lat, group = group), 
+            color = &quot;black&quot;, linewidth = 0.8, inherit.aes = FALSE) +
+  coord_fixed(1.3) +
+  scale_fill_viridis_c(option = &quot;C&quot;, name = &quot;Prevalence (%)&quot;) +
+  labs(title = &quot;2016&quot;) +
+  theme_void(base_family = &quot;serif&quot;) +
+  theme(
+    legend.position = &quot;right&quot;,
+    text = element_text(family = &quot;serif&quot;),
+    plot.title = element_text(size = 16, face = &quot;bold&quot;, color = &quot;#d97706&quot;, family = &quot;serif&quot;),
+    legend.text = element_text(size = 12, family = &quot;serif&quot;),
+    legend.title = element_text(size = 13, face = &quot;bold&quot;, family = &quot;serif&quot;)
+  )
+
+p1 + p2</code></pre>
+<p><img src="analysis_files/figure-html/map_compare_2015_2016-1.png" width="90%" /></p>
+<p>Geographic patterns of Alzheimer’s-related cognitive prevalence were
+visualized using state-level choropleth maps for 2015 and 2016. In both
+years, several Southern and Southeastern states showed higher prevalence
+levels, while many Western and Northeastern states displayed noticeably
+lower burdens. The spatial distribution remained largely consistent
+between 2015 and 2016, suggesting limited short-term change in
+geographic patterns of cognitive burden among adults aged 65+.</p>
+</div>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

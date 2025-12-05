@@ -11,12 +11,12 @@
 
 
 
-<title>Project Report</title>
+<title>report.knit</title>
 
 <script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="site_libs/bootstrap-3.3.5/css/united.min.css" rel="stylesheet" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
@@ -29,6 +29,9 @@
        h6 {font-size: 12px;}
        code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
        pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
@@ -225,6 +228,69 @@ $(document).ready(function () {
 
 
 
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
 
 </head>
 
@@ -232,6 +298,16 @@ $(document).ready(function () {
 
 
 <div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -317,65 +393,16 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Project Report</h1>
 
 </div>
 
 
-<div id="motivation" class="section level1">
-<h1>Motivation</h1>
-<hr />
-</div>
-<div id="research-questions" class="section level1">
-<h1>Research Questions</h1>
-<p>The purposes of this project is to answer the following
-questions:</p>
-<ol style="list-style-type: decimal">
-<li><p><strong>Geographic Variation</strong>: How does the prevalence of
-self-reported cognitive decline vary across U.S. states and
-territories?</p></li>
-<li><p><strong>Demographic Patterns</strong>: Are there differences in
-cognitive burden by age group and sex?</p></li>
-<li><p><strong>Socioeconomic Factors</strong>: Is state-level median
-household income associated with cognitive decline prevalence?</p></li>
-<li><p><strong>Educational Attainment</strong>: Does the proportion of
-adults with higher education relate to cognitive outcomes?</p></li>
-<li><p><strong>Environmental Exposures</strong>: Is air pollution
-(PM2.5) associated with cognitive decline at the state level?</p></li>
-</ol>
-<hr />
-</div>
-<div id="methods" class="section level1">
-<h1>Methods</h1>
-<hr />
-</div>
-<div id="eda" class="section level1">
-<h1>EDA</h1>
-<hr />
-</div>
-<div id="model-building" class="section level1">
-<h1>Model Building</h1>
-<hr />
-</div>
-<div id="conclusion" class="section level1">
-<h1>Conclusion</h1>
-<hr />
-</div>
-<div id="discussion-and-limitations" class="section level1">
-<h1>Discussion and Limitations</h1>
-<p>Our analysis relies on data from 2015–2016 due to the availability of
-specific ‘Cognitive Decline’ modules in the BRFSS dataset during these
-years. While this data is a decade old, it serves as a vital
-pre-pandemic baseline for cognitive health in the US. Furthermore, given
-the chronic nature of Alzheimer’s disease and the stability of
-state-level socioeconomic stratifications, the associations identified
-here likely reflect persistent structural inequalities. This project
-establishes a reproducible workflow that can be applied to future
-dataset releases to track longitudinal shifts in these associations.</p>
-</div>
 
 
 
+
+</div>
+</div>
 
 </div>
 
@@ -413,6 +440,35 @@ $(document).ready(function () {
 });
 </script>
 
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>

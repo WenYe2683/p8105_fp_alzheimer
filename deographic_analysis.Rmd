@@ -1,16 +1,168 @@
 ---
-title: "Deographic Analysis"
 output: 
   html_document:
     toc: true
     toc_float: true
     code_folding: hide
+    theme: flatly
 ---
+
+<style>
+/* Global Styles */
+html, body {
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  line-height: 1.8;
+  color: #333;
+  margin: 0;
+  padding: 0;
+  background-color: white;
+}
+
+/* Floating Navigation Bar */
+.navbar {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  border: none !important;
+  position: fixed !important;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.navbar-default .navbar-brand,
+.navbar-default .navbar-nav > li > a {
+  color: white !important;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.navbar-default .navbar-brand:hover,
+.navbar-default .navbar-nav > li > a:hover {
+  color: #f0f0f0 !important;
+}
+
+.navbar-default .navbar-toggle {
+  border-color: rgba(255,255,255,0.5);
+}
+
+.navbar-default .navbar-toggle .icon-bar {
+  background-color: white;
+}
+
+.navbar-default .navbar-toggle:hover,
+.navbar-default .navbar-toggle:focus {
+  background-color: rgba(255,255,255,0.1);
+}
+
+/* Add padding to body to account for fixed navbar */
+body {
+  padding-top: 50px;
+}
+
+/* Content Sections */
+.main-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px;
+}
+
+/* Headings */
+h1 {
+  color: #d97706;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-weight: 900;
+  font-size: 1.8em;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+h2 {
+  color: #d97706;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-weight: 900;
+  font-size: 1.3em;
+  margin-top: 30px;
+  margin-bottom: 15px;
+}
+
+h3 {
+  color: #ea580c;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-weight: 800;
+  font-size: 1em;
+  margin-top: 25px;
+  margin-bottom: 12px;
+}
+
+h4 {
+  color: #d97706;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-weight: 600;
+  font-size: 0.8em;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+/* Text styling */
+p, li {
+  color: #555;
+  line-height: 1.8;
+  margin-bottom: 15px;
+  font-size: 1.05em;
+}
+
+strong {
+  color: #d97706;
+  font-weight: 700;
+}
+
+/* Code blocks */
+pre {
+  background: #f5f5f5;
+  border-left: 4px solid #d97706;
+  padding: 15px;
+  border-radius: 5px;
+  overflow-x: auto;
+}
+
+code {
+  color: #d97706;
+  background: rgba(217, 119, 6, 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+/* Tables */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 20px 0;
+}
+
+table th {
+  background: #d97706;
+  color: white;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+}
+
+table td {
+  padding: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+table tr:hover {
+  background: rgba(217, 119, 6, 0.05);
+}
+</style>
+
+# Data Loading
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
-  fig.width = 6,
-  fig.asp = .6,
+  fig.width = 10,
+  fig.asp = 0.6,
   out.width = "90%"
 )
 
@@ -18,9 +170,10 @@ library(tidyverse)
 library(ggplot2)
 library(knitr)
 library(janitor)
-```
+library(stringr)
 
-# Data Loading
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+```
 
 ```{r data-loading, message=FALSE, warning=FALSE}
 # Load Alzheimer's data
@@ -343,3 +496,4 @@ summary(model_air)
 In a linear regression of state-level Alzheimer's-related cognitive prevalence on PM2.5 and survey year, we did not observe a clear association between air pollution and cognitive burden among adults aged 65+. The estimated coefficient for PM2.5 was $\hat\beta_{\text{PM2.5}} =$ `r round(coef(model_air)[2], 3)`, meaning that a 1–µg/m³ increase in the state-level PM2.5 weighted mean was associated with an estimated `r round(coef(model_air)[2], 3)`–percentage-point change in Alzheimer's-related cognitive prevalence. A 10–µg/m³ difference in PM2.5 would therefore correspond to roughly `r round(coef(model_air)[2] * 10, 2)` percentage points. However, this association was small and not statistically significant (p = `r round(summary(model_air)$coefficients[2, 4], 3)`), indicating that PM2.5 is not a strong predictor of between-state differences in cognitive burden in this model.
 
 The coefficient for survey year (2016 vs 2015) was $\hat\beta_{\text{year}} =$ `r round(coef(model_air)[3], 3)` with p = `r round(summary(model_air)$coefficients[3, 4], 3)`, suggesting no meaningful overall change in prevalence between the two years after accounting for PM2.5. The model $R^2$ was only `r round(summary(model_air)$r.squared, 3)`, implying that PM2.5 and year together explain only a negligible fraction of the substantial between-state variation in Alzheimer's-related cognitive outcomes. This is not surprising given the ecological nature of the analysis (state-level averages), potential measurement error in both pollution and cognitive indicators, the short two-year time window, and the absence of other important determinants such as income, education, demographics, and health care access.
+
