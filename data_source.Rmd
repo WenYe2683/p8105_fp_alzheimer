@@ -193,6 +193,10 @@ scale_colour_discrete = scale_colour_viridis_d
 scale_fill_discrete = scale_fill_viridis_d
 ```
 
+</div>
+
+<div class="content-section">
+
 # Data Source
 
 We integrated 4 publicly available datasets to examine demographic, socioeconomic, environmental, and geographic factors associated with self-reported cognitive problems among middle-aged and older adults:
@@ -222,9 +226,7 @@ tibble(
 
 <div class="content-section">
 
-# Data Cleaning and Initial Analysis
-
-## Alzheimer's Disease and Healthy Aging Data: Sex and Age
+# Data Cleaning
 
 ```{r warning=FALSE, message=FALSE}
 raw_az_data <- read.csv("data/2015-2022 Alzheimer Data.csv") |>
@@ -389,6 +391,7 @@ In contrast, the 2015–2016 Top 10 is based only on adults aged 65+ with sexes 
 
 <div class="content-section">
 
+# Initial Analysis
 ## Socioeconomic Factor: Income
 
 We obtained both income and education data from the U.S. Census Bureau's American Community Survey (ACS), which provides reliable state-level socioeconomic indicators.
@@ -503,10 +506,6 @@ Then we merging with Primary Healthy Aging Dataset:
 
 As the Healthy Aging dataset is designed to monitor cognitive health in older adults and Alzheimer's disease primarily affects seniors, we restricted our analytic sample to respondents aged 65+ years. For the main state/territory-level analysis, we used sex-grouped estimates labeled "Overall" rather than sex-specific values so that each state/territory–year contributed a single prevalence estimate, simplifying the comparison with state/territory-level income and avoiding multiple correlated observations per state.
 
-</div>
-
-<div class="content-section">
-
 ## Socioeconomic Factor: Education
 
 Educational attainment data were also obtained from the ACS for the same years (2015–2016).
@@ -583,9 +582,6 @@ Merging Education Data with Healthy Aging Data:
 
 We used the proportion of adults aged 25 years and older with a bachelor's degree or higher as our main education indicator. This measure is commonly reported in the ACS and captures individuals who have completed at least a four-year college education, which is often used as a marker of higher socioeconomic status and cognitive reserve in the literature. Compared with more detailed education categories, using "bachelor's degree or higher" gives a simple, comparable summary of educational attainment across states and years.
 
-</div>
-
-<div class="content-section">
 
 ## Environmental Factor: Air Pollution
 

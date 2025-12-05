@@ -554,8 +554,7 @@ table tr:last-child td {
   border-bottom: 2px solid #d97706;
 }
 </style>
-<div class="content-section">
-<div id="overview" class="section level1">
+<div id="overview" class="section level1 content-section">
 <h1>Overview</h1>
 <p>This page documents the data sources used in our analysis of
 cognitive decline and Alzheimer’s-related indicators across the United
@@ -587,7 +586,7 @@ options(
 scale_colour_discrete = scale_colour_viridis_d
 scale_fill_discrete = scale_fill_viridis_d</code></pre>
 </div>
-<div id="data-source" class="section level1">
+<div id="data-source" class="section level1 content-section">
 <h1>Data Source</h1>
 <p>We integrated 4 publicly available datasets to examine demographic,
 socioeconomic, environmental, and geographic factors associated with
@@ -672,13 +671,8 @@ State (aggregated from county)
 </tbody>
 </table>
 </div>
-</div>
-<div id="data-cleaning-and-initial-analysis"
-class="section level1 content-section">
-<h1>Data Cleaning and Initial Analysis</h1>
-<div id="alzheimers-disease-and-healthy-aging-data-sex-and-age"
-class="section level2">
-<h2>Alzheimer’s Disease and Healthy Aging Data: Sex and Age</h2>
+<div id="data-cleaning" class="section level1 content-section">
+<h1>Data Cleaning</h1>
 <pre class="r"><code>raw_az_data &lt;- read.csv(&quot;data/2015-2022 Alzheimer Data.csv&quot;) |&gt;
   janitor::clean_names()
 
@@ -1040,9 +1034,9 @@ overall burden in older adults, not the maximum value in any age–sex
 subgroup, and provides useful context for later stratified analyses or
 adjustment for potential confounders such as age, sex, or region.</p>
 </div>
-</div>
-<div id="socioeconomic-factor-income"
-class="section level2 content-section">
+<div id="initial-analysis" class="section level1 content-section">
+<h1>Initial Analysis</h1>
+<div id="socioeconomic-factor-income" class="section level2">
 <h2>Socioeconomic Factor: Income</h2>
 <p>We obtained both income and education data from the U.S. Census
 Bureau’s American Community Survey (ACS), which provides reliable
@@ -1256,8 +1250,7 @@ state/territory–year contributed a single prevalence estimate,
 simplifying the comparison with state/territory-level income and
 avoiding multiple correlated observations per state.</p>
 </div>
-<div id="socioeconomic-factor-education"
-class="section level2 content-section">
+<div id="socioeconomic-factor-education" class="section level2">
 <h2>Socioeconomic Factor: Education</h2>
 <p>Educational attainment data were also obtained from the ACS for the
 same years (2015–2016).</p>
@@ -1335,8 +1328,7 @@ the literature. Compared with more detailed education categories, using
 “bachelor’s degree or higher” gives a simple, comparable summary of
 educational attainment across states and years.</p>
 </div>
-<div id="environmental-factor-air-pollution"
-class="section level2 content-section">
+<div id="environmental-factor-air-pollution" class="section level2">
 <h2>Environmental Factor: Air Pollution</h2>
 <p>We obtained air pollution data from the U.S. Environmental Protection
 Agency (EPA) Air Quality System (AQS), specifically the 24-hour weighted
@@ -1645,6 +1637,7 @@ az_air |&gt;
 </tr>
 </tbody>
 </table>
+</div>
 </div>
 <div id="data-availability" class="section level1 content-section">
 <h1>Data Availability</h1>
