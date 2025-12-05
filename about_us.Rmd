@@ -216,8 +216,9 @@ body {
 </div>
 
 <div class="team-member">
-<h3>Chuhan Wang</h3>
+<h3><a href="https://akacloud0429.github.io/" target="_blank">Chuhan Wang</a></h3>
 <p><strong>cw3747</strong></p>
+<img src="about_us_image/chuhan.jpg" alt="Chuhan Wang">
 </div>
 
 <div class="team-member">

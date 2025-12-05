@@ -11,12 +11,12 @@
 
 
 
-<title>Data Analysis</title>
+<title>data_source.knit</title>
 
 <script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="site_libs/bootstrap-3.3.5/css/united.min.css" rel="stylesheet" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
@@ -393,19 +393,169 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Data Analysis</h1>
 
 </div>
 
 
-<div id="overview" class="section level1">
+<style>
+/* Global Styles */
+html, body {
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  line-height: 1.8;
+  color: #333;
+  margin: 10px;
+  padding: 10px;
+  background-color: white;
+}
+
+/* Floating Navigation Bar */
+.navbar {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  border: none !important;
+  position: fixed !important;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.navbar-default .navbar-brand,
+.navbar-default .navbar-nav > li > a {
+  color: white !important;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.navbar-default .navbar-brand:hover,
+.navbar-default .navbar-nav > li > a:hover {
+  color: #f0f0f0 !important;
+}
+
+.navbar-default .navbar-toggle {
+  border-color: rgba(255,255,255,0.5);
+}
+
+.navbar-default .navbar-toggle .icon-bar {
+  background-color: white;
+}
+
+.navbar-default .navbar-toggle:hover,
+.navbar-default .navbar-toggle:focus {
+  background-color: rgba(255,255,255,0.1);
+}
+
+body {
+  padding-top: 70px;
+}
+
+/* Content Sections */
+.content-section {
+  padding: 5px 10px;
+  max-width: 1200px;
+  margin: 0 auto 10px auto;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.content-section h1 {
+  font-size: 1.8em;
+  color: #d97706;
+  margin-top: 5px !important;
+  margin-bottom: 5px;
+  padding-top: 5px !important;
+  font-weight: 900;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.content-section h2 {
+  font-size: 1.5em;
+  color: #ea580c;
+  margin-top: 5px !important;
+  margin-bottom: 5px;
+  padding-top: 5px !important;
+  font-weight: 800;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.content-section h3 {
+  font-size: 1.2em;
+  color: #d97706;
+  margin-top: 5px !important;
+  margin-bottom: 5px;
+  padding-top: 5px !important;
+  font-weight: 600;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.content-section p {
+  font-size: 1em;
+  color: #555;
+  margin-bottom: 15px;
+  line-height: 1.8;
+}
+
+.content-section strong {
+  color: #d97706;
+  font-weight: 700;
+}
+
+.content-section ul, .content-section ol {
+  color: #555;
+  line-height: 1.8;
+  margin-bottom: 15px;
+}
+
+.content-section li {
+  margin-bottom: 8px;
+}
+
+/* Center all figures */
+.figure {
+  text-align: center !important;
+  margin: 20px auto !important;
+}
+
+img {
+  display: block !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* Table styling */
+table {
+  margin: 20px auto;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+table th,
+table td {
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+table th {
+  border-top: 2px solid #d97706;
+  border-bottom: 2px solid #d97706;
+  background-color: rgba(217, 119, 6, 0.1);
+  font-weight: 700;
+  color: #d97706;
+}
+
+table tr:last-child td {
+  border-bottom: 2px solid #d97706;
+}
+</style>
+<div id="overview" class="section level1 content-section">
 <h1>Overview</h1>
 <p>This page documents the data sources used in our analysis of
 cognitive decline and Alzheimer’s-related indicators across the United
 States. We integrated multiple publicly available datasets to examine
 geographic, socioeconomic, and environmental factors associated with
 self-reported cognitive problems among middle-aged and older adults.</p>
-<hr />
 <pre class="r"><code>library(tidyverse)
 library(patchwork)
 library(scales)
@@ -430,7 +580,8 @@ options(
 scale_colour_discrete = scale_colour_viridis_d
 scale_fill_discrete = scale_fill_viridis_d</code></pre>
 </div>
-<div id="data-cleaning-and-initial-analysis" class="section level1">
+<div id="data-cleaning-and-initial-analysis"
+class="section level1 content-section">
 <h1>Data Cleaning and Initial Analysis</h1>
 <div id="alzheimers-disease-and-healthy-aging-data-sex-and-age"
 class="section level2">
@@ -770,7 +921,9 @@ overall burden in older adults, not the maximum value in any age–sex
 subgroup, and provides useful context for later stratified analyses or
 adjustment for potential confounders such as age, sex, or region.</p>
 </div>
-<div id="socioeconomic-factor-income" class="section level2">
+</div>
+<div id="socioeconomic-factor-income"
+class="section level2 content-section">
 <h2>Socioeconomic Factor: Income</h2>
 <p>As the Healthy Aging dataset is designed to monitor cognitive health
 in older adults and Alzheimer’s disease primarily affects seniors, we
@@ -937,7 +1090,8 @@ az_income &lt;- az_cog_65_overall_state |&gt;
            &quot;location_desc&quot; = &quot;state&quot;)
   )</code></pre>
 </div>
-<div id="socioeconomic-factor-education" class="section level2">
+<div id="socioeconomic-factor-education"
+class="section level2 content-section">
 <h2>Socioeconomic Factor: Education</h2>
 <pre class="r"><code>edu15_raw &lt;- read_csv(&quot;data/education2015.csv&quot;, skip = 1) |&gt;
   janitor::clean_names()
@@ -981,7 +1135,8 @@ edu_state &lt;- bind_rows(edu15_state_slim, edu16_state_slim)</code></pre>
       &quot;location_desc&quot; = &quot;state&quot;
     ))</code></pre>
 </div>
-<div id="environmental-factor-air-pollution" class="section level2">
+<div id="environmental-factor-air-pollution"
+class="section level2 content-section">
 <h2>Environmental Factor: Air Pollution</h2>
 <pre class="r"><code>air15 &lt;- read_csv(&quot;data/clean_air_state_2015.csv&quot;)
 air16 &lt;- read_csv(&quot;data/clean_air_state_2016.csv&quot;)
@@ -1086,21 +1241,7 @@ dataset.</p>
     .groups = &quot;drop&quot;
   )
 
-air_state_level |&gt; head(10)</code></pre>
-<pre><code>## # A tibble: 10 × 3
-##     year state_desc  pm25_state
-##    &lt;dbl&gt; &lt;chr&gt;            &lt;dbl&gt;
-##  1  2015 Alabama           9.02
-##  2  2015 Alaska           10.3 
-##  3  2015 Arizona           7.7 
-##  4  2015 Arkansas          8.82
-##  5  2015 California        9.83
-##  6  2015 Colorado          6.38
-##  7  2015 Connecticut       8.1 
-##  8  2015 Delaware          8.57
-##  9  2015 Florida           6.54
-## 10  2015 Georgia           9.02</code></pre>
-<pre class="r"><code>air_state_level |&gt;
+air_state_level |&gt;
   head(10) |&gt;
   mutate(year = as.character(year)) |&gt; 
   kable(
@@ -1278,8 +1419,7 @@ az_air |&gt;
 </tbody>
 </table>
 </div>
-</div>
-<div id="data-availability" class="section level1">
+<div id="data-availability" class="section level1 content-section">
 <h1>Data Availability</h1>
 <p>All data sources used in this project are publicly available:</p>
 <table style="width:100%;">
