@@ -549,7 +549,7 @@ Information about our data sources and cleaning procedures
 </div>
 
 <div class="card">
-<h4>[Analysis](deographic_analysis.html)</h4>
+<h4>[Analysis](analysis.html)</h4>
 Exploratory analysis by demographics and geographics
 </div>
 
