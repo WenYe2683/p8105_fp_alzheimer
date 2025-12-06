@@ -612,7 +612,9 @@ Meet our lovely team
   <h2>Screencast</h2>
   
   <div class="video-container">
-  <iframe src="https://www.youtube.com/embed/YOUR_VIDEO_ID" frameborder="0" allowfullscreen></iframe>
+```{=html}
+<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/Auqpw4OaxiI?si=Oi005iMge2xpHkJi" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+```
   </div>
   
   <p style="text-align: center; color: #666; font-style: italic; margin-top: 20px;">Click on the video above to learn about our project findings and methodology.</p>
